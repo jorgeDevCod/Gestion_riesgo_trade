@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gold Trading Dashboard - Control Total</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🥇 Gold Trading Dashboard</h1>
+            <p>Control Total de Estrategia - Capital: <span id="currentCapital">$1,930</span></p>
+        </div>
+
+        <div class="capital-info">
+            <div class="capital-card">
+                <div class="capital-value" id="availableRisk">$96.50</div>
+                <div>Riesgo Disponible (5%)</div>
+            </div>
+            <div class="capital-card">
+                <div class="capital-value" id="dailyTarget">$47</div>
+                <div>Meta Diaria Conservadora</div>
+            </div>
+            <div class="capital-card">
+                <div class="capital-value" id="monthlyProgress">0%</div>
+                <div>Progreso Mensual</div>
+            </div>
+            <div class="capital-card">
+                <div class="capital-value" id="todayPnL">$0</div>
+                <div>P&L Hoy</div>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('signals')">📊 Señales</button>
+            <button class="tab" onclick="showTab('risk')">⚖️ Gestión Riesgo</button>
+            <button class="tab" onclick="showTab('trades')">📝 Registro Trades</button>
+            <button class="tab" onclick="showTab('schedule')">⏰ Horarios</button>
+            <button class="tab" onclick="showTab('stats')">📈 Estadísticas</button>
+        </div>
+
+        <!-- TAB: SEÑALES -->
+        <div id="signals" class="tab-content active">
+            <h2>🔍 Checklist de Señales de Trading</h2>
+
+            <div class="checklist">
+                <div class="checklist-section">
+                    <h3>📈 SEÑAL DE COMPRA</h3>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="buy_h4_macd">
+                        <label for="buy_h4_macd">MACD H4: Histograma + a positivo</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="buy_h1_macd">
+                        <label for="buy_h1_macd">MACD H1: Confirma cruce alcista</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="buy_h4_williams">
+                        <label for="buy_h4_williams">Williams H4: Sale de sobreventa (-80 a -50)</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="buy_h1_williams">
+                        <label for="buy_h1_williams">Williams H1: Confirma salida sobreventa</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="buy_m15_timing">
+                        <label for="buy_m15_timing">M15: Timing preciso confirmado</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="buy_price_structure">
+                        <label for="buy_price_structure">Precio: Rompe resistencia/rebota soporte</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="buy_candle_pattern">
+                        <label for="buy_candle_pattern">Patrón velas: Martillo/Pin bar alcista</label>
+                    </div>
+                </div>
+
+                <div class="checklist-section">
+                    <h3>📉 SEÑAL DE VENTA</h3>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="sell_h4_macd">
+                        <label for="sell_h4_macd">MACD H4: Histograma + a negativo</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="sell_h1_macd">
+                        <label for="sell_h1_macd">MACD H1: Confirma cruce bajista</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="sell_h4_williams">
+                        <label for="sell_h4_williams">Williams H4: Sale de sobrecompra (-20 a -50)</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="sell_h1_williams">
+                        <label for="sell_h1_williams">Williams H1: Confirma salida sobrecompra</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="sell_m15_timing">
+                        <label for="sell_m15_timing">M15: Timing preciso confirmado</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="sell_price_structure">
+                        <label for="sell_price_structure">Precio: Rompe soporte/rechaza resistencia</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="sell_candle_pattern">
+                        <label for="sell_candle_pattern">Patrón velas: Estrella fugaz/Pin bar bajista</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <button class="btn btn-primary" onclick="checkSignalQuality()">🔍 Evaluar Calidad de Señal</button>
+                <button class="btn btn-warning" onclick="resetSignals()">🔄 Reset Señales</button>
+            </div>
+
+            <div id="signalResult" style="display: none;" class="risk-result">
+                <h3>Resultado del Análisis:</h3>
+                <p id="signalQuality"></p>
+                <p id="signalRecommendation"></p>
+            </div>
+        </div>
+
+        <!-- TAB: GESTIÓN DE RIESGO -->
+        <div id="risk" class="tab-content">
+            <h2>⚖️ Calculadora de Gestión de Riesgo</h2>
+
+            <div class="risk-calculator">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Precio de Entrada ($)</label>
+                        <input type="number" id="entryPrice" placeholder="3340.50" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label>Stop Loss ($)</label>
+                        <input type="number" id="stopLoss" placeholder="3332.50" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label>Take Profit 1 ($)</label>
+                        <input type="number" id="takeProfit1" placeholder="3348.50" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label>Take Profit 2 ($)</label>
+                        <input type="number" id="takeProfit2" placeholder="3356.50" step="0.01">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <button class="btn btn-primary" onclick="calculateRisk()">🧮 Calcular Riesgo y Posición</button>
+                </div>
+
+                <div id="riskResult" class="risk-result" style="display: none;">
+                    <h3>📊 Resultado del Cálculo:</h3>
+                    <div id="riskDetails"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: REGISTRO DE TRADES -->
+        <div id="trades" class="tab-content">
+            <h2>📝 Registro de Operaciones</h2>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Dirección</label>
+                    <select id="tradeDirection">
+                        <option value="buy">🟢 COMPRA</option>
+                        <option value="sell">🔴 VENTA</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Precio Entrada</label>
+                    <input type="number" id="tradeEntry" step="0.01" placeholder="3340.50">
+                </div>
+                <div class="form-group">
+                    <label>Precio Salida</label>
+                    <input type="number" id="tradeExit" step="0.01" placeholder="3348.50">
+                </div>
+                <div class="form-group">
+                    <label>Contratos</label>
+                    <input type="number" id="tradeContracts" placeholder="3">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Resultado (Puntos)</label>
+                    <input type="number" id="tradePoints" step="0.1" placeholder="8">
+                </div>
+                <div class="form-group">
+                    <label>P&L ($)</label>
+                    <input type="number" id="tradePnL" step="0.01" placeholder="24">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Notas de la Operación</label>
+                <textarea id="tradeNotes" placeholder="Setup H4 sobreventa, confirmado en M15 con martillo..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <button class="btn btn-primary" onclick="saveTrade()">💾 Guardar Operación</button>
+                <button class="btn btn-danger" onclick="clearTradeForm()">🗑️ Limpiar</button>
+            </div>
+
+            <table class="trades-table">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Dirección</th>
+                        <th>Entrada</th>
+                        <th>Salida</th>
+                        <th>Puntos</th>
+                        <th>P&L</th>
+                        <th>Notas</th>
+                    </tr>
+                </thead>
+                <tbody id="tradesTableBody">
+                    <!-- Trades will be populated here -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- TAB: HORARIOS -->
+        <div id="schedule" class="tab-content">
+            <h2>⏰ Horarios de Trading - Lima, Perú (GMT-5)</h2>
+
+            <div id="currentTime" style="text-align: center; font-size: 1.5em; margin-bottom: 20px; color: #ffd700;"></div>
+
+            <div class="schedule-item" data-start="8" data-end="12">
+                <div>
+                    <strong>🟢 HORARIO DORADO</strong><br>
+                    08:00 - 12:00: Solapamiento Londres-NY<br>
+                    <small>Máxima volatilidad y oportunidades</small>
+                </div>
+                <div id="status1" class="status-indicator">⏳</div>
+            </div>
+
+            <div class="schedule-item" data-start="13.5" data-end="15.5">
+                <div>
+                    <strong>🟡 HORARIO SECUNDARIO</strong><br>
+                    13:30 - 15:30: Noticias USA<br>
+                    <small>Solo con eventos importantes</small>
+                </div>
+                <div id="status2" class="status-indicator">⏳</div>
+            </div>
+
+            <div class="schedule-item time-inactive">
+                <div>
+                    <strong>🔴 EVITAR TRADING</strong><br>
+                    16:00 - 02:00: Sesión Asiática<br>
+                    <small>Baja liquidez y volatilidad</small>
+                </div>
+                <div>❌</div>
+            </div>
+
+            <div class="schedule-item time-inactive">
+                <div>
+                    <strong>🔴 FINES DE SEMANA</strong><br>
+                    Sábado - Domingo<br>
+                    <small>Mercados cerrados</small>
+                </div>
+                <div>❌</div>
+            </div>
+
+            <div style="margin-top: 30px;">
+                <h3>🔔 Recordatorios Automáticos</h3>
+                <button class="btn btn-primary" onclick="enableNotifications()">🔔 Activar Notificaciones</button>
+                <button class="btn btn-warning" onclick="testNotification()">🧪 Probar Notificación</button>
+            </div>
+        </div>
+
+        <!-- TAB: ESTADÍSTICAS -->
+        <div id="stats" class="tab-content">
+            <h2>📈 Estadísticas de Trading</h2>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalTrades">0</div>
+                    <div class="stat-label">Total Operaciones</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value profit" id="winningTrades">0</div>
+                    <div class="stat-label">Operaciones Ganadoras</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value loss" id="losingTrades">0</div>
+                    <div class="stat-label">Operaciones Perdedoras</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="winRate">0%</div>
+                    <div class="stat-label">Win Rate</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value profit" id="totalProfit">$0</div>
+                    <div class="stat-label">Ganancia Total</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="avgTrade">$0</div>
+                    <div class="stat-label">Promedio por Trade</div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <button class="btn btn-warning" onclick="resetStats()">🔄 Reset Estadísticas</button>
+                <button class="btn btn-primary" onclick="exportData()">📊 Exportar Datos</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="notification" class="notification"></div>
+
+
+    <script src="app.js"></script>
+</body>
+
+</html>
