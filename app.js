@@ -1,425 +1,668 @@
-
 // Variables globales
-let trades = [];
-let currentCapital = 1930;
-let dailyPnL = 0;
+let trades = JSON.parse( localStorage.getItem( 'trades' ) || '[]' );
+let observations = JSON.parse( localStorage.getItem( 'observations' ) || '[]' );
+let currentCapital = parseFloat( localStorage.getItem( 'currentCapital' ) || '1930' );
+let currentTab = 'dashboard';
+
+// Configuraciones de estrategias
+const strategyConfigs = {
+    'regulares': {
+        name: 'Trades Regulares',
+        riskPercent: [ 1.5, 2.5 ],
+        contracts: [ 7, 8, 10 ], // Alta, Media, Baja volatilidad
+        stopLoss: [ 8, 7, 5 ],
+        takeProfit1: [ 14, 12, 10 ],
+        takeProfit2: [ 26, 22, 18 ],
+        winRate: 55
+    },
+    'ema-macd': {
+        name: 'EMA + MACD',
+        riskPercent: [ 3, 3 ],
+        contracts: [ 16, 14 ],
+        stopLoss: [ 4, 5 ],
+        takeProfit1: [ 11, 13 ],
+        takeProfit2: [ 20, 24 ],
+        winRate: 62
+    },
+    'contra-tendencia': {
+        name: 'Contra-Tendencia',
+        riskPercent: [ 2.5, 2.5 ],
+        contracts: [ 11, 12 ],
+        stopLoss: [ 6, 5 ],
+        takeProfit1: [ 15, 12 ],
+        takeProfit2: [ 28, 22 ],
+        winRate: 48
+    },
+    'extremos': {
+        name: 'Trades Extremos',
+        riskPercent: [ 3, 3 ],
+        contracts: [ 13, 11 ],
+        stopLoss: [ 5, 6 ],
+        takeProfit1: [ 13, 16 ],
+        takeProfit2: [ 25, 30 ],
+        winRate: 65
+    }
+};
+
+// Setup checklists para cada estrategia
+const setupChecklists = {
+    'regulares': [
+        'Estructura mínimos/máximos en dirección correcta (4H)',
+        'Williams %R en zona objetivo y moviéndose correctamente',
+        'MACD cambiando dirección + histograma cambiando color',
+        'Precio en/cerca de nivel clave (soporte/resistencia)',
+        'Volumen > 1.2x promedio en vela de señal',
+        'Confirmación 15M: Mecha larga >4 pips + cuerpo pequeño',
+        'Williams %R 15M en zona -20 a -40',
+        'Incremento volumen acompañando precio'
+    ],
+    'ema-macd': [
+        'EMA 21 cruza EMA 50 con separación >3 pips',
+        'MACD: Línea cruza por encima/debajo de señal',
+        'Precio en zona soporte/resistencia clave',
+        'Williams %R saliendo de extremo hacia objetivo',
+        'Histograma MACD creciendo/decreciendo 2+ velas',
+        'Precio manteniéndose respecto EMA 21 por 2+ velas',
+        'Vela confirmando EMA y MACD en misma dirección'
+    ],
+    'contra-tendencia': [
+        'Tendencia fuerte 3+ días consecutivos (4H)',
+        'Williams %R en extremos 4+ velas 4H (-95/-85 o -15/-5)',
+        'Precio alejado 30+ pips de EMA 21 en 4H',
+        'Divergencia clara MACD 4H',
+        'Precio llegando a soporte/resistencia extrema ±3 pips',
+        'Williams %R 15M divergencia clara',
+        'Vela rechazo: mecha 6-7+ pips + cuerpo direccional',
+        'Volumen rechazo 1.8x promedio',
+        '2+ velas consecutivas cuerpos 4+ pips (5M)',
+        'Cierre 50%+ rango vela rechazo'
+    ],
+    'extremos': [
+        'Precio en zona crítica histórica ±5 pips',
+        'Williams %R extremo 4H (-95/-85 o -15/-5)',
+        'Mecha institucional 4H: 8+ pips tras movimiento 35+ pips',
+        'Volumen explosivo: 4H 2x + 1H 1.8x promedio',
+        'EMA confluencia: Precio superando/cayendo EMA 21/50',
+        'MACD triple divergencia: 4H, 1H y 15M',
+        'Confirmación 15M: Rebote/rechazo EMA o nivel',
+        'Mínimo 7 factores de confluencia cumplidos'
+    ]
+};
 
 // Inicialización
 document.addEventListener( 'DOMContentLoaded', function () {
-    loadData();
-    updateCapitalInfo();
-    updateCurrentTime();
-    updateTradingStatus();
-    setInterval( updateCurrentTime, 1000 );
-    setInterval( updateTradingStatus, 60000 );
+    initializeApp();
+    updateTime();
+    setInterval( updateTime, 1000 );
 } );
 
-function showTab( tabName ) {
-    // Ocultar todos los tabs
-    const tabContents = document.querySelectorAll( '.tab-content' );
-    tabContents.forEach( tab => tab.classList.remove( 'active' ) );
+function initializeApp() {
+    setupEventListeners();
+    updateCapitalDisplay();
+    updateDashboard();
+    renderTrades();
+    updateStrategyCalculator();
+    generateSetupChecklist();
+    renderObservations();
+    updateDisciplineMetrics();
 
-    // Remover clase active de todos los botones
-    const tabButtons = document.querySelectorAll( '.tab' );
-    tabButtons.forEach( btn => btn.classList.remove( 'active' ) );
-
-    // Mostrar tab seleccionado
-    document.getElementById( tabName ).classList.add( 'active' );
-    event.target.classList.add( 'active' );
+    // Establecer fecha actual en formularios
+    const today = new Date().toISOString().split( 'T' )[ 0 ];
+    document.getElementById( 'tradeDate' ).value = today;
 }
 
-function checkSignalQuality() {
-    const buySignals = [
-        'buy_h4_macd', 'buy_h1_macd', 'buy_h4_williams',
-        'buy_h1_williams', 'buy_m15_timing', 'buy_price_structure', 'buy_candle_pattern'
-    ];
+function setupEventListeners() {
+    // Navegación de tabs
+    document.querySelectorAll( '.tab-btn' ).forEach( btn => {
+        btn.addEventListener( 'click', function () {
+            switchTab( this.dataset.tab );
+        } );
+    } );
 
-    const sellSignals = [
-        'sell_h4_macd', 'sell_h1_macd', 'sell_h4_williams',
-        'sell_h1_williams', 'sell_m15_timing', 'sell_price_structure', 'sell_candle_pattern'
-    ];
+    // Capital input
+    document.getElementById( 'capitalInput' ).addEventListener( 'input', function () {
+        currentCapital = parseFloat( this.value ) || 0;
+        localStorage.setItem( 'currentCapital', currentCapital.toString() );
+        updateCapitalDisplay();
+        updateStrategyCalculator();
+        updateDashboard();
+    } );
 
-    const buyCount = buySignals.filter( id => document.getElementById( id ).checked ).length;
-    const sellCount = sellSignals.filter( id => document.getElementById( id ).checked ).length;
+    // Strategy selector
+    document.getElementById( 'strategySelect' ).addEventListener( 'change', updateStrategyCalculator );
 
-    let direction = '';
-    let count = 0;
+    // Trade management
+    document.getElementById( 'addTradeBtn' ).addEventListener( 'click', showTradeModal );
+    document.getElementById( 'cancelTradeBtn' ).addEventListener( 'click', hideTradeModal );
+    document.getElementById( 'tradeForm' ).addEventListener( 'submit', handleTradeSubmit );
+    document.getElementById( 'exportTradesBtn' ).addEventListener( 'click', exportTrades );
 
-    if ( buyCount > sellCount ) {
-        direction = 'COMPRA';
-        count = buyCount;
-    } else if ( sellCount > buyCount ) {
-        direction = 'VENTA';
-        count = sellCount;
-    }
+    // Filtros
+    document.getElementById( 'filterStrategy' ).addEventListener( 'change', renderTrades );
+    document.getElementById( 'filterResult' ).addEventListener( 'change', renderTrades );
+    document.getElementById( 'filterDate' ).addEventListener( 'change', renderTrades );
 
-    const result = document.getElementById( 'signalResult' );
-    const quality = document.getElementById( 'signalQuality' );
-    const recommendation = document.getElementById( 'signalRecommendation' );
+    // Setup checker
+    document.getElementById( 'setupStrategy' ).addEventListener( 'change', generateSetupChecklist );
+    document.getElementById( 'executeSetupBtn' ).addEventListener( 'click', executeSetup );
+    document.getElementById( 'discardSetupBtn' ).addEventListener( 'click', discardSetup );
 
-    let qualityText = '';
-    let recommendationText = '';
-
-    if ( count >= 6 ) {
-        qualityText = `🟢 SEÑAL DE ALTA CALIDAD (${count}/7) - ${direction}`;
-        recommendationText = '✅ EJECUTAR TRADE - Probabilidad >80%';
-        result.style.background = 'rgba(76, 175, 80, 0.3)';
-    } else if ( count >= 4 ) {
-        qualityText = `🟡 SEÑAL MODERADA (${count}/7) - ${direction}`;
-        recommendationText = '⚠️ CONSIDERAR CON CAUTELA - Probabilidad ~60%';
-        result.style.background = 'rgba(255, 152, 0, 0.3)';
-    } else if ( count >= 1 ) {
-        qualityText = `🔴 SEÑAL DÉBIL (${count}/7) - ${direction}`;
-        recommendationText = '❌ NO EJECUTAR - Probabilidad <50%';
-        result.style.background = 'rgba(244, 67, 54, 0.3)';
-    } else {
-        qualityText = '⚪ SIN SEÑAL CLARA';
-        recommendationText = '⏳ ESPERAR - No hay confluencia suficiente';
-        result.style.background = 'rgba(158, 158, 158, 0.3)';
-    }
-
-    quality.textContent = qualityText;
-    recommendation.textContent = recommendationText;
-    result.style.display = 'block';
+    // Observations
+    document.getElementById( 'addObservationBtn' ).addEventListener( 'click', addObservation );
 }
 
-function resetSignals() {
-    const checkboxes = document.querySelectorAll( '#signals input[type="checkbox"]' );
-    checkboxes.forEach( cb => cb.checked = false );
-    document.getElementById( 'signalResult' ).style.display = 'none';
-    showNotification( '✅ Señales reseteadas', 'success' );
+function updateTime() {
+    const now = new Date();
+    const timeString = now.toLocaleString( 'es-PE', {
+        timeZone: 'America/Lima',
+        weekday: 'short',
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    } );
+    document.getElementById( 'currentTime' ).textContent = timeString;
 }
 
-function calculateRisk() {
-    const entry = parseFloat( document.getElementById( 'entryPrice' ).value );
-    const stop = parseFloat( document.getElementById( 'stopLoss' ).value );
-    const tp1 = parseFloat( document.getElementById( 'takeProfit1' ).value );
-    const tp2 = parseFloat( document.getElementById( 'takeProfit2' ).value );
+function switchTab( tabName ) {
+    currentTab = tabName;
 
-    if ( !entry || !stop ) {
-        showNotification( '❌ Ingresa precio de entrada y stop loss', 'error' );
+    // Actualizar botones
+    document.querySelectorAll( '.tab-btn' ).forEach( btn => {
+        btn.classList.remove( 'active', 'border-gold', 'text-gold' );
+        btn.classList.add( 'border-transparent' );
+    } );
+
+    document.querySelector( `[data-tab="${tabName}"]` ).classList.add( 'active', 'border-gold', 'text-gold' );
+
+    // Mostrar contenido
+    document.querySelectorAll( '.tab-content' ).forEach( content => {
+        content.classList.add( 'hidden' );
+    } );
+
+    document.getElementById( tabName ).classList.remove( 'hidden' );
+}
+
+function updateCapitalDisplay() {
+    const maxRisk = currentCapital * 0.05;
+
+    document.getElementById( 'dashCapital' ).textContent = `${currentCapital.toLocaleString()}`;
+    document.getElementById( 'dashRisk' ).textContent = `${maxRisk.toFixed( 2 )}`;
+    document.getElementById( 'maxDailyRisk' ).textContent = `${maxRisk.toFixed( 2 )}`;
+
+    updateProjections();
+}
+
+function updateProjections() {
+    const capital = currentCapital;
+
+    // Escenario Conservador
+    const conservativeProfit = ( capital * 2.34 ).toFixed( 0 );
+    const conservativeROI = ( ( conservativeProfit / capital ) * 100 ).toFixed( 0 );
+
+    // Escenario Realista  
+    const realisticProfit = ( capital * 3.06 ).toFixed( 0 );
+    const realisticROI = ( ( realisticProfit / capital ) * 100 ).toFixed( 0 );
+
+    // Escenario Optimista
+    const optimisticProfit = ( capital * 3.92 ).toFixed( 0 );
+    const optimisticROI = ( ( optimisticProfit / capital ) * 100 ).toFixed( 0 );
+
+    document.getElementById( 'conservativeProfit' ).textContent = `${conservativeProfit}`;
+    document.getElementById( 'conservativeROI' ).textContent = `${conservativeROI}%`;
+    document.getElementById( 'realisticProfit' ).textContent = `${realisticProfit}`;
+    document.getElementById( 'realisticROI' ).textContent = `${realisticROI}%`;
+    document.getElementById( 'optimisticProfit' ).textContent = `${optimisticProfit}`;
+    document.getElementById( 'optimisticROI' ).textContent = `${optimisticROI}%`;
+}
+
+function updateStrategyCalculator() {
+    const strategy = document.getElementById( 'strategySelect' ).value;
+    const config = strategyConfigs[ strategy ];
+
+    if ( !config ) return;
+
+    const riskPercent = config.riskPercent[ 0 ]; // Usar el primer valor
+    const riskAmount = ( currentCapital * riskPercent / 100 );
+    const contracts = config.contracts[ 1 ]; // Volatilidad media
+    const stopLoss = config.stopLoss[ 1 ];
+    const tp1 = config.takeProfit1[ 1 ];
+    const tp2 = config.takeProfit2[ 1 ];
+
+    const profitTP1 = ( contracts * tp1 * 0.6 ).toFixed( 0 );
+    const profitTP2 = ( contracts * tp2 * 0.4 ).toFixed( 0 );
+
+    document.getElementById( 'riskPerTrade' ).textContent = `${riskAmount.toFixed( 0 )}`;
+    document.getElementById( 'suggestedContracts' ).textContent = contracts;
+    document.getElementById( 'suggestedSL' ).textContent = `${stopLoss} pips`;
+    document.getElementById( 'suggestedTP' ).textContent = `${tp2} pips`;
+    document.getElementById( 'profitTP1' ).textContent = `${profitTP1}`;
+    document.getElementById( 'profitTP2' ).textContent = `${profitTP2}`;
+}
+
+function updateDashboard() {
+    if ( trades.length === 0 ) {
+        document.getElementById( 'currentWinRate' ).textContent = '0%';
+        document.getElementById( 'totalTrades' ).textContent = '0';
+        document.getElementById( 'dailyPnL' ).textContent = '$0.00';
+        document.getElementById( 'drawdown' ).textContent = '0%';
+        document.getElementById( 'todayTrades' ).textContent = '0';
         return;
     }
 
-    const riskPerTrade = currentCapital * 0.05; // 5%
-    const pointsRisk = Math.abs( entry - stop );
-    const contractCost = 17;
-    const totalRiskPerContract = pointsRisk + contractCost;
-    const contracts = Math.floor( riskPerTrade / totalRiskPerContract );
+    // Calcular métricas generales
+    const winningTrades = trades.filter( t => t.result === 'win' ).length;
+    const winRate = ( ( winningTrades / trades.length ) * 100 ).toFixed( 1 );
+    const totalPnL = trades.reduce( ( sum, t ) => sum + parseFloat( t.pnl ), 0 );
 
-    const tp1Points = Math.abs( tp1 - entry );
-    const tp2Points = Math.abs( tp2 - entry );
+    // Trades de hoy
+    const today = new Date().toISOString().split( 'T' )[ 0 ];
+    const todayTrades = trades.filter( t => t.date === today ).length;
+    const todayPnL = trades.filter( t => t.date === today ).reduce( ( sum, t ) => sum + parseFloat( t.pnl ), 0 );
 
-    const tp1Profit = tp1Points * contracts - ( contracts * contractCost );
-    const tp2Profit = tp2Points * contracts - ( contracts * contractCost );
+    // Calcular drawdown (pérdida máxima desde el pico)
+    let maxCapital = currentCapital;
+    let maxDrawdown = 0;
+    let runningPnL = 0;
 
-    const ratio1 = tp1Points / pointsRisk;
-    const ratio2 = tp2Points / pointsRisk;
-
-    const resultDiv = document.getElementById( 'riskResult' );
-    const detailsDiv = document.getElementById( 'riskDetails' );
-
-    detailsDiv.innerHTML = `
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
-            <div>
-                <strong>📊 Análisis de Riesgo:</strong><br>
-                • Riesgo por operación: ${riskPerTrade.toFixed( 2 )}<br>
-                • Puntos de riesgo: ${pointsRisk.toFixed( 1 )}<br>
-                • Contratos recomendados: <strong>${contracts}</strong><br>
-                • Riesgo total real: ${( pointsRisk * contracts + contracts * contractCost ).toFixed( 2 )}
-            </div>
-            <div>
-                <strong>💰 Proyección TP1:</strong><br>
-                • Puntos: ${tp1Points.toFixed( 1 )}<br>
-                • Ganancia: <span class="profit">${tp1Profit.toFixed( 2 )}</span><br>
-                • Ratio: ${ratio1.toFixed( 1 )}:1<br>
-                • Estado: ${ratio1 >= 2 ? '✅ Bueno' : '⚠️ Bajo'}
-            </div>
-            <div>
-                <strong>🎯 Proyección TP2:</strong><br>
-                • Puntos: ${tp2Points.toFixed( 1 )}<br>
-                • Ganancia: <span class="profit">${tp2Profit.toFixed( 2 )}</span><br>
-                • Ratio: ${ratio2.toFixed( 1 )}:1<br>
-                • Estado: ${ratio2 >= 3 ? '✅ Excelente' : ratio2 >= 2 ? '✅ Bueno' : '⚠️ Bajo'}
-            </div>
-        </div>
-        <div style="margin-top: 15px; padding: 10px; background: rgba(255,215,0,0.1); border-radius: 5px;">
-            <strong>📋 Recomendación:</strong> 
-            ${contracts > 0 ?
-            `Usar ${contracts} contratos. ${ratio1 >= 2 && ratio2 >= 2.5 ? 'Setup con buena relación riesgo/beneficio ✅' : 'Considerar ajustar niveles para mejor ratio ⚠️'}`
-            : 'Riesgo muy alto, reducir stop loss o esperar mejor entrada ❌'
+    trades.forEach( trade => {
+        runningPnL += parseFloat( trade.pnl );
+        const currentTotal = currentCapital + runningPnL;
+        if ( currentTotal > maxCapital ) {
+            maxCapital = currentTotal;
         }
-        </div>
-    `;
+        const drawdown = ( ( maxCapital - currentTotal ) / maxCapital ) * 100;
+        if ( drawdown > maxDrawdown ) {
+            maxDrawdown = drawdown;
+        }
+    } );
 
-    resultDiv.style.display = 'block';
+    // Actualizar dashboard
+    document.getElementById( 'currentWinRate' ).textContent = `${winRate}%`;
+    document.getElementById( 'totalTrades' ).textContent = trades.length;
+    document.getElementById( 'dailyPnL' ).textContent = `${todayPnL.toFixed( 2 )}`;
+    document.getElementById( 'dailyPnL' ).className = `text-3xl font-bold ${todayPnL >= 0 ? 'text-profit' : 'text-loss'}`;
+    document.getElementById( 'drawdown' ).textContent = `${maxDrawdown.toFixed( 1 )}%`;
+    document.getElementById( 'todayTrades' ).textContent = todayTrades;
+
+    // Actualizar performance por estrategia
+    updateStrategyPerformance();
 }
 
-function saveTrade() {
-    const direction = document.getElementById( 'tradeDirection' ).value;
-    const entry = parseFloat( document.getElementById( 'tradeEntry' ).value );
-    const exit = parseFloat( document.getElementById( 'tradeExit' ).value );
-    const contracts = parseInt( document.getElementById( 'tradeContracts' ).value );
-    const points = parseFloat( document.getElementById( 'tradePoints' ).value );
-    const pnl = parseFloat( document.getElementById( 'tradePnL' ).value );
-    const notes = document.getElementById( 'tradeNotes' ).value;
+function updateStrategyPerformance() {
+    const strategies = [ 'regulares', 'ema-macd', 'contra-tendencia', 'extremos' ];
 
-    if ( !entry || !exit || !contracts ) {
-        showNotification( '❌ Completa todos los campos obligatorios', 'error' );
-        return;
-    }
+    strategies.forEach( strategy => {
+        const strategyTrades = trades.filter( t => t.strategy === strategy );
+        const element = document.querySelector( `[data-strategy="${strategy}"]` );
 
+        if ( strategyTrades.length === 0 ) {
+            element.querySelector( '.strategy-winrate' ).textContent = '0%';
+            element.querySelector( '.strategy-pnl' ).textContent = '$0';
+            element.querySelector( '.strategy-count' ).textContent = '0';
+            return;
+        }
+
+        const winningTrades = strategyTrades.filter( t => t.result === 'win' ).length;
+        const winRate = ( ( winningTrades / strategyTrades.length ) * 100 ).toFixed( 1 );
+        const pnl = strategyTrades.reduce( ( sum, t ) => sum + parseFloat( t.pnl ), 0 );
+
+        element.querySelector( '.strategy-winrate' ).textContent = `${winRate}%`;
+        element.querySelector( '.strategy-pnl' ).textContent = `${pnl.toFixed( 0 )}`;
+        element.querySelector( '.strategy-pnl' ).className = `strategy-pnl ${pnl >= 0 ? 'text-profit' : 'text-loss'}`;
+        element.querySelector( '.strategy-count' ).textContent = strategyTrades.length;
+    } );
+}
+
+function showTradeModal() {
+    document.getElementById( 'tradeModal' ).classList.remove( 'hidden' );
+    document.getElementById( 'tradeModal' ).classList.add( 'flex' );
+}
+
+function hideTradeModal() {
+    document.getElementById( 'tradeModal' ).classList.add( 'hidden' );
+    document.getElementById( 'tradeModal' ).classList.remove( 'flex' );
+    document.getElementById( 'tradeForm' ).reset();
+    document.getElementById( 'tradeDate' ).value = new Date().toISOString().split( 'T' )[ 0 ];
+}
+
+function handleTradeSubmit( e ) {
+    e.preventDefault();
+
+    const formData = new FormData( e.target );
     const trade = {
         id: Date.now(),
-        date: new Date().toLocaleString( 'es-ES' ),
-        direction: direction,
-        entry: entry,
-        exit: exit,
-        contracts: contracts,
-        points: points || ( direction === 'buy' ? exit - entry : entry - exit ),
-        pnl: pnl || ( ( direction === 'buy' ? exit - entry : entry - exit ) * contracts - contracts * 17 ),
-        notes: notes
+        date: document.getElementById( 'tradeDate' ).value,
+        strategy: document.getElementById( 'tradeStrategy' ).value,
+        direction: document.getElementById( 'tradeDirection' ).value,
+        contracts: parseInt( document.getElementById( 'tradeContracts' ).value ),
+        stopLoss: parseInt( document.getElementById( 'tradeSL' ).value ),
+        takeProfit: parseInt( document.getElementById( 'tradeTP' ).value ),
+        result: document.getElementById( 'tradeResult' ).value,
+        pnl: parseFloat( document.getElementById( 'tradePnL' ).value ),
+        comments: document.getElementById( 'tradeComments' ).value
     };
 
     trades.push( trade );
-    dailyPnL += trade.pnl;
+    localStorage.setItem( 'trades', JSON.stringify( trades ) );
 
-    updateTradesTable();
-    updateCapitalInfo();
-    updateStats();
-    clearTradeForm();
-    saveData();
-
-    showNotification( '✅ Operación guardada exitosamente', 'success' );
+    hideTradeModal();
+    renderTrades();
+    updateDashboard();
+    updateDisciplineMetrics();
 }
 
-function clearTradeForm() {
-    document.getElementById( 'tradeEntry' ).value = '';
-    document.getElementById( 'tradeExit' ).value = '';
-    document.getElementById( 'tradeContracts' ).value = '';
-    document.getElementById( 'tradePoints' ).value = '';
-    document.getElementById( 'tradePnL' ).value = '';
-    document.getElementById( 'tradeNotes' ).value = '';
-}
-
-function updateTradesTable() {
+function renderTrades() {
     const tbody = document.getElementById( 'tradesTableBody' );
-    tbody.innerHTML = '';
+    const strategyFilter = document.getElementById( 'filterStrategy' ).value;
+    const resultFilter = document.getElementById( 'filterResult' ).value;
+    const dateFilter = document.getElementById( 'filterDate' ).value;
 
-    trades.slice( -10 ).reverse().forEach( trade => {
-        const row = tbody.insertRow();
-        row.innerHTML = `
-            <td>${trade.date}</td>
-            <td>${trade.direction === 'buy' ? '🟢 COMPRA' : '🔴 VENTA'}</td>
-            <td>${trade.entry.toFixed( 2 )}</td>
-            <td>${trade.exit.toFixed( 2 )}</td>
-            <td>${trade.points.toFixed( 1 )}</td>
-            <td class="${trade.pnl >= 0 ? 'profit' : 'loss'}">${trade.pnl.toFixed( 2 )}</td>
-            <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;">${trade.notes}</td>
-        `;
-    } );
+    let filteredTrades = trades;
+
+    if ( strategyFilter ) {
+        filteredTrades = filteredTrades.filter( t => t.strategy === strategyFilter );
+    }
+    if ( resultFilter ) {
+        filteredTrades = filteredTrades.filter( t => t.result === resultFilter );
+    }
+    if ( dateFilter ) {
+        filteredTrades = filteredTrades.filter( t => t.date === dateFilter );
+    }
+
+    tbody.innerHTML = filteredTrades.map( trade => `
+                <tr class="border-b border-gray-700 hover:bg-gray-800">
+                    <td class="p-3">${trade.date}</td>
+                    <td class="p-3">
+                        <span class="px-2 py-1 rounded text-xs bg-blue-900 text-blue-200">
+                            ${strategyConfigs[ trade.strategy ]?.name || trade.strategy}
+                        </span>
+                    </td>
+                    <td class="p-3">
+                        <span class="px-2 py-1 rounded text-xs ${trade.direction === 'buy' ? 'bg-green-900 text-green-200' : 'bg-red-900 text-red-200'
+        }">
+                            ${trade.direction === 'buy' ? '📈 Compra' : '📉 Venta'}
+                        </span>
+                    </td>
+                    <td class="p-3">${trade.contracts}</td>
+                    <td class="p-3">${trade.stopLoss} pips</td>
+                    <td class="p-3">${trade.takeProfit} pips</td>
+                    <td class="p-3">
+                        <span class="px-2 py-1 rounded text-xs ${trade.result === 'win' ? 'bg-green-900 text-green-200' : 'bg-red-900 text-red-200'
+        }">
+                            ${trade.result === 'win' ? '✅ Ganador' : '❌ Perdedor'}
+                        </span>
+                    </td>
+                    <td class="p-3 font-bold ${trade.pnl >= 0 ? 'text-profit' : 'text-loss'}">
+                        ${trade.pnl.toFixed( 2 )}
+                    </td>
+                    <td class="p-3 max-w-xs truncate" title="${trade.comments}">
+                        ${trade.comments || '-'}
+                    </td>
+                    <td class="p-3">
+                        <button onclick="deleteTrade(${trade.id})" class="text-red-400 hover:text-red-300 text-sm">
+                            🗑️ Eliminar
+                        </button>
+                    </td>
+                </tr>
+            `).join( '' );
 }
 
-function updateCapitalInfo() {
-    document.getElementById( 'currentCapital' ).textContent = `${currentCapital.toFixed( 2 )}`;
-    document.getElementById( 'availableRisk' ).textContent = `${( currentCapital * 0.05 ).toFixed( 2 )}`;
-    document.getElementById( 'dailyTarget' ).textContent = `${( currentCapital * 0.75 / 30 ).toFixed( 0 )}`;
-    document.getElementById( 'todayPnL' ).textContent = `${dailyPnL.toFixed( 2 )}`;
-
-    // Actualizar progreso mensual
-    const monthlyTarget = currentCapital * 0.75;
-    const totalPnL = trades.reduce( ( sum, trade ) => sum + trade.pnl, 0 );
-    const progress = ( totalPnL / monthlyTarget * 100 ).toFixed( 1 );
-    document.getElementById( 'monthlyProgress' ).textContent = `${progress}%`;
+function deleteTrade( tradeId ) {
+    if ( confirm( '¿Estás seguro de que quieres eliminar este trade?' ) ) {
+        trades = trades.filter( t => t.id !== tradeId );
+        localStorage.setItem( 'trades', JSON.stringify( trades ) );
+        renderTrades();
+        updateDashboard();
+        updateDisciplineMetrics();
+    }
 }
 
-function updateStats() {
-    const totalTrades = trades.length;
-    const winningTrades = trades.filter( t => t.pnl > 0 ).length;
-    const losingTrades = trades.filter( t => t.pnl < 0 ).length;
-    const winRate = totalTrades > 0 ? ( ( winningTrades / totalTrades ) * 100 ).toFixed( 1 ) : 0;
-    const totalProfit = trades.reduce( ( sum, trade ) => sum + trade.pnl, 0 );
-    const avgTrade = totalTrades > 0 ? ( totalProfit / totalTrades ).toFixed( 2 ) : 0;
-
-    document.getElementById( 'totalTrades' ).textContent = totalTrades;
-    document.getElementById( 'winningTrades' ).textContent = winningTrades;
-    document.getElementById( 'losingTrades' ).textContent = losingTrades;
-    document.getElementById( 'winRate' ).textContent = `${winRate}%`;
-    document.getElementById( 'totalProfit' ).textContent = `${totalProfit.toFixed( 2 )}`;
-    document.getElementById( 'avgTrade' ).textContent = `${avgTrade}`;
-
-    // Colorear total profit
-    const profitElement = document.getElementById( 'totalProfit' );
-    profitElement.className = totalProfit >= 0 ? 'stat-value profit' : 'stat-value loss';
-}
-
-function updateCurrentTime() {
-    const now = new Date();
-    const limaTime = new Date( now.toLocaleString( "en-US", { timeZone: "America/Lima" } ) );
-    const timeString = limaTime.toLocaleString( 'es-ES', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit'
-    } );
-
-    document.getElementById( 'currentTime' ).textContent = `🕐 ${timeString}`;
-}
-
-function updateTradingStatus() {
-    const now = new Date();
-    const limaTime = new Date( now.toLocaleString( "en-US", { timeZone: "America/Lima" } ) );
-    const hour = limaTime.getHours() + limaTime.getMinutes() / 60;
-    const dayOfWeek = limaTime.getDay(); // 0 = Sunday, 6 = Saturday
-
-    // Check if it's weekend
-    if ( dayOfWeek === 0 || dayOfWeek === 6 ) {
-        updateScheduleStatus( 'status1', false, 'FIN DE SEMANA' );
-        updateScheduleStatus( 'status2', false, 'FIN DE SEMANA' );
+function exportTrades() {
+    if ( trades.length === 0 ) {
+        alert( 'No hay trades para exportar' );
         return;
     }
 
-    // Golden hours: 8:00 - 12:00
-    const isGoldenTime = hour >= 8 && hour < 12;
-    updateScheduleStatus( 'status1', isGoldenTime, isGoldenTime ? 'ACTIVO' : 'INACTIVO' );
+    const headers = [ 'Fecha', 'Estrategia', 'Dirección', 'Contratos', 'Stop Loss', 'Take Profit', 'Resultado', 'P&L', 'Comentarios' ];
+    const csvContent = [
+        headers.join( ',' ),
+        ...trades.map( trade => [
+            trade.date,
+            strategyConfigs[ trade.strategy ]?.name || trade.strategy,
+            trade.direction === 'buy' ? 'Compra' : 'Venta',
+            trade.contracts,
+            `${trade.stopLoss} pips`,
+            `${trade.takeProfit} pips`,
+            trade.result === 'win' ? 'Ganador' : 'Perdedor',
+            trade.pnl,
+            `"${trade.comments || ''}"`
+        ].join( ',' ) )
+    ].join( '\n' );
 
-    // Secondary hours: 13:30 - 15:30
-    const isSecondaryTime = hour >= 13.5 && hour < 15.5;
-    updateScheduleStatus( 'status2', isSecondaryTime, isSecondaryTime ? 'ACTIVO' : 'INACTIVO' );
-
-    // Update schedule items visual status
-    const scheduleItems = document.querySelectorAll( '.schedule-item[data-start]' );
-    scheduleItems.forEach( item => {
-        const start = parseFloat( item.dataset.start );
-        const end = parseFloat( item.dataset.end );
-        const isActive = hour >= start && hour < end && dayOfWeek >= 1 && dayOfWeek <= 5;
-
-        item.className = `schedule-item ${isActive ? 'time-active' : 'time-inactive'}`;
-    } );
-}
-
-function updateScheduleStatus( elementId, isActive, statusText ) {
-    const element = document.getElementById( elementId );
-    element.textContent = isActive ? '🟢 ' + statusText : '🔴 ' + statusText;
-}
-
-function enableNotifications() {
-    if ( 'Notification' in window ) {
-        Notification.requestPermission().then( permission => {
-            if ( permission === 'granted' ) {
-                showNotification( '✅ Notificaciones habilitadas', 'success' );
-                scheduleNotifications();
-            } else {
-                showNotification( '❌ Permisos de notificación denegados', 'error' );
-            }
-        } );
-    } else {
-        showNotification( '❌ Navegador no soporta notificaciones', 'error' );
-    }
-}
-
-function scheduleNotifications() {
-    // Notificar 15 minutos antes del horario dorado
-    setInterval( () => {
-        const now = new Date();
-        const limaTime = new Date( now.toLocaleString( "en-US", { timeZone: "America/Lima" } ) );
-        const hour = limaTime.getHours();
-        const minute = limaTime.getMinutes();
-
-        if ( hour === 7 && minute === 45 ) {
-            new Notification( '🥇 Gold Trading Alert', {
-                body: '⏰ Horario Dorado en 15 minutos (08:00-12:00)',
-                icon: '🥇'
-            } );
-        }
-
-        if ( hour === 13 && minute === 15 ) {
-            new Notification( '🥇 Gold Trading Alert', {
-                body: '⏰ Horario Secundario en 15 minutos (13:30-15:30)',
-                icon: '🥇'
-            } );
-        }
-    }, 60000 );
-}
-
-function testNotification() {
-    if ( 'Notification' in window && Notification.permission === 'granted' ) {
-        new Notification( '🥇 Gold Trading Test', {
-            body: '✅ Las notificaciones están funcionando correctamente',
-            icon: '🥇'
-        } );
-        showNotification( '🧪 Notificación de prueba enviada', 'success' );
-    } else {
-        showNotification( '❌ Habilita las notificaciones primero', 'error' );
-    }
-}
-
-function resetStats() {
-    if ( confirm( '¿Estás seguro de que quieres resetear todas las estadísticas?' ) ) {
-        trades = [];
-        dailyPnL = 0;
-        updateTradesTable();
-        updateCapitalInfo();
-        updateStats();
-        saveData();
-        showNotification( '✅ Estadísticas reseteadas', 'success' );
-    }
-}
-
-function exportData() {
-    const data = {
-        trades: trades,
-        currentCapital: currentCapital,
-        exportDate: new Date().toISOString()
-    };
-
-    const blob = new Blob( [ JSON.stringify( data, null, 2 ) ], { type: 'application/json' } );
+    const blob = new Blob( [ csvContent ], { type: 'text/csv;charset=utf-8;' } );
+    const link = document.createElement( 'a' );
     const url = URL.createObjectURL( blob );
-    const a = document.createElement( 'a' );
-    a.href = url;
-    a.download = `gold-trading-data-${new Date().toISOString().split( 'T' )[ 0 ]}.json`;
-    document.body.appendChild( a );
-    a.click();
-    document.body.removeChild( a );
-    URL.revokeObjectURL( url );
-
-    showNotification( '📊 Datos exportados exitosamente', 'success' );
+    link.setAttribute( 'href', url );
+    link.setAttribute( 'download', `trades_oro_${new Date().toISOString().split( 'T' )[ 0 ]}.csv` );
+    link.style.visibility = 'hidden';
+    document.body.appendChild( link );
+    link.click();
+    document.body.removeChild( link );
 }
 
-function showNotification( message, type ) {
-    const notification = document.getElementById( 'notification' );
-    notification.textContent = message;
-    notification.className = `notification ${type} show`;
+function generateSetupChecklist() {
+    const strategy = document.getElementById( 'setupStrategy' ).value;
+    const checklist = setupChecklists[ strategy ];
+    const container = document.getElementById( 'setupChecklist' );
 
-    setTimeout( () => {
-        notification.classList.remove( 'show' );
-    }, 3000 );
+    container.innerHTML = checklist.map( ( item, index ) => `
+                <label class="flex items-start space-x-3 cursor-pointer">
+                    <input type="checkbox" class="setup-checkbox mt-1 w-4 h-4 text-profit bg-gray-800 border-gray-600 rounded focus:ring-profit focus:ring-2" data-index="${index}">
+                    <span class="text-sm">${item}</span>
+                </label>
+            `).join( '' );
+
+    // Agregar event listeners para actualizar score
+    container.querySelectorAll( '.setup-checkbox' ).forEach( checkbox => {
+        checkbox.addEventListener( 'change', updateSetupScore );
+    } );
+
+    updateSetupScore();
 }
 
-function saveData() {
-    const data = {
-        trades: trades,
-        currentCapital: currentCapital,
-        dailyPnL: dailyPnL
+function updateSetupScore() {
+    const strategy = document.getElementById( 'setupStrategy' ).value;
+    const checkboxes = document.querySelectorAll( '.setup-checkbox' );
+    const checked = document.querySelectorAll( '.setup-checkbox:checked' ).length;
+    const total = checkboxes.length;
+    const percentage = Math.round( ( checked / total ) * 100 );
+
+    const scoreContainer = document.getElementById( 'setupScore' );
+    const scoreValue = document.getElementById( 'scoreValue' );
+    const scoreBar = document.getElementById( 'scoreBar' );
+    const executeBtn = document.getElementById( 'executeSetupBtn' );
+
+    scoreContainer.classList.remove( 'hidden' );
+    scoreValue.textContent = `${checked}/${total} (${percentage}%)`;
+    scoreBar.style.width = `${percentage}%`;
+
+    // Colores según puntuación
+    let colorClass = 'bg-red-500';
+    if ( percentage >= 80 ) colorClass = 'bg-green-500';
+    else if ( percentage >= 60 ) colorClass = 'bg-yellow-500';
+    else if ( percentage >= 40 ) colorClass = 'bg-orange-500';
+
+    scoreBar.className = `h-2 rounded-full transition-all duration-300 ${colorClass}`;
+
+    // Habilitar/deshabilitar botón de ejecución
+    const minRequired = strategy === 'extremos' ? 7 : strategy === 'contra-tendencia' ? 8 : 5;
+    executeBtn.disabled = checked < minRequired;
+    executeBtn.className = checked >= minRequired
+        ? 'flex-1 bg-profit hover:bg-green-600 px-4 py-2 rounded-lg font-medium'
+        : 'flex-1 bg-gray-600 px-4 py-2 rounded-lg font-medium cursor-not-allowed';
+}
+
+function executeSetup() {
+    const strategy = document.getElementById( 'setupStrategy' ).value;
+    const checked = document.querySelectorAll( '.setup-checkbox:checked' ).length;
+    const total = document.querySelectorAll( '.setup-checkbox' ).length;
+
+    alert( `Setup ejecutado!\n\nEstrategia: ${strategyConfigs[ strategy ].name}\nCondiciones cumplidas: ${checked}/${total}\n\nRecuerda configurar SL y TP antes de enviar la orden.` );
+
+    // Reset checklist
+    document.querySelectorAll( '.setup-checkbox' ).forEach( cb => cb.checked = false );
+    updateSetupScore();
+}
+
+function discardSetup() {
+    document.querySelectorAll( '.setup-checkbox' ).forEach( cb => cb.checked = false );
+    updateSetupScore();
+
+    const strategy = document.getElementById( 'setupStrategy' ).value;
+    const observation = `Setup ${strategyConfigs[ strategy ].name} descartado - ${new Date().toLocaleTimeString()}`;
+
+    observations.unshift( {
+        id: Date.now(),
+        text: observation,
+        timestamp: new Date().toISOString()
+    } );
+    localStorage.setItem( 'observations', JSON.stringify( observations ) );
+    renderObservations();
+}
+
+function addObservation() {
+    const input = document.getElementById( 'observationInput' );
+    const text = input.value.trim();
+
+    if ( !text ) return;
+
+    const observation = {
+        id: Date.now(),
+        text: text,
+        timestamp: new Date().toISOString()
     };
-    // Note: In real environment, this would be stored in localStorage
-    // but we're using memory storage as per constraints
-    window.tradingData = data;
+
+    observations.unshift( observation );
+    localStorage.setItem( 'observations', JSON.stringify( observations ) );
+
+    input.value = '';
+    renderObservations();
 }
 
-function loadData() {
-    if ( window.tradingData ) {
-        trades = window.tradingData.trades || [];
-        currentCapital = window.tradingData.currentCapital || 1930;
-        dailyPnL = window.tradingData.dailyPnL || 0;
-        updateTradesTable();
-        updateStats();
+function renderObservations() {
+    const container = document.getElementById( 'observationsList' );
+
+    if ( observations.length === 0 ) {
+        container.innerHTML = `
+                    <div class="text-center text-gray-400 py-8">
+                        <p>No hay observaciones registradas</p>
+                        <p class="text-sm mt-2">Agrega tus primeras observaciones post-trade</p>
+                    </div>
+                `;
+        return;
     }
+
+    container.innerHTML = observations.slice( 0, 10 ).map( obs => `
+                <div class="bg-gray-800 p-3 rounded-lg border-l-4 border-blue-500">
+                    <p class="text-sm mb-2">${obs.text}</p>
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs text-gray-400">
+                            ${new Date( obs.timestamp ).toLocaleString()}
+                        </span>
+                        <button onclick="deleteObservation(${obs.id})" class="text-red-400 hover:text-red-300 text-xs">
+                            🗑️
+                        </button>
+                    </div>
+                </div>
+            `).join( '' );
 }
 
-// Auto-save every 5 minutes
-setInterval( saveData, 300000 );
+function deleteObservation( obsId ) {
+    observations = observations.filter( obs => obs.id !== obsId );
+    localStorage.setItem( 'observations', JSON.stringify( observations ) );
+    renderObservations();
+}
 
+function updateDisciplineMetrics() {
+    if ( trades.length === 0 ) {
+        // Valores por defecto si no hay trades
+        updateDisciplineIndicator( 'slDiscipline', 'slPercentage', 100 );
+        updateDisciplineIndicator( 'filterDiscipline', 'filterPercentage', 100 );
+        updateDisciplineIndicator( 'limitDiscipline', 'limitPercentage', 100 );
+        updateDisciplineIndicator( 'riskDiscipline', 'riskPercentage', 100 );
+        updateOverallDiscipline( 100 );
+        return;
+    }
+
+    // Calcular métricas de disciplina
+    const today = new Date().toISOString().split( 'T' )[ 0 ];
+    const todayTrades = trades.filter( t => t.date === today );
+
+    // Stop Loss discipline - asumimos 100% si no hay datos sobre SL movidos
+    const slDiscipline = 100;
+
+    // Filter discipline - trades que respetan horarios y condiciones
+    const filterDiscipline = 95; // Valor estimado
+
+    // Daily limit discipline
+    const limitDiscipline = todayTrades.length <= 4 ? 100 : Math.max( 0, 100 - ( ( todayTrades.length - 4 ) * 20 ) );
+
+    // Risk management discipline
+    const totalRisk = todayTrades.reduce( ( sum, t ) => sum + ( t.contracts * t.stopLoss ), 0 );
+    const maxRisk = currentCapital * 0.05;
+    const riskDiscipline = totalRisk <= maxRisk ? 100 : Math.max( 0, 100 - ( ( totalRisk - maxRisk ) / maxRisk * 100 ) );
+
+    // Actualizar indicadores
+    updateDisciplineIndicator( 'slDiscipline', 'slPercentage', slDiscipline );
+    updateDisciplineIndicator( 'filterDiscipline', 'filterPercentage', filterDiscipline );
+    updateDisciplineIndicator( 'limitDiscipline', 'limitPercentage', limitDiscipline );
+    updateDisciplineIndicator( 'riskDiscipline', 'riskPercentage', riskDiscipline );
+
+    // Disciplina general
+    const overall = Math.round( ( slDiscipline + filterDiscipline + limitDiscipline + riskDiscipline ) / 4 );
+    updateOverallDiscipline( overall );
+}
+
+function updateDisciplineIndicator( indicatorId, percentageId, value ) {
+    const indicator = document.getElementById( indicatorId );
+    const percentage = document.getElementById( percentageId );
+
+    percentage.textContent = `${Math.round( value )}%`;
+
+    let colorClass = 'bg-red-500';
+    if ( value >= 90 ) colorClass = 'bg-green-500';
+    else if ( value >= 70 ) colorClass = 'bg-yellow-500';
+    else if ( value >= 50 ) colorClass = 'bg-orange-500';
+
+    indicator.className = `w-4 h-4 rounded-full ${colorClass} mr-2`;
+}
+
+function updateOverallDiscipline( value ) {
+    const overall = document.getElementById( 'overallDiscipline' );
+    const bar = document.getElementById( 'disciplineBar' );
+
+    overall.textContent = `${Math.round( value )}%`;
+    bar.style.width = `${value}%`;
+
+    let colorClass = 'bg-red-500';
+    let textColorClass = 'text-red-400';
+    if ( value >= 90 ) {
+        colorClass = 'bg-green-500';
+        textColorClass = 'text-profit';
+    } else if ( value >= 70 ) {
+        colorClass = 'bg-yellow-500';
+        textColorClass = 'text-yellow-400';
+    } else if ( value >= 50 ) {
+        colorClass = 'bg-orange-500';
+        textColorClass = 'text-orange-400';
+    }
+
+    bar.className = `h-3 rounded-full transition-all duration-300 ${colorClass}`;
+    overall.className = `text-2xl font-bold ${textColorClass}`;
+}
+
+// Funciones globales para eventos onclick
+window.deleteTrade = deleteTrade;
+window.deleteObservation = deleteObservation;
