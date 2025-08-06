@@ -1,46 +1,46 @@
 // Variables globales
-let trades = JSON.parse( localStorage.getItem( 'trades' ) || '[]' );
-let observations = JSON.parse( localStorage.getItem( 'observations' ) || '[]' );
+let trades = [];
+let observations = [];
 let currentCapital = parseFloat( localStorage.getItem( 'currentCapital' ) || '1930' );
 let currentTab = 'dashboard';
 
-// Configuraciones de estrategias
+// Configuraciones de estrategias corregidas
 const strategyConfigs = {
     'regulares': {
         name: 'Trades Regulares',
-        riskPercent: [ 1.5, 2.5 ],
-        contracts: [ 7, 8, 10 ], // Alta, Media, Baja volatilidad
-        stopLoss: [ 8, 7, 5 ],
-        takeProfit1: [ 14, 12, 10 ],
-        takeProfit2: [ 26, 22, 18 ],
-        winRate: 55
+        riskPercent: 2.0, // Promedio entre 1.5-2.5%
+        stopLoss: 6,
+        takeProfit1: 13,
+        takeProfit2: 24,
+        winRate: 55,
+        rrRatio: 2.2
     },
     'ema-macd': {
         name: 'EMA + MACD',
-        riskPercent: [ 3, 3 ],
-        contracts: [ 16, 14 ],
-        stopLoss: [ 4, 5 ],
-        takeProfit1: [ 11, 13 ],
-        takeProfit2: [ 20, 24 ],
-        winRate: 62
+        riskPercent: 3.0,
+        stopLoss: 5,
+        takeProfit1: 12,
+        takeProfit2: 22,
+        winRate: 62,
+        rrRatio: 2.4
     },
     'contra-tendencia': {
         name: 'Contra-Tendencia',
-        riskPercent: [ 2.5, 2.5 ],
-        contracts: [ 11, 12 ],
-        stopLoss: [ 6, 5 ],
-        takeProfit1: [ 15, 12 ],
-        takeProfit2: [ 28, 22 ],
-        winRate: 48
+        riskPercent: 2.5,
+        stopLoss: 6,
+        takeProfit1: 15,
+        takeProfit2: 28,
+        winRate: 48,
+        rrRatio: 2.8
     },
     'extremos': {
         name: 'Trades Extremos',
-        riskPercent: [ 3, 3 ],
-        contracts: [ 13, 11 ],
-        stopLoss: [ 5, 6 ],
-        takeProfit1: [ 13, 16 ],
-        takeProfit2: [ 25, 30 ],
-        winRate: 65
+        riskPercent: 3.0,
+        stopLoss: 5,
+        takeProfit1: 13,
+        takeProfit2: 25,
+        winRate: 65,
+        rrRatio: 2.6
     }
 };
 
@@ -91,10 +91,21 @@ const setupChecklists = {
 
 // Inicialización
 document.addEventListener( 'DOMContentLoaded', function () {
+    loadData();
     initializeApp();
     updateTime();
     setInterval( updateTime, 1000 );
 } );
+
+function loadData() {
+    try {
+        trades = JSON.parse( localStorage.getItem( 'trades' ) || '[]' );
+        observations = JSON.parse( localStorage.getItem( 'observations' ) || '[]' );
+    } catch ( e ) {
+        trades = [];
+        observations = [];
+    }
+}
 
 function initializeApp() {
     setupEventListeners();
@@ -223,22 +234,42 @@ function updateStrategyCalculator() {
 
     if ( !config ) return;
 
-    const riskPercent = config.riskPercent[ 0 ]; // Usar el primer valor
-    const riskAmount = ( currentCapital * riskPercent / 100 );
-    const contracts = config.contracts[ 1 ]; // Volatilidad media
-    const stopLoss = config.stopLoss[ 1 ];
-    const tp1 = config.takeProfit1[ 1 ];
-    const tp2 = config.takeProfit2[ 1 ];
+    // Calcular parámetros principales
+    const maxRiskPerTrade = ( currentCapital * config.riskPercent / 100 );
+    const optimalContracts = Math.floor( maxRiskPerTrade / config.stopLoss );
+    const realRiskPerTrade = optimalContracts * config.stopLoss;
 
-    const profitTP1 = ( contracts * tp1 * 0.6 ).toFixed( 0 );
-    const profitTP2 = ( contracts * tp2 * 0.4 ).toFixed( 0 );
+    // Calcular ganancias
+    const profitTP1 = Math.floor( optimalContracts * 0.6 * config.takeProfit1 );
+    const profitTP2 = Math.floor( optimalContracts * 0.4 * config.takeProfit2 );
+    const totalExpectedProfit = profitTP1 + profitTP2;
 
-    document.getElementById( 'riskPerTrade' ).textContent = `${riskAmount.toFixed( 0 )}`;
-    document.getElementById( 'suggestedContracts' ).textContent = contracts;
-    document.getElementById( 'suggestedSL' ).textContent = `${stopLoss} pips`;
-    document.getElementById( 'suggestedTP' ).textContent = `${tp2} pips`;
+    // Calcular métricas adicionales
+    const realRR = ( totalExpectedProfit / realRiskPerTrade ).toFixed( 1 );
+    const dailyRiskUsed = ( ( realRiskPerTrade / ( currentCapital * 0.05 ) ) * 100 ).toFixed( 1 );
+    const maxDailyRisk = currentCapital * 0.05;
+    const tradesRemaining = Math.floor( ( maxDailyRisk - realRiskPerTrade ) / realRiskPerTrade );
+
+    // Actualizar información de estrategia
+    document.getElementById( 'strategyWinRate' ).textContent = `${config.winRate}%`;
+    document.getElementById( 'strategyRR' ).textContent = `${config.rrRatio}:1`;
+    document.getElementById( 'strategyRiskPercent' ).textContent = `${config.riskPercent}%`;
+
+    // Actualizar parámetros calculados
+    document.getElementById( 'maxRiskPerTrade' ).textContent = `${maxRiskPerTrade.toFixed( 0 )}`;
+    document.getElementById( 'optimalContracts' ).textContent = optimalContracts;
+    document.getElementById( 'suggestedSL' ).textContent = `${config.stopLoss} pips`;
+    document.getElementById( 'realRiskPerTrade' ).textContent = `${realRiskPerTrade}`;
+    document.getElementById( 'takeProfit1' ).textContent = `${config.takeProfit1} pips`;
+    document.getElementById( 'takeProfit2' ).textContent = `${config.takeProfit2} pips`;
     document.getElementById( 'profitTP1' ).textContent = `${profitTP1}`;
     document.getElementById( 'profitTP2' ).textContent = `${profitTP2}`;
+
+    // Actualizar análisis de riesgo/retorno
+    document.getElementById( 'totalExpectedProfit' ).textContent = `${totalExpectedProfit}`;
+    document.getElementById( 'realRR' ).textContent = `${realRR}:1`;
+    document.getElementById( 'dailyRiskUsed' ).textContent = `${dailyRiskUsed}%`;
+    document.getElementById( 'tradesRemaining' ).textContent = `${Math.max( 0, tradesRemaining )} trades`;
 }
 
 function updateDashboard() {
@@ -330,7 +361,6 @@ function hideTradeModal() {
 function handleTradeSubmit( e ) {
     e.preventDefault();
 
-    const formData = new FormData( e.target );
     const trade = {
         id: Date.now(),
         date: document.getElementById( 'tradeDate' ).value,
@@ -372,41 +402,39 @@ function renderTrades() {
     }
 
     tbody.innerHTML = filteredTrades.map( trade => `
-                <tr class="border-b border-gray-700 hover:bg-gray-800">
-                    <td class="p-3">${trade.date}</td>
-                    <td class="p-3">
-                        <span class="px-2 py-1 rounded text-xs bg-blue-900 text-blue-200">
-                            ${strategyConfigs[ trade.strategy ]?.name || trade.strategy}
-                        </span>
-                    </td>
-                    <td class="p-3">
-                        <span class="px-2 py-1 rounded text-xs ${trade.direction === 'buy' ? 'bg-green-900 text-green-200' : 'bg-red-900 text-red-200'
-        }">
-                            ${trade.direction === 'buy' ? '📈 Compra' : '📉 Venta'}
-                        </span>
-                    </td>
-                    <td class="p-3">${trade.contracts}</td>
-                    <td class="p-3">${trade.stopLoss} pips</td>
-                    <td class="p-3">${trade.takeProfit} pips</td>
-                    <td class="p-3">
-                        <span class="px-2 py-1 rounded text-xs ${trade.result === 'win' ? 'bg-green-900 text-green-200' : 'bg-red-900 text-red-200'
-        }">
-                            ${trade.result === 'win' ? '✅ Ganador' : '❌ Perdedor'}
-                        </span>
-                    </td>
-                    <td class="p-3 font-bold ${trade.pnl >= 0 ? 'text-profit' : 'text-loss'}">
-                        ${trade.pnl.toFixed( 2 )}
-                    </td>
-                    <td class="p-3 max-w-xs truncate" title="${trade.comments}">
-                        ${trade.comments || '-'}
-                    </td>
-                    <td class="p-3">
-                        <button onclick="deleteTrade(${trade.id})" class="text-red-400 hover:text-red-300 text-sm">
-                            🗑️ Eliminar
-                        </button>
-                    </td>
-                </tr>
-            `).join( '' );
+        <tr class="border-b border-gray-700 hover:bg-gray-800">
+            <td class="p-3">${trade.date}</td>
+            <td class="p-3">
+                <span class="px-2 py-1 rounded text-xs bg-blue-900 text-blue-200">
+                    ${strategyConfigs[ trade.strategy ]?.name || trade.strategy}
+                </span>
+            </td>
+            <td class="p-3">
+                <span class="px-2 py-1 rounded text-xs ${trade.direction === 'buy' ? 'bg-green-900 text-green-200' : 'bg-red-900 text-red-200'}">
+                    ${trade.direction === 'buy' ? '📈 Compra' : '📉 Venta'}
+                </span>
+            </td>
+            <td class="p-3">${trade.contracts}</td>
+            <td class="p-3">${trade.stopLoss} pips</td>
+            <td class="p-3">${trade.takeProfit} pips</td>
+            <td class="p-3">
+                <span class="px-2 py-1 rounded text-xs ${trade.result === 'win' ? 'bg-green-900 text-green-200' : 'bg-red-900 text-red-200'}">
+                    ${trade.result === 'win' ? '✅ Ganador' : '❌ Perdedor'}
+                </span>
+            </td>
+            <td class="p-3 font-bold ${trade.pnl >= 0 ? 'text-profit' : 'text-loss'}">
+                ${trade.pnl.toFixed( 2 )}
+            </td>
+            <td class="p-3 max-w-xs truncate" title="${trade.comments}">
+                ${trade.comments || '-'}
+            </td>
+            <td class="p-3">
+                <button onclick="deleteTrade(${trade.id})" class="text-red-400 hover:text-red-300 text-sm">
+                    🗑️ Eliminar
+                </button>
+            </td>
+        </tr>
+    `).join( '' );
 }
 
 function deleteTrade( tradeId ) {
@@ -458,11 +486,11 @@ function generateSetupChecklist() {
     const container = document.getElementById( 'setupChecklist' );
 
     container.innerHTML = checklist.map( ( item, index ) => `
-                <label class="flex items-start space-x-3 cursor-pointer">
-                    <input type="checkbox" class="setup-checkbox mt-1 w-4 h-4 text-profit bg-gray-800 border-gray-600 rounded focus:ring-profit focus:ring-2" data-index="${index}">
-                    <span class="text-sm">${item}</span>
-                </label>
-            `).join( '' );
+        <label class="flex items-start space-x-3 cursor-pointer">
+            <input type="checkbox" class="setup-checkbox mt-1 w-4 h-4 text-profit bg-gray-800 border-gray-600 rounded focus:ring-profit focus:ring-2" data-index="${index}">
+            <span class="text-sm">${item}</span>
+        </label>
+    `).join( '' );
 
     // Agregar event listeners para actualizar score
     container.querySelectorAll( '.setup-checkbox' ).forEach( checkbox => {
@@ -556,27 +584,27 @@ function renderObservations() {
 
     if ( observations.length === 0 ) {
         container.innerHTML = `
-                    <div class="text-center text-gray-400 py-8">
-                        <p>No hay observaciones registradas</p>
-                        <p class="text-sm mt-2">Agrega tus primeras observaciones post-trade</p>
-                    </div>
-                `;
+            <div class="text-center text-gray-400 py-8">
+                <p>No hay observaciones registradas</p>
+                <p class="text-sm mt-2">Agrega tus primeras observaciones post-trade</p>
+            </div>
+        `;
         return;
     }
 
     container.innerHTML = observations.slice( 0, 10 ).map( obs => `
-                <div class="bg-gray-800 p-3 rounded-lg border-l-4 border-blue-500">
-                    <p class="text-sm mb-2">${obs.text}</p>
-                    <div class="flex justify-between items-center">
-                        <span class="text-xs text-gray-400">
-                            ${new Date( obs.timestamp ).toLocaleString()}
-                        </span>
-                        <button onclick="deleteObservation(${obs.id})" class="text-red-400 hover:text-red-300 text-xs">
-                            🗑️
-                        </button>
-                    </div>
-                </div>
-            `).join( '' );
+        <div class="bg-gray-800 p-3 rounded-lg border-l-4 border-blue-500">
+            <p class="text-sm mb-2">${obs.text}</p>
+            <div class="flex justify-between items-center">
+                <span class="text-xs text-gray-400">
+                    ${new Date( obs.timestamp ).toLocaleString()}
+                </span>
+                <button onclick="deleteObservation(${obs.id})" class="text-red-400 hover:text-red-300 text-xs">
+                    🗑️
+                </button>
+            </div>
+        </div>
+    `).join( '' );
 }
 
 function deleteObservation( obsId ) {
