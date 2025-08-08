@@ -5,7 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestor de Trading y Dashboard – Control Operativo Total</title>
-    <link rel="icon" type="image/webp" href="/logoApp.webp">
     <script src="https://cdn.tailwindcss.com"></script>
 
     <!-- Firebase SDKs -->
@@ -34,10 +33,6 @@
 <body class="bg-trading-bg text-white min-h-screen">
     <!-- Auth Modal -->
     <div id="authModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <!-- Botón de cierre -->
-        <button onclick="closeAuthModal()" class="absolute top-2 right-2 text-gray-500 hover:text-red-500 text-3xl font-bold">
-            &times;
-        </button>
 
         <div class="bg-trading-card p-6 rounded-lg border border-gray-700 w-full max-w-md mx-4">
             <h3 class="text-xl font-semibold text-gold mb-4">Iniciar Sesión con Google</h3>
@@ -50,6 +45,9 @@
                     <path fill="white" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
                 </svg>
                 Continuar con Google
+            </button>
+            <button id="continueOfflineBtn" class="w-full mt-3 bg-gray-600 hover:bg-gray-700 px-4 py-3 rounded-lg font-medium">
+                Continuar Sin Sincronización
             </button>
             <p class="text-xs text-gray-500 mt-4 text-center">
                 Tus datos se sincronizarán automáticamente en todos tus dispositivos
@@ -93,10 +91,10 @@
     <nav class="bg-trading-card border-b border-gray-700">
         <div class="container mx-auto">
             <div class="flex space-x-0 overflow-x-auto">
-                <button class="tab-btn px-6 py-3 font-medium border-b-2 border-transparent hover:text-gold whitespace-nowrap" data-tab="signals">Señales & Setup</button>
-                <button class="tab-btn px-6 py-3 font-medium border-b-2 border-transparent hover:text-gold whitespace-nowrap" data-tab="capital">Capital & Riesgo</button>
                 <button class="tab-btn px-6 py-3 font-medium border-b-2 border-gold text-gold whitespace-nowrap" data-tab="dashboard">Dashboard</button>
+                <button class="tab-btn px-6 py-3 font-medium border-b-2 border-transparent hover:text-gold whitespace-nowrap" data-tab="capital">Capital & Riesgo</button>
                 <button class="tab-btn px-6 py-3 font-medium border-b-2 border-transparent hover:text-gold whitespace-nowrap" data-tab="trades">Registro Trades</button>
+                <button class="tab-btn px-6 py-3 font-medium border-b-2 border-transparent hover:text-gold whitespace-nowrap" data-tab="signals">Señales & Setup</button>
                 <button class="tab-btn px-6 py-3 font-medium border-b-2 border-transparent hover:text-gold whitespace-nowrap" data-tab="discipline">Disciplina</button>
             </div>
         </div>
@@ -248,7 +246,6 @@
                                 <option value="contra-tendencia">Contra-Tendencia (2.5% del capital)</option>
                                 <option value="extremos">Trades Extremos (3% del capital)</option>
                             </select>
-                            <p class="text-xs text-gray-400 mt-1">Cada estrategia tiene su % de riesgo recomendado basado en su confiabilidad histórica</p>
                         </div>
 
                         <!-- Información de la Estrategia -->
@@ -275,8 +272,7 @@
                             <div class="grid grid-cols-2 gap-4 text-sm">
                                 <div class="col-span-2 bg-gray-900 p-3 rounded-lg border-l-4 border-red-400">
                                     <span class="text-gray-400">Riesgo Máximo por Trade:</span>
-                                    <p class="text-xl font-bold text-loss" id="maxRiskPerTrade" title="% de estrategia × Capital total">$48</p>
-                                    <p class="text-xs text-gray-500">Basado en el % de riesgo de la estrategia</p>
+                                    <p class="text-xl font-bold text-loss" id="maxRiskPerTrade">$48</p>
                                 </div>
 
                                 <div>
@@ -288,130 +284,19 @@
                                     <p class="text-lg font-bold" id="suggestedSL">6 pips</p>
                                 </div>
                                 <div>
-                                    <span class="text-gray-400">Riesgo Real Trade:</span>
-                                    <p class="text-lg font-bold text-red-400" id="realRiskPerTrade">$48</p>
-                                    <p class="text-xs text-gray-500">Contratos × SL × $1/pip</p>
-                                </div>
-                                <div>
-                                    <span class="text-gray-400">Take Profit 1 (60%):</span>
+                                    <span class="text-gray-400">Take Profit 1:</span>
                                     <p class="text-lg font-bold text-profit" id="takeProfit1">13 pips</p>
                                 </div>
                                 <div>
-                                    <span class="text-gray-400">Ganancia TP1:</span>
-                                    <p class="text-lg font-bold text-profit" id="profitTP1">$62</p>
-                                    <p class="text-xs text-gray-500">60% contratos × TP1</p>
-                                </div>
-                                <div>
-                                    <span class="text-gray-400">Take Profit 2 (40%):</span>
+                                    <span class="text-gray-400">Take Profit 2:</span>
                                     <p class="text-lg font-bold text-profit" id="takeProfit2">24 pips</p>
                                 </div>
-                                <div>
-                                    <span class="text-gray-400">Ganancia TP2:</span>
-                                    <p class="text-lg font-bold text-profit" id="profitTP2">$77</p>
-                                    <p class="text-xs text-gray-500">40% contratos × TP2</p>
-                                </div>
-                            </div>
-
-                            <!-- Información adicional sobre límites -->
-                            <div class="mt-4 p-3 bg-gray-900 rounded-lg border-l-4 border-yellow-500">
-                                <h5 class="text-yellow-400 font-semibold mb-2">⚡ Análisis de Riesgo/Retorno</h5>
-                                <div class="text-xs space-y-1">
-                                    <div class="flex justify-between">
-                                        <span>Ganancia total esperada:</span>
-                                        <span id="totalExpectedProfit" class="text-profit">$139</span>
-                                    </div>
-                                    <div class="flex justify-between">
-                                        <span>Ratio R:R real del setup:</span>
-                                        <span id="realRR" class="text-gold">2.9:1</span>
-                                    </div>
-                                    <div class="flex justify-between">
-                                        <span>% del riesgo diario usado:</span>
-                                        <span id="dailyRiskUsed" class="text-orange-400">49.7%</span>
-                                    </div>
-                                    <div class="flex justify-between">
-                                        <span>Trades restantes hoy:</span>
-                                        <span id="tradesRemaining" class="text-blue-400">1 trade</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Proyecciones Mensuales -->
-            <div class="bg-trading-card p-6 rounded-lg border border-gray-700 mt-6">
-                <h3 class="text-xl font-semibold text-gold mb-4">Proyecciones Mensuales</h3>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="bg-gray-800 p-4 rounded-lg">
-                        <h4 class="font-semibold text-orange-400 mb-2">Escenario Conservador</h4>
-                        <div class="space-y-2 text-sm">
-                            <div class="flex justify-between">
-                                <span>Win Rate:</span>
-                                <span>52%</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span>Trades/Mes:</span>
-                                <span>78</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span>Ganancia Neta:</span>
-                                <span class="text-profit" id="conservativeProfit">$4,525</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span>ROI:</span>
-                                <span class="text-gold" id="conservativeROI">234%</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="bg-gray-800 p-4 rounded-lg">
-                        <h4 class="font-semibold text-blue-400 mb-2">Escenario Realista</h4>
-                        <div class="space-y-2 text-sm">
-                            <div class="flex justify-between">
-                                <span>Win Rate:</span>
-                                <span>57%</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span>Trades/Mes:</span>
-                                <span>88</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span>Ganancia Neta:</span>
-                                <span class="text-profit" id="realisticProfit">$5,910</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span>ROI:</span>
-                                <span class="text-gold" id="realisticROI">306%</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="bg-gray-800 p-4 rounded-lg">
-                        <h4 class="font-semibold text-profit mb-2">Escenario Optimista</h4>
-                        <div class="space-y-2 text-sm">
-                            <div class="flex justify-between">
-                                <span>Win Rate:</span>
-                                <span>62%</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span>Trades/Mes:</span>
-                                <span>97</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span>Ganancia Neta:</span>
-                                <span class="text-profit" id="optimisticProfit">$7,565</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span>ROI:</span>
-                                <span class="text-gold" id="optimisticROI">392%</span>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-
-        <!-- Resto de las tabs (igual que el original) -->
-        <!-- [El contenido de las demás tabs permanece igual] -->
 
         <!-- Registro de Trades Tab -->
         <div id="trades" class="tab-content hidden">
@@ -481,20 +366,12 @@
                             <h4 class="font-semibold text-loss mb-2">🔴 Resistencias Clave</h4>
                             <div class="space-y-2 text-sm">
                                 <div class="flex justify-between bg-gray-800 p-2 rounded">
-                                    <span>3,485</span>
-                                    <span class="text-loss">Máximo Histórico ±8 pips</span>
+                                    <span>2,485</span>
+                                    <span class="text-loss">Resistencia Fuerte ±8 pips</span>
                                 </div>
                                 <div class="flex justify-between bg-gray-800 p-2 rounded">
-                                    <span>3,450</span>
-                                    <span class="text-loss">Resistencia Fuerte ±6 pips</span>
-                                </div>
-                                <div class="flex justify-between bg-gray-800 p-2 rounded">
-                                    <span>3,431</span>
-                                    <span class="text-loss">Histórica Múltiple ±5 pips</span>
-                                </div>
-                                <div class="flex justify-between bg-gray-800 p-2 rounded">
-                                    <span>3,401</span>
-                                    <span class="text-loss">Psicológica Mayor ±5 pips</span>
+                                    <span>2,450</span>
+                                    <span class="text-loss">Zona de Rechazo ±6 pips</span>
                                 </div>
                             </div>
                         </div>
@@ -502,20 +379,12 @@
                             <h4 class="font-semibold text-profit mb-2">🟢 Soportes Clave</h4>
                             <div class="space-y-2 text-sm">
                                 <div class="flex justify-between bg-gray-800 p-2 rounded">
-                                    <span>3,240</span>
+                                    <span>2,340</span>
                                     <span class="text-profit">Soporte Mayor ±12 pips</span>
                                 </div>
                                 <div class="flex justify-between bg-gray-800 p-2 rounded">
-                                    <span>3,269</span>
-                                    <span class="text-profit">Técnico Validado ±8 pips</span>
-                                </div>
-                                <div class="flex justify-between bg-gray-800 p-2 rounded">
-                                    <span>3,280</span>
-                                    <span class="text-profit">Demanda Institucional ±6 pips</span>
-                                </div>
-                                <div class="flex justify-between bg-gray-800 p-2 rounded">
-                                    <span>3,320</span>
-                                    <span class="text-profit">Rebote Consistente ±6 pips</span>
+                                    <span>2,380</span>
+                                    <span class="text-profit">Zona de Demanda ±8 pips</span>
                                 </div>
                             </div>
                         </div>
@@ -561,47 +430,6 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Horarios de Efectividad -->
-            <div class="bg-trading-card p-6 rounded-lg border border-gray-700 mt-6">
-                <h3 class="text-xl font-semibold text-gold mb-4">Horarios de Máxima Efectividad (Lima GMT-5)</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <h4 class="font-semibold text-blue-400 mb-3">Sesión ALPHA (08:00-12:00)</h4>
-                        <div class="space-y-2 text-sm">
-                            <div class="flex justify-between bg-gray-800 p-2 rounded">
-                                <span>08:30-09:30</span>
-                                <span class="text-profit">Rupturas - 88% efectividad</span>
-                            </div>
-                            <div class="flex justify-between bg-gray-800 p-2 rounded">
-                                <span>09:45-10:30</span>
-                                <span class="text-profit">Continuaciones - 83% efectividad</span>
-                            </div>
-                            <div class="flex justify-between bg-gray-800 p-2 rounded">
-                                <span>11:00-11:45</span>
-                                <span class="text-gold">Rebotes - 78% efectividad</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div>
-                        <h4 class="font-semibold text-purple-400 mb-3">Sesión BETA (13:00-16:00)</h4>
-                        <div class="space-y-2 text-sm">
-                            <div class="flex justify-between bg-gray-800 p-2 rounded">
-                                <span>13:15-14:00</span>
-                                <span class="text-profit">Reversales - 85% efectividad</span>
-                            </div>
-                            <div class="flex justify-between bg-gray-800 p-2 rounded">
-                                <span>14:00-14:45</span>
-                                <span class="text-profit">Momentum NY - 80% efectividad</span>
-                            </div>
-                            <div class="flex justify-between bg-gray-800 p-2 rounded">
-                                <span>15:00-15:30</span>
-                                <span class="text-gold">Últimas oportunidades - 75% efectividad</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
 
         <!-- Disciplina Tab -->
@@ -619,13 +447,6 @@
                                     <div class="flex items-center">
                                         <div id="slDiscipline" class="w-4 h-4 rounded-full bg-profit mr-2"></div>
                                         <span id="slPercentage">100%</span>
-                                    </div>
-                                </div>
-                                <div class="flex justify-between items-center">
-                                    <span>Uso de Filtros:</span>
-                                    <div class="flex items-center">
-                                        <div id="filterDiscipline" class="w-4 h-4 rounded-full bg-profit mr-2"></div>
-                                        <span id="filterPercentage">100%</span>
                                     </div>
                                 </div>
                                 <div class="flex justify-between items-center">
@@ -695,10 +516,6 @@
                             </li>
                             <li class="flex items-start">
                                 <span class="text-loss mr-2">❌</span>
-                                <span>Ignorar filtros de volatilidad y spread</span>
-                            </li>
-                            <li class="flex items-start">
-                                <span class="text-loss mr-2">❌</span>
                                 <span>Operar por emociones tras pérdidas</span>
                             </li>
                         </ul>
@@ -716,47 +533,12 @@
                             </li>
                             <li class="flex items-start">
                                 <span class="text-profit mr-2">✅</span>
-                                <span>Activar trail stop al alcanzar TP1</span>
-                            </li>
-                            <li class="flex items-start">
-                                <span class="text-profit mr-2">✅</span>
                                 <span>Mantener disciplina emocional constante</span>
                             </li>
                             <li class="flex items-start">
                                 <span class="text-profit mr-2">✅</span>
                                 <span>Focus en consistencia sobre ganancias grandes</span>
                             </li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Protocolo de Pérdidas -->
-            <div class="bg-trading-card p-6 rounded-lg border border-gray-700 mt-6">
-                <h3 class="text-xl font-semibold text-orange-400 mb-4">📊 Protocolo de Pérdidas Consecutivas</h3>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div class="bg-yellow-900 bg-opacity-30 p-4 rounded-lg border border-yellow-600">
-                        <h4 class="font-semibold text-yellow-400 mb-2">1 Pérdida</h4>
-                        <ul class="text-sm space-y-1">
-                            <li>• Continuar normal</li>
-                            <li>• Analizar qué falló</li>
-                            <li>• Solo trades alta confianza</li>
-                        </ul>
-                    </div>
-                    <div class="bg-orange-900 bg-opacity-30 p-4 rounded-lg border border-orange-600">
-                        <h4 class="font-semibold text-orange-400 mb-2">2 Pérdidas</h4>
-                        <ul class="text-sm space-y-1">
-                            <li>• Pausa de 1 hora</li>
-                            <li>• Reducir tamaños 20%</li>
-                            <li>• Solo win rate 75%+</li>
-                        </ul>
-                    </div>
-                    <div class="bg-red-900 bg-opacity-30 p-4 rounded-lg border border-red-600">
-                        <h4 class="font-semibold text-loss mb-2">3+ Pérdidas</h4>
-                        <ul class="text-sm space-y-1">
-                            <li>• Pausa hasta mañana</li>
-                            <li>• Solo trades extremos 7+</li>
-                            <li>• Reducir tamaños 40%</li>
                         </ul>
                     </div>
                 </div>

@@ -22,7 +22,7 @@ let currentCapital = 1930;
 let currentTab = 'dashboard';
 let currentUser = null;
 
-// Configuraciones de estrategias corregidas
+// Configuraciones de estrategias
 const strategyConfigs = {
     'regulares': {
         name: 'Trades Regulares',
@@ -121,13 +121,17 @@ function hideAuthModal() {
     document.getElementById( 'authModal' ).classList.add( 'hidden' );
 }
 
+function closeAuthModal() {
+    document.getElementById( 'authModal' ).classList.add( 'hidden' );
+}
+
 function showUserMenu( user ) {
     const userMenu = document.getElementById( 'userMenu' );
     const userPhoto = document.getElementById( 'userPhoto' );
     const userName = document.getElementById( 'userName' );
 
-    userPhoto.src = user.photoURL || 'https://via.placeholder.com/32';
-    userName.textContent = user.displayName || user.email;
+    if ( userPhoto ) userPhoto.src = user.photoURL || 'https://via.placeholder.com/32';
+    if ( userName ) userName.textContent = user.displayName || user.email;
 
     userMenu.classList.remove( 'hidden' );
 }
@@ -141,15 +145,17 @@ function updateSyncStatus( status, isOnline = true ) {
     const syncIndicator = document.getElementById( 'syncIndicator' );
     const syncText = document.getElementById( 'syncText' );
 
-    syncText.textContent = status;
-    syncIndicator.className = `w-3 h-3 rounded-full ${isOnline ? 'bg-green-500' : 'bg-red-500'}`;
+    if ( syncText ) syncText.textContent = status;
+    if ( syncIndicator ) {
+        syncIndicator.className = `w-3 h-3 rounded-full ${isOnline ? 'bg-green-500' : 'bg-red-500'}`;
+    }
 
-    syncStatus.classList.remove( 'hidden' );
+    if ( syncStatus ) syncStatus.classList.remove( 'hidden' );
 
     // Auto-hide después de 3 segundos si es positivo
     if ( isOnline ) {
         setTimeout( () => {
-            syncStatus.classList.add( 'hidden' );
+            if ( syncStatus ) syncStatus.classList.add( 'hidden' );
         }, 3000 );
     }
 }
@@ -226,7 +232,10 @@ function showTab( tabName ) {
     } );
 
     // Mostrar tab seleccionada
-    document.getElementById( tabName ).classList.remove( 'hidden' );
+    const selectedTab = document.getElementById( tabName );
+    if ( selectedTab ) {
+        selectedTab.classList.remove( 'hidden' );
+    }
 
     // Actualizar estado de botones
     document.querySelectorAll( '.tab-btn' ).forEach( btn => {
@@ -258,15 +267,25 @@ function updateDashboard() {
     // Calcular drawdown
     const drawdown = currentCapital > 0 ? ( ( Math.abs( Math.min( 0, dailyPnL ) ) / currentCapital ) * 100 ).toFixed( 1 ) : '0';
 
-    // Actualizar elementos del dashboard
-    document.getElementById( 'dashCapital' ).textContent = `$${currentCapital.toLocaleString()}`;
-    document.getElementById( 'dashRisk' ).textContent = `$${( currentCapital * 0.05 ).toFixed( 2 )}`;
-    document.getElementById( 'currentWinRate' ).textContent = `${winRate}%`;
-    document.getElementById( 'totalTrades' ).textContent = totalTrades;
-    document.getElementById( 'dailyPnL' ).textContent = `$${dailyPnL.toFixed( 2 )}`;
-    document.getElementById( 'dailyPnL' ).className = `text-3xl font-bold ${dailyPnL >= 0 ? 'text-profit' : 'text-loss'}`;
-    document.getElementById( 'drawdown' ).textContent = `${drawdown}%`;
-    document.getElementById( 'todayTrades' ).textContent = todayTrades.length;
+    // Actualizar elementos del dashboard solo si existen
+    const dashCapital = document.getElementById( 'dashCapital' );
+    const dashRisk = document.getElementById( 'dashRisk' );
+    const currentWinRateEl = document.getElementById( 'currentWinRate' );
+    const totalTradesEl = document.getElementById( 'totalTrades' );
+    const dailyPnLEl = document.getElementById( 'dailyPnL' );
+    const drawdownEl = document.getElementById( 'drawdown' );
+    const todayTradesEl = document.getElementById( 'todayTrades' );
+
+    if ( dashCapital ) dashCapital.textContent = `$${currentCapital.toLocaleString()}`;
+    if ( dashRisk ) dashRisk.textContent = `$${( currentCapital * 0.05 ).toFixed( 2 )}`;
+    if ( currentWinRateEl ) currentWinRateEl.textContent = `${winRate}%`;
+    if ( totalTradesEl ) totalTradesEl.textContent = totalTrades;
+    if ( dailyPnLEl ) {
+        dailyPnLEl.textContent = `$${dailyPnL.toFixed( 2 )}`;
+        dailyPnLEl.className = `text-3xl font-bold ${dailyPnL >= 0 ? 'text-profit' : 'text-loss'}`;
+    }
+    if ( drawdownEl ) drawdownEl.textContent = `${drawdown}%`;
+    if ( todayTradesEl ) todayTradesEl.textContent = todayTrades.length;
 
     updateStrategyStats();
 }
@@ -280,28 +299,41 @@ function updateStrategyStats() {
 
         const statsElement = document.querySelector( `[data-strategy="${strategy}"]` );
         if ( statsElement ) {
-            statsElement.querySelector( '.strategy-winrate' ).textContent = `${winRate}%`;
-            statsElement.querySelector( '.strategy-pnl' ).textContent = `$${pnl.toFixed( 0 )}`;
-            statsElement.querySelector( '.strategy-pnl' ).className = pnl >= 0 ? 'text-profit' : 'text-loss';
-            statsElement.querySelector( '.strategy-count' ).textContent = strategyTrades.length;
+            const winrateEl = statsElement.querySelector( '.strategy-winrate' );
+            const pnlEl = statsElement.querySelector( '.strategy-pnl' );
+            const countEl = statsElement.querySelector( '.strategy-count' );
+
+            if ( winrateEl ) winrateEl.textContent = `${winRate}%`;
+            if ( pnlEl ) {
+                pnlEl.textContent = `$${pnl.toFixed( 0 )}`;
+                pnlEl.className = `strategy-pnl ${pnl >= 0 ? 'text-profit' : 'text-loss'}`;
+            }
+            if ( countEl ) countEl.textContent = strategyTrades.length;
         }
     } );
 }
 
 // ===== FUNCIONES DE CAPITAL Y RIESGO =====
 function updateCapitalCalculations() {
-    const capital = parseFloat( document.getElementById( 'capitalInput' ).value ) || 1930;
+    const capitalInput = document.getElementById( 'capitalInput' );
+    const capital = capitalInput ? parseFloat( capitalInput.value ) || 1930 : 1930;
     currentCapital = capital;
 
     const maxDailyRisk = capital * 0.05;
-    document.getElementById( 'maxDailyRisk' ).textContent = `$${maxDailyRisk.toFixed( 2 )}`;
+    const maxDailyRiskEl = document.getElementById( 'maxDailyRisk' );
+    if ( maxDailyRiskEl ) {
+        maxDailyRiskEl.textContent = `$${maxDailyRisk.toFixed( 2 )}`;
+    }
 
     updateStrategyCalculations();
     updateDashboard();
 }
 
 function updateStrategyCalculations() {
-    const selectedStrategy = document.getElementById( 'strategySelect' ).value;
+    const strategySelect = document.getElementById( 'strategySelect' );
+    if ( !strategySelect ) return;
+
+    const selectedStrategy = strategySelect.value;
     const config = strategyConfigs[ selectedStrategy ];
 
     if ( !config ) return;
@@ -311,64 +343,37 @@ function updateStrategyCalculations() {
     const maxRiskPerTrade = capital * riskPercent;
     const stopLoss = config.stopLoss;
     const optimalContracts = Math.floor( maxRiskPerTrade / stopLoss );
-    const realRiskPerTrade = optimalContracts * stopLoss;
 
-    // Take profits
-    const tp1Pips = config.takeProfit1;
-    const tp2Pips = config.takeProfit2;
-    const profitTP1 = Math.floor( optimalContracts * 0.6 ) * tp1Pips;
-    const profitTP2 = Math.floor( optimalContracts * 0.4 ) * tp2Pips;
-    const totalExpectedProfit = profitTP1 + profitTP2;
-    const realRR = ( totalExpectedProfit / realRiskPerTrade ).toFixed( 1 );
+    // Actualizar elementos solo si existen
+    const elements = {
+        'strategyWinRate': `${config.winRate}%`,
+        'strategyRR': `${config.rrRatio}:1`,
+        'strategyRiskPercent': `${config.riskPercent}%`,
+        'maxRiskPerTrade': `$${maxRiskPerTrade.toFixed( 0 )}`,
+        'optimalContracts': optimalContracts,
+        'suggestedSL': `${stopLoss} pips`,
+        'takeProfit1': `${config.takeProfit1} pips`,
+        'takeProfit2': `${config.takeProfit2} pips`
+    };
 
-    // Actualizar UI
-    document.getElementById( 'strategyWinRate' ).textContent = `${config.winRate}%`;
-    document.getElementById( 'strategyRR' ).textContent = `${config.rrRatio}:1`;
-    document.getElementById( 'strategyRiskPercent' ).textContent = `${config.riskPercent}%`;
-    document.getElementById( 'maxRiskPerTrade' ).textContent = `$${maxRiskPerTrade.toFixed( 0 )}`;
-    document.getElementById( 'optimalContracts' ).textContent = optimalContracts;
-    document.getElementById( 'suggestedSL' ).textContent = `${stopLoss} pips`;
-    document.getElementById( 'realRiskPerTrade' ).textContent = `$${realRiskPerTrade.toFixed( 0 )}`;
-    document.getElementById( 'takeProfit1' ).textContent = `${tp1Pips} pips`;
-    document.getElementById( 'takeProfit2' ).textContent = `${tp2Pips} pips`;
-    document.getElementById( 'profitTP1' ).textContent = `$${profitTP1}`;
-    document.getElementById( 'profitTP2' ).textContent = `$${profitTP2}`;
-    document.getElementById( 'totalExpectedProfit' ).textContent = `$${totalExpectedProfit}`;
-    document.getElementById( 'realRR' ).textContent = `${realRR}:1`;
-
-    const dailyRiskUsed = ( ( realRiskPerTrade / ( capital * 0.05 ) ) * 100 ).toFixed( 1 );
-    document.getElementById( 'dailyRiskUsed' ).textContent = `${dailyRiskUsed}%`;
-
-    const tradesRemaining = Math.floor( ( capital * 0.05 ) / realRiskPerTrade );
-    document.getElementById( 'tradesRemaining' ).textContent = `${tradesRemaining} trades`;
-
-    updateMonthlyProjections();
-}
-
-function updateMonthlyProjections() {
-    const capital = currentCapital;
-
-    // Escenario conservador
-    const conservativeProfit = capital * 2.34;
-    document.getElementById( 'conservativeProfit' ).textContent = `$${conservativeProfit.toFixed( 0 )}`;
-    document.getElementById( 'conservativeROI' ).textContent = '234%';
-
-    // Escenario realista
-    const realisticProfit = capital * 3.06;
-    document.getElementById( 'realisticProfit' ).textContent = `$${realisticProfit.toFixed( 0 )}`;
-    document.getElementById( 'realisticROI' ).textContent = '306%';
-
-    // Escenario optimista
-    const optimisticProfit = capital * 3.92;
-    document.getElementById( 'optimisticProfit' ).textContent = `$${optimisticProfit.toFixed( 0 )}`;
-    document.getElementById( 'optimisticROI' ).textContent = '392%';
+    Object.entries( elements ).forEach( ( [ id, value ] ) => {
+        const element = document.getElementById( id );
+        if ( element ) {
+            element.textContent = value;
+        }
+    } );
 }
 
 // ===== FUNCIONES DE SETUP CHECKER =====
 function updateSetupChecklist() {
-    const strategy = document.getElementById( 'setupStrategy' ).value;
+    const setupStrategy = document.getElementById( 'setupStrategy' );
+    if ( !setupStrategy ) return;
+
+    const strategy = setupStrategy.value;
     const checklist = setupChecklists[ strategy ];
     const checklistContainer = document.getElementById( 'setupChecklist' );
+
+    if ( !checklistContainer ) return;
 
     checklistContainer.innerHTML = checklist.map( ( item, index ) => `
         <div class="flex items-center space-x-3 p-2 bg-gray-800 rounded">
@@ -394,37 +399,56 @@ function updateSetupScore() {
     const scoreBar = document.getElementById( 'scoreBar' );
     const executeBtn = document.getElementById( 'executeSetupBtn' );
 
-    scoreValue.textContent = `${score}%`;
-    scoreBar.style.width = `${score}%`;
+    if ( scoreValue ) scoreValue.textContent = `${score}%`;
+    if ( scoreBar ) scoreBar.style.width = `${score}%`;
 
     // Colores según score
     let colorClass = 'bg-red-500';
     if ( score >= 70 ) colorClass = 'bg-yellow-500';
     if ( score >= 85 ) colorClass = 'bg-green-500';
 
-    scoreBar.className = `h-2 rounded-full transition-all duration-300 ${colorClass}`;
-    scoreElement.classList.remove( 'hidden' );
+    if ( scoreBar ) {
+        scoreBar.className = `h-2 rounded-full transition-all duration-300 ${colorClass}`;
+    }
+
+    if ( scoreElement ) scoreElement.classList.remove( 'hidden' );
 
     // Habilitar botón de ejecutar si score >= 70
-    executeBtn.disabled = score < 70;
-    if ( score >= 70 ) {
-        executeBtn.classList.remove( 'opacity-50', 'cursor-not-allowed' );
-    } else {
-        executeBtn.classList.add( 'opacity-50', 'cursor-not-allowed' );
+    if ( executeBtn ) {
+        executeBtn.disabled = score < 70;
+        if ( score >= 70 ) {
+            executeBtn.classList.remove( 'opacity-50', 'cursor-not-allowed' );
+        } else {
+            executeBtn.classList.add( 'opacity-50', 'cursor-not-allowed' );
+        }
     }
 }
 
 // ===== FUNCIONES DE TRADES =====
 function showTradeModal() {
-    document.getElementById( 'tradeModal' ).classList.remove( 'hidden' );
-    document.getElementById( 'tradeModal' ).classList.add( 'flex' );
-    document.getElementById( 'tradeDate' ).value = new Date().toISOString().split( 'T' )[ 0 ];
+    const modal = document.getElementById( 'tradeModal' );
+    const dateInput = document.getElementById( 'tradeDate' );
+
+    if ( modal ) {
+        modal.classList.remove( 'hidden' );
+        modal.classList.add( 'flex' );
+    }
+
+    if ( dateInput ) {
+        dateInput.value = new Date().toISOString().split( 'T' )[ 0 ];
+    }
 }
 
 function hideTradeModal() {
-    document.getElementById( 'tradeModal' ).classList.add( 'hidden' );
-    document.getElementById( 'tradeModal' ).classList.remove( 'flex' );
-    document.getElementById( 'tradeForm' ).reset();
+    const modal = document.getElementById( 'tradeModal' );
+    const form = document.getElementById( 'tradeForm' );
+
+    if ( modal ) {
+        modal.classList.add( 'hidden' );
+        modal.classList.remove( 'flex' );
+    }
+
+    if ( form ) form.reset();
 }
 
 function saveTrade( tradeData ) {
@@ -445,6 +469,8 @@ function saveTrade( tradeData ) {
 
 function updateTradesTable() {
     const tbody = document.getElementById( 'tradesTableBody' );
+    if ( !tbody ) return;
+
     const filteredTrades = getFilteredTrades();
 
     tbody.innerHTML = filteredTrades.map( trade => `
@@ -482,19 +508,19 @@ function updateTradesTable() {
 function getFilteredTrades() {
     let filtered = [ ...trades ];
 
-    const strategyFilter = document.getElementById( 'filterStrategy' )?.value;
-    if ( strategyFilter ) {
-        filtered = filtered.filter( trade => trade.strategy === strategyFilter );
+    const strategyFilter = document.getElementById( 'filterStrategy' );
+    if ( strategyFilter?.value ) {
+        filtered = filtered.filter( trade => trade.strategy === strategyFilter.value );
     }
 
-    const resultFilter = document.getElementById( 'filterResult' )?.value;
-    if ( resultFilter ) {
-        filtered = filtered.filter( trade => trade.result === resultFilter );
+    const resultFilter = document.getElementById( 'filterResult' );
+    if ( resultFilter?.value ) {
+        filtered = filtered.filter( trade => trade.result === resultFilter.value );
     }
 
-    const dateFilter = document.getElementById( 'filterDate' )?.value;
-    if ( dateFilter ) {
-        filtered = filtered.filter( trade => trade.date === dateFilter );
+    const dateFilter = document.getElementById( 'filterDate' );
+    if ( dateFilter?.value ) {
+        filtered = filtered.filter( trade => trade.date === dateFilter.value );
     }
 
     return filtered;
@@ -541,13 +567,8 @@ function generateCSV( data ) {
 
 // ===== FUNCIONES DE DISCIPLINA =====
 function updateDisciplineTracking() {
-    const recentTrades = trades.slice( 0, 20 ); // Últimos 20 trades
-
     // Stop Loss discipline (siempre respetado por ahora)
     const slDiscipline = 100;
-
-    // Filter discipline (trades con suficientes criterios)
-    const filterDiscipline = 100;
 
     // Límite diario (no más de 4 trades por día)
     const dailyLimit = calculateDailyLimitDiscipline();
@@ -555,28 +576,35 @@ function updateDisciplineTracking() {
     // Gestión de riesgo
     const riskDiscipline = calculateRiskDiscipline();
 
-    const overallDiscipline = Math.round( ( slDiscipline + filterDiscipline + dailyLimit + riskDiscipline ) / 4 );
+    const overallDiscipline = Math.round( ( slDiscipline + 100 + dailyLimit + riskDiscipline ) / 4 );
 
-    // Actualizar UI
+    // Actualizar UI solo si los elementos existen
     updateDisciplineIndicator( 'slDiscipline', 'slPercentage', slDiscipline );
-    updateDisciplineIndicator( 'filterDiscipline', 'filterPercentage', filterDiscipline );
     updateDisciplineIndicator( 'limitDiscipline', 'limitPercentage', dailyLimit );
     updateDisciplineIndicator( 'riskDiscipline', 'riskPercentage', riskDiscipline );
 
-    document.getElementById( 'overallDiscipline' ).textContent = `${overallDiscipline}%`;
-    document.getElementById( 'disciplineBar' ).style.width = `${overallDiscipline}%`;
+    const overallEl = document.getElementById( 'overallDiscipline' );
+    const disciplineBar = document.getElementById( 'disciplineBar' );
 
-    const disciplineColor = overallDiscipline >= 80 ? 'bg-profit' : overallDiscipline >= 60 ? 'bg-gold' : 'bg-loss';
-    document.getElementById( 'disciplineBar' ).className = `h-3 rounded-full transition-all duration-300 ${disciplineColor}`;
+    if ( overallEl ) overallEl.textContent = `${overallDiscipline}%`;
+
+    if ( disciplineBar ) {
+        disciplineBar.style.width = `${overallDiscipline}%`;
+        const disciplineColor = overallDiscipline >= 80 ? 'bg-profit' : overallDiscipline >= 60 ? 'bg-gold' : 'bg-loss';
+        disciplineBar.className = `h-3 rounded-full transition-all duration-300 ${disciplineColor}`;
+    }
 }
 
 function updateDisciplineIndicator( indicatorId, percentageId, value ) {
     const indicator = document.getElementById( indicatorId );
     const percentage = document.getElementById( percentageId );
 
-    if ( indicator && percentage ) {
+    if ( indicator ) {
         const color = value >= 80 ? 'bg-profit' : value >= 60 ? 'bg-gold' : 'bg-loss';
         indicator.className = `w-4 h-4 rounded-full ${color}`;
+    }
+
+    if ( percentage ) {
         percentage.textContent = `${value}%`;
     }
 }
@@ -613,6 +641,8 @@ function calculateRiskDiscipline() {
 
 function addObservation() {
     const input = document.getElementById( 'observationInput' );
+    if ( !input ) return;
+
     const text = input.value.trim();
 
     if ( !text ) return;
@@ -634,6 +664,8 @@ function addObservation() {
 
 function updateObservationsList() {
     const container = document.getElementById( 'observationsList' );
+    if ( !container ) return;
+
     container.innerHTML = observations.slice( 0, 5 ).map( obs => `
         <div class="bg-gray-800 p-3 rounded-lg border-l-4 border-blue-500">
             <div class="flex justify-between items-start mb-2">
@@ -673,18 +705,36 @@ function updateCurrentTime() {
         year: 'numeric'
     } );
 
-    document.getElementById( 'currentTime' ).textContent = `Lima: ${timeString}`;
+    const timeElement = document.getElementById( 'currentTime' );
+    if ( timeElement ) {
+        timeElement.textContent = `Lima: ${timeString}`;
+    }
 }
 
 // ===== INICIALIZACIÓN Y EVENT LISTENERS =====
 document.addEventListener( 'DOMContentLoaded', function () {
+    console.log( '🚀 Sistema de Trading inicializado correctamente' );
+
     // Actualizar tiempo cada segundo
     setInterval( updateCurrentTime, 1000 );
     updateCurrentTime();
 
     // Event listeners para autenticación
-    document.getElementById( 'googleSignInBtn' ).addEventListener( 'click', signInWithGoogle );
-    document.getElementById( 'signOutBtn' ).addEventListener( 'click', signOut );
+    const googleSignInBtn = document.getElementById( 'googleSignInBtn' );
+    const continueOfflineBtn = document.getElementById( 'continueOfflineBtn' );
+    const signOutBtn = document.getElementById( 'signOutBtn' );
+
+    if ( googleSignInBtn ) {
+        googleSignInBtn.addEventListener( 'click', signInWithGoogle );
+    }
+
+    if ( continueOfflineBtn ) {
+        continueOfflineBtn.addEventListener( 'click', closeAuthModal );
+    }
+
+    if ( signOutBtn ) {
+        signOutBtn.addEventListener( 'click', signOut );
+    }
 
     // Event listeners para navegación
     document.querySelectorAll( '.tab-btn' ).forEach( btn => {
@@ -695,59 +745,125 @@ document.addEventListener( 'DOMContentLoaded', function () {
     } );
 
     // Event listeners para capital y riesgo
-    document.getElementById( 'capitalInput' )?.addEventListener( 'input', updateCapitalCalculations );
-    document.getElementById( 'strategySelect' )?.addEventListener( 'change', updateStrategyCalculations );
+    const capitalInput = document.getElementById( 'capitalInput' );
+    const strategySelect = document.getElementById( 'strategySelect' );
+
+    if ( capitalInput ) {
+        capitalInput.addEventListener( 'input', updateCapitalCalculations );
+        capitalInput.addEventListener( 'change', () => {
+            setTimeout( () => {
+                saveSettings();
+            }, 1000 );
+        } );
+    }
+
+    if ( strategySelect ) {
+        strategySelect.addEventListener( 'change', updateStrategyCalculations );
+    }
 
     // Event listeners para setup checker
-    document.getElementById( 'setupStrategy' )?.addEventListener( 'change', updateSetupChecklist );
-    document.getElementById( 'executeSetupBtn' )?.addEventListener( 'click', () => {
-        showTradeModal();
-        hideSetupModal();
-    } );
-    document.getElementById( 'discardSetupBtn' )?.addEventListener( 'click', () => {
-        document.querySelectorAll( '.setup-checkbox' ).forEach( cb => cb.checked = false );
-        updateSetupScore();
-    } );
+    const setupStrategy = document.getElementById( 'setupStrategy' );
+    const executeSetupBtn = document.getElementById( 'executeSetupBtn' );
+    const discardSetupBtn = document.getElementById( 'discardSetupBtn' );
+
+    if ( setupStrategy ) {
+        setupStrategy.addEventListener( 'change', updateSetupChecklist );
+    }
+
+    if ( executeSetupBtn ) {
+        executeSetupBtn.addEventListener( 'click', () => {
+            showTradeModal();
+            hideSetupModal();
+        } );
+    }
+
+    if ( discardSetupBtn ) {
+        discardSetupBtn.addEventListener( 'click', () => {
+            document.querySelectorAll( '.setup-checkbox' ).forEach( cb => cb.checked = false );
+            updateSetupScore();
+        } );
+    }
 
     // Event listeners para trades
-    document.getElementById( 'addTradeBtn' )?.addEventListener( 'click', showTradeModal );
-    document.getElementById( 'cancelTradeBtn' )?.addEventListener( 'click', hideTradeModal );
-    document.getElementById( 'exportTradesBtn' )?.addEventListener( 'click', exportTradesToCSV );
+    const addTradeBtn = document.getElementById( 'addTradeBtn' );
+    const cancelTradeBtn = document.getElementById( 'cancelTradeBtn' );
+    const exportTradesBtn = document.getElementById( 'exportTradesBtn' );
+
+    if ( addTradeBtn ) {
+        addTradeBtn.addEventListener( 'click', showTradeModal );
+    }
+
+    if ( cancelTradeBtn ) {
+        cancelTradeBtn.addEventListener( 'click', hideTradeModal );
+    }
+
+    if ( exportTradesBtn ) {
+        exportTradesBtn.addEventListener( 'click', exportTradesToCSV );
+    }
 
     // Event listeners para filtros de trades
-    document.getElementById( 'filterStrategy' )?.addEventListener( 'change', updateTradesTable );
-    document.getElementById( 'filterResult' )?.addEventListener( 'change', updateTradesTable );
-    document.getElementById( 'filterDate' )?.addEventListener( 'change', updateTradesTable );
+    const filterStrategy = document.getElementById( 'filterStrategy' );
+    const filterResult = document.getElementById( 'filterResult' );
+    const filterDate = document.getElementById( 'filterDate' );
+
+    if ( filterStrategy ) {
+        filterStrategy.addEventListener( 'change', updateTradesTable );
+    }
+
+    if ( filterResult ) {
+        filterResult.addEventListener( 'change', updateTradesTable );
+    }
+
+    if ( filterDate ) {
+        filterDate.addEventListener( 'change', updateTradesTable );
+    }
 
     // Event listener para formulario de trades
-    document.getElementById( 'tradeForm' )?.addEventListener( 'submit', function ( e ) {
-        e.preventDefault();
+    const tradeForm = document.getElementById( 'tradeForm' );
+    if ( tradeForm ) {
+        tradeForm.addEventListener( 'submit', function ( e ) {
+            e.preventDefault();
 
-        const formData = new FormData( e.target );
-        const tradeData = {
-            date: document.getElementById( 'tradeDate' ).value,
-            strategy: document.getElementById( 'tradeStrategy' ).value,
-            direction: document.getElementById( 'tradeDirection' ).value,
-            contracts: document.getElementById( 'tradeContracts' ).value,
-            stopLoss: document.getElementById( 'tradeSL' ).value,
-            takeProfit: document.getElementById( 'tradeTP' ).value,
-            result: document.getElementById( 'tradeResult' ).value,
-            pnl: document.getElementById( 'tradePnL' ).value,
-            comments: document.getElementById( 'tradeComments' ).value
-        };
+            const tradeData = {
+                date: document.getElementById( 'tradeDate' ).value,
+                strategy: document.getElementById( 'tradeStrategy' ).value,
+                direction: document.getElementById( 'tradeDirection' ).value,
+                contracts: document.getElementById( 'tradeContracts' ).value,
+                stopLoss: document.getElementById( 'tradeSL' ).value,
+                takeProfit: document.getElementById( 'tradeTP' ).value,
+                result: document.getElementById( 'tradeResult' ).value,
+                pnl: document.getElementById( 'tradePnL' ).value,
+                comments: document.getElementById( 'tradeComments' ).value
+            };
 
-        saveTrade( tradeData );
-        hideTradeModal();
-    } );
+            // Validar trade antes de guardar
+            const errors = validateTrade( tradeData );
+            if ( errors.length > 0 ) {
+                alert( 'Errores en el trade:\n' + errors.join( '\n' ) );
+                return;
+            }
+
+            saveTrade( tradeData );
+            hideTradeModal();
+        } );
+    }
 
     // Event listener para observaciones
-    document.getElementById( 'addObservationBtn' )?.addEventListener( 'click', addObservation );
-    document.getElementById( 'observationInput' )?.addEventListener( 'keypress', function ( e ) {
-        if ( e.key === 'Enter' && !e.shiftKey ) {
-            e.preventDefault();
-            addObservation();
-        }
-    } );
+    const addObservationBtn = document.getElementById( 'addObservationBtn' );
+    const observationInput = document.getElementById( 'observationInput' );
+
+    if ( addObservationBtn ) {
+        addObservationBtn.addEventListener( 'click', addObservation );
+    }
+
+    if ( observationInput ) {
+        observationInput.addEventListener( 'keypress', function ( e ) {
+            if ( e.key === 'Enter' && !e.shiftKey ) {
+                e.preventDefault();
+                addObservation();
+            }
+        } );
+    }
 
     // Event listener para cerrar modales con Escape
     document.addEventListener( 'keydown', function ( e ) {
@@ -757,14 +873,13 @@ document.addEventListener( 'DOMContentLoaded', function () {
     } );
 
     // Event listener para clics fuera del modal
-    document.getElementById( 'tradeModal' )?.addEventListener( 'click', function ( e ) {
-        if ( e.target === this ) {
-            hideTradeModal();
-        }
-    } );
-
-    function closeAuthModal() {
-        document.getElementById( 'authModal' ).classList.add( 'hidden' );
+    const tradeModal = document.getElementById( 'tradeModal' );
+    if ( tradeModal ) {
+        tradeModal.addEventListener( 'click', function ( e ) {
+            if ( e.target === this ) {
+                hideTradeModal();
+            }
+        } );
     }
 
     // Inicializar valores por defecto
@@ -774,11 +889,6 @@ document.addEventListener( 'DOMContentLoaded', function () {
     updateDisciplineTracking();
     updateObservationsList();
 } );
-
-//Cerrar modal
-function closeAuthModal() {
-    document.getElementById( 'authModal' ).classList.add( 'hidden' );
-}
 
 // Observer para cambios de autenticación
 auth.onAuthStateChanged( async ( user ) => {
@@ -801,7 +911,10 @@ auth.onAuthStateChanged( async ( user ) => {
                 const settings = loadedSettings[ 0 ];
                 if ( settings.capital ) {
                     currentCapital = settings.capital;
-                    document.getElementById( 'capitalInput' ).value = settings.capital;
+                    const capitalInput = document.getElementById( 'capitalInput' );
+                    if ( capitalInput ) {
+                        capitalInput.value = settings.capital;
+                    }
                 }
             }
 
@@ -835,7 +948,7 @@ auth.onAuthStateChanged( async ( user ) => {
     }
 } );
 
-// Guardar configuraciones cuando cambie el capital
+// Función para guardar configuraciones
 function saveSettings() {
     if ( !currentUser ) return;
 
@@ -847,97 +960,40 @@ function saveSettings() {
     saveDataToFirebase( 'settings', settings, 'main' );
 }
 
-// Función para actualizar configuraciones cuando cambie el capital
-document.getElementById( 'capitalInput' )?.addEventListener( 'change', () => {
-    setTimeout( () => {
-        saveSettings();
-    }, 1000 ); // Guardar después de 1 segundo de inactividad
-} );
-
-// Funciones adicionales para manejo de datos
+// Función para resetear el setup modal
 function hideSetupModal() {
-    // Esta función se llamaría si tuvieras un modal de setup
-    // Por ahora solo resetea el checker
     document.querySelectorAll( '.setup-checkbox' ).forEach( cb => cb.checked = false );
     updateSetupScore();
 }
 
-// Función para backup automático
-function createBackup() {
-    if ( !currentUser ) return;
+// Función para validar trade antes de guardar
+function validateTrade( tradeData ) {
+    const errors = [];
 
-    const backup = {
-        trades: trades,
-        observations: observations,
-        settings: {
-            capital: currentCapital
-        },
-        timestamp: new Date().toISOString()
-    };
+    if ( !tradeData.date ) errors.push( 'Fecha requerida' );
+    if ( !tradeData.strategy ) errors.push( 'Estrategia requerida' );
+    if ( !tradeData.direction ) errors.push( 'Dirección requerida' );
+    if ( !tradeData.contracts || tradeData.contracts <= 0 ) errors.push( 'Contratos debe ser mayor a 0' );
+    if ( !tradeData.stopLoss || tradeData.stopLoss <= 0 ) errors.push( 'Stop Loss debe ser mayor a 0' );
+    if ( !tradeData.takeProfit || tradeData.takeProfit <= 0 ) errors.push( 'Take Profit debe ser mayor a 0' );
+    if ( !tradeData.result ) errors.push( 'Resultado requerido' );
+    if ( tradeData.pnl === undefined || tradeData.pnl === '' ) errors.push( 'P&L requerido' );
 
-    const backupData = JSON.stringify( backup, null, 2 );
-    const blob = new Blob( [ backupData ], { type: 'application/json' } );
-    const url = window.URL.createObjectURL( blob );
-    const a = document.createElement( 'a' );
-    a.href = url;
-    a.download = `backup_trading_${new Date().toISOString().split( 'T' )[ 0 ]}.json`;
-    a.click();
-    window.URL.revokeObjectURL( url );
+    // Validaciones de lógica
+    if ( parseFloat( tradeData.takeProfit ) <= parseFloat( tradeData.stopLoss ) ) {
+        errors.push( 'Take Profit debe ser mayor que Stop Loss' );
+    }
+
+    const riskTaken = parseFloat( tradeData.contracts ) * parseFloat( tradeData.stopLoss );
+    const maxRisk = currentCapital * 0.05;
+    if ( riskTaken > maxRisk ) {
+        errors.push( `Riesgo excede el máximo diario (${maxRisk.toFixed( 2 )})` );
+    }
+
+    return errors;
 }
 
-// Función para importar backup
-function importBackup( file ) {
-    const reader = new FileReader();
-    reader.onload = function ( e ) {
-        try {
-            const backup = JSON.parse( e.target.result );
-
-            if ( backup.trades ) trades = backup.trades;
-            if ( backup.observations ) observations = backup.observations;
-            if ( backup.settings && backup.settings.capital ) {
-                currentCapital = backup.settings.capital;
-                document.getElementById( 'capitalInput' ).value = currentCapital;
-            }
-
-            // Actualizar UI
-            updateDashboard();
-            updateTradesTable();
-            updateObservationsList();
-            updateDisciplineTracking();
-            updateCapitalCalculations();
-
-            // Guardar en Firebase
-            trades.forEach( trade => saveDataToFirebase( 'trades', trade ) );
-            observations.forEach( obs => saveDataToFirebase( 'observations', obs ) );
-            saveSettings();
-
-            updateSyncStatus( 'Backup importado exitosamente', true );
-        } catch ( error ) {
-            console.error( 'Error importando backup:', error );
-            updateSyncStatus( 'Error importando backup', false );
-        }
-    };
-    reader.readAsText( file );
-}
-
-// Función para limpiar datos antiguos (más de 6 meses)
-function cleanOldData() {
-    const sixMonthsAgo = new Date();
-    sixMonthsAgo.setMonth( sixMonthsAgo.getMonth() - 6 );
-
-    const cutoffDate = sixMonthsAgo.toISOString().split( 'T' )[ 0 ];
-
-    trades = trades.filter( trade => trade.date >= cutoffDate );
-    observations = observations.filter( obs => obs.date >= cutoffDate );
-
-    updateDashboard();
-    updateTradesTable();
-    updateObservationsList();
-
-    updateSyncStatus( 'Datos antiguos limpiados', true );
-}
-
-// Función de estadísticas avanzadas
+// Funciones adicionales para estadísticas avanzadas
 function getAdvancedStats() {
     if ( trades.length === 0 ) return null;
 
@@ -995,7 +1051,7 @@ function calculateMaxDrawdown() {
     return maxDD;
 }
 
-// Función para mostrar estadísticas avanzadas en consola (debug)
+// Función para mostrar estadísticas avanzadas
 function showAdvancedStats() {
     const stats = getAdvancedStats();
     if ( stats ) {
@@ -1005,53 +1061,94 @@ function showAdvancedStats() {
     }
 }
 
-// Función para validar trade antes de guardar
-function validateTrade( tradeData ) {
-    const errors = [];
+// Función para crear backup
+function createBackup() {
+    if ( !currentUser ) return;
 
-    if ( !tradeData.date ) errors.push( 'Fecha requerida' );
-    if ( !tradeData.strategy ) errors.push( 'Estrategia requerida' );
-    if ( !tradeData.direction ) errors.push( 'Dirección requerida' );
-    if ( !tradeData.contracts || tradeData.contracts <= 0 ) errors.push( 'Contratos debe ser mayor a 0' );
-    if ( !tradeData.stopLoss || tradeData.stopLoss <= 0 ) errors.push( 'Stop Loss debe ser mayor a 0' );
-    if ( !tradeData.takeProfit || tradeData.takeProfit <= 0 ) errors.push( 'Take Profit debe ser mayor a 0' );
-    if ( !tradeData.result ) errors.push( 'Resultado requerido' );
-    if ( tradeData.pnl === undefined || tradeData.pnl === '' ) errors.push( 'P&L requerido' );
+    const backup = {
+        trades: trades,
+        observations: observations,
+        settings: {
+            capital: currentCapital
+        },
+        timestamp: new Date().toISOString()
+    };
 
-    // Validaciones de lógica
-    if ( parseFloat( tradeData.takeProfit ) <= parseFloat( tradeData.stopLoss ) ) {
-        errors.push( 'Take Profit debe ser mayor que Stop Loss' );
-    }
-
-    const riskTaken = parseFloat( tradeData.contracts ) * parseFloat( tradeData.stopLoss );
-    const maxRisk = currentCapital * 0.05;
-    if ( riskTaken > maxRisk ) {
-        errors.push( `Riesgo excede el máximo diario (${maxRisk.toFixed( 2 )})` );
-    }
-
-    return errors;
+    const backupData = JSON.stringify( backup, null, 2 );
+    const blob = new Blob( [ backupData ], { type: 'application/json' } );
+    const url = window.URL.createObjectURL( blob );
+    const a = document.createElement( 'a' );
+    a.href = url;
+    a.download = `backup_trading_${new Date().toISOString().split( 'T' )[ 0 ]}.json`;
+    a.click();
+    window.URL.revokeObjectURL( url );
 }
 
-// Sobrescribir función saveTrade para incluir validación
-const originalSaveTrade = saveTrade;
-saveTrade = function ( tradeData ) {
-    const errors = validateTrade( tradeData );
-    if ( errors.length > 0 ) {
-        alert( 'Errores en el trade:\n' + errors.join( '\n' ) );
-        return false;
-    }
+// Función para importar backup
+function importBackup( file ) {
+    const reader = new FileReader();
+    reader.onload = function ( e ) {
+        try {
+            const backup = JSON.parse( e.target.result );
 
-    return originalSaveTrade( tradeData );
-};
+            if ( backup.trades ) trades = backup.trades;
+            if ( backup.observations ) observations = backup.observations;
+            if ( backup.settings && backup.settings.capital ) {
+                currentCapital = backup.settings.capital;
+                const capitalInput = document.getElementById( 'capitalInput' );
+                if ( capitalInput ) {
+                    capitalInput.value = currentCapital;
+                }
+            }
 
-// Inicializar la aplicación cuando se carga
-console.log( '🚀 Sistema de Trading inicializado correctamente' );
-console.log( '📊 Para ver estadísticas avanzadas, ejecuta: showAdvancedStats()' );
-console.log( '💾 Para crear backup manual, ejecuta: createBackup()' );
-console.log( '🧹 Para limpiar datos antiguos, ejecuta: cleanOldData()' );
+            // Actualizar UI
+            updateDashboard();
+            updateTradesTable();
+            updateObservationsList();
+            updateDisciplineTracking();
+            updateCapitalCalculations();
+
+            // Guardar en Firebase
+            trades.forEach( trade => saveDataToFirebase( 'trades', trade ) );
+            observations.forEach( obs => saveDataToFirebase( 'observations', obs ) );
+            saveSettings();
+
+            updateSyncStatus( 'Backup importado exitosamente', true );
+        } catch ( error ) {
+            console.error( 'Error importando backup:', error );
+            updateSyncStatus( 'Error importando backup', false );
+        }
+    };
+    reader.readAsText( file );
+}
+
+// Función para limpiar datos antiguos
+function cleanOldData() {
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth( sixMonthsAgo.getMonth() - 6 );
+
+    const cutoffDate = sixMonthsAgo.toISOString().split( 'T' )[ 0 ];
+
+    trades = trades.filter( trade => trade.date >= cutoffDate );
+    observations = observations.filter( obs => obs.date >= cutoffDate );
+
+    updateDashboard();
+    updateTradesTable();
+    updateObservationsList();
+
+    updateSyncStatus( 'Datos antiguos limpiados', true );
+}
 
 // Exportar funciones globales para debugging
 window.showAdvancedStats = showAdvancedStats;
 window.createBackup = createBackup;
 window.cleanOldData = cleanOldData;
 window.importBackup = importBackup;
+window.closeAuthModal = closeAuthModal;
+window.deleteTrade = deleteTrade;
+window.deleteObservation = deleteObservation;
+
+console.log( '📊 Para ver estadísticas avanzadas, ejecuta: showAdvancedStats()' );
+console.log( '💾 Para crear backup manual, ejecuta: createBackup()' );
+console.log( '🧹 Para limpiar datos antiguos, ejecuta: cleanOldData()' );
+console.log( '🚀 Sistema de Trading completamente inicializado' );
