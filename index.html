@@ -32,8 +32,7 @@
 
 <body class="bg-trading-bg text-white min-h-screen">
     <!-- Auth Modal -->
-    <div id="authModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-
+    <div id="authModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
         <div class="bg-trading-card p-6 rounded-lg border border-gray-700 w-full max-w-md mx-4">
             <h3 class="text-xl font-semibold text-gold mb-4">Iniciar Sesión con Google</h3>
             <p class="text-gray-400 mb-6">Inicia sesión para sincronizar tus datos entre dispositivos</p>
@@ -55,9 +54,24 @@
         </div>
     </div>
 
-    <!-- User Menu -->
-    <div id="userMenu" class="fixed top-4 right-4 z-40 hidden">
-        <div class="bg-trading-card p-3 rounded-lg border border-gray-700 flex items-center space-x-3">
+    <!-- User Menu / Google Login -->
+    <div id="userSection" class="fixed top-4 right-4 z-40">
+        <!-- Cuando no está logueado -->
+        <div id="guestSection" class="bg-trading-card p-3 rounded-lg border border-gray-700 flex items-center space-x-3">
+            <span class="text-sm text-gray-300">Modo Invitado</span>
+            <button id="topGoogleSignInBtn" class="bg-blue-600 hover:bg-blue-700 px-3 py-2 rounded-lg text-sm font-medium flex items-center">
+                <svg class="w-4 h-4 mr-1" viewBox="0 0 24 24">
+                    <path fill="white" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                    <path fill="white" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                    <path fill="white" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                    <path fill="white" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+                </svg>
+                Google
+            </button>
+        </div>
+
+        <!-- Cuando está logueado -->
+        <div id="userMenu" class="bg-trading-card p-3 rounded-lg border border-gray-700 flex items-center space-x-3 hidden">
             <img id="userPhoto" class="w-8 h-8 rounded-full" alt="User">
             <span id="userName" class="text-sm"></span>
             <button id="signOutBtn" class="text-red-400 hover:text-red-300 text-sm">
@@ -79,10 +93,12 @@
         <div class="container mx-auto flex items-center justify-between">
             <h1 class="text-2xl font-bold text-gold flex items-center">
                 <span class="mr-2">📊</span>
-                Trading Oro - Gestion y Control Operativo
+                Trading Dashboard: Gestion y Control Operativo
             </h1>
-            <div class="text-sm text-gray-400">
-                <span id="currentTime"></span>
+            <div class="flex items-center space-x-4">
+                <div class="text-sm text-gray-400">
+                    <span id="currentTime"></span>
+                </div>
             </div>
         </div>
     </header>
@@ -104,33 +120,48 @@
     <main class="container mx-auto p-4">
         <!-- Dashboard Tab -->
         <div id="dashboard" class="tab-content">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3
+             gap-4 mb-8">
                 <!-- Capital Actual -->
-                <div class="bg-trading-card p-6 rounded-lg border border-gray-700">
-                    <h3 class="text-lg font-semibold text-gold mb-2">Capital Total</h3>
-                    <p class="text-3xl font-bold" id="dashCapital">$1,930</p>
-                    <p class="text-sm text-gray-400 mt-1">Riesgo diario: <span id="dashRisk">$96.50</span></p>
+                <div class="bg-trading-card p-4 rounded-lg border border-gray-700">
+                    <h3 class="text-sm font-semibold text-gold mb-2">Capital Total</h3>
+                    <p class="text-xl font-bold" id="dashCapital">$1,930</p>
+                    <p class="text-xs text-gray-400 mt-1">Riesgo: <span id="dashRisk">$96.50</span></p>
                 </div>
 
                 <!-- Win Rate -->
-                <div class="bg-trading-card p-6 rounded-lg border border-gray-700">
-                    <h3 class="text-lg font-semibold text-profit mb-2">Win Rate</h3>
-                    <p class="text-3xl font-bold" id="currentWinRate">0%</p>
-                    <p class="text-sm text-gray-400 mt-1">Trades totales: <span id="totalTrades">0</span></p>
+                <div class="bg-trading-card p-4 rounded-lg border border-gray-700">
+                    <h3 class="text-sm font-semibold text-profit mb-2">Win Rate</h3>
+                    <p class="text-xl font-bold" id="currentWinRate">0%</p>
+                    <p class="text-xs text-gray-400 mt-1">Trades: <span id="totalTrades">0</span></p>
                 </div>
 
                 <!-- P&L Diario -->
-                <div class="bg-trading-card p-6 rounded-lg border border-gray-700">
-                    <h3 class="text-lg font-semibold mb-2">P&L Diario</h3>
-                    <p class="text-3xl font-bold" id="dailyPnL">$0.00</p>
-                    <p class="text-sm text-gray-400 mt-1">Drawdown: <span id="drawdown">0%</span></p>
+                <div class="bg-trading-card p-4 rounded-lg border border-gray-700">
+                    <h3 class="text-sm font-semibold mb-2">P&L Diario</h3>
+                    <p class="text-xl font-bold" id="dailyPnL">$0.00</p>
+                    <p class="text-xs text-gray-400 mt-1">DD: <span id="drawdown">0%</span></p>
                 </div>
 
                 <!-- Trades Hoy -->
-                <div class="bg-trading-card p-6 rounded-lg border border-gray-700">
-                    <h3 class="text-lg font-semibold text-neutral mb-2">Trades Hoy</h3>
-                    <p class="text-3xl font-bold" id="todayTrades">0</p>
-                    <p class="text-sm text-gray-400 mt-1">Límite: 4 trades</p>
+                <div class="bg-trading-card p-4 rounded-lg border border-gray-700">
+                    <h3 class="text-sm font-semibold text-neutral mb-2">Trades Hoy</h3>
+                    <p class="text-xl font-bold" id="todayTrades">0</p>
+                    <p class="text-xs text-gray-400 mt-1">Límite: 4</p>
+                </div>
+
+                <!-- Retiros -->
+                <div class="bg-trading-card p-4 rounded-lg border border-gray-700">
+                    <h3 class="text-sm font-semibold text-orange-400 mb-2">Retiros</h3>
+                    <p class="text-xl font-bold" id="totalWithdrawals">$0.00</p>
+                    <p class="text-xs text-gray-400 mt-1">Total</p>
+                </div>
+
+                <!-- P&L Total -->
+                <div class="bg-trading-card p-4 rounded-lg border border-gray-700">
+                    <h3 class="text-sm font-semibold text-blue-400 mb-2">P&L Total</h3>
+                    <p class="text-xl font-bold text-profit" id="totalPnL">$0.00</p>
+                    <p class="text-xs text-gray-400 mt-1">Acumulado</p>
                 </div>
             </div>
 
@@ -211,19 +242,37 @@
                     <div class="space-y-4">
                         <div>
                             <label class="block text-sm font-medium mb-2">Capital Total ($)</label>
-                            <input type="number" id="capitalInput" class="w-full p-3 bg-gray-800 border border-gray-600 rounded-lg text-white" value="1930" min="100">
+                            <input type="number" id="capitalInput" class="w-full p-3 bg-gray-800 border border-gray-600 rounded-lg text-white" placeholder="Ingrese cantidad" min="0" step="0.01">
+                            <p class="text-xs text-gray-400 mt-1">Capital actual: $<span id="currentCapitalDisplay">0.00</span></p>
                         </div>
                         <div>
                             <label class="block text-sm font-medium mb-2">Riesgo Diario Máximo (%) - Fijo: 5%</label>
                             <input type="number" class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-gray-400" value="5" readonly>
                             <p class="text-xs text-gray-400 mt-1">Este es el límite total de pérdida por día</p>
                         </div>
+
+                        <!-- Botones de gestión de capital -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                            <button id="addCapitalBtn" class="bg-profit hover:bg-green-600 px-4 py-3 rounded-lg font-medium flex items-center justify-center">
+                                <span class="mr-2">💰</span>
+                                Agregar Capital
+                            </button>
+                            <button id="withdrawalBtn" class="bg-orange-600 hover:bg-orange-700 px-4 py-3 rounded-lg font-medium flex items-center justify-center">
+                                <span class="mr-2">📤</span>
+                                Registrar Retiro
+                            </button>
+                            <button id="resetCapitalBtn" class="bg-red-600 hover:bg-red-700 px-4 py-3 rounded-lg font-medium flex items-center justify-center">
+                                <span class="mr-2">🔄</span>
+                                Resetear Capital
+                            </button>
+                        </div>
+
                         <div class="bg-gray-800 p-4 rounded-lg">
                             <h4 class="font-semibold text-profit mb-2">Cálculos Automáticos</h4>
                             <div class="space-y-2 text-sm">
                                 <div class="flex justify-between">
                                     <span>Riesgo Diario Máximo:</span>
-                                    <span id="maxDailyRisk" class="text-loss">$96.50</span>
+                                    <span id="maxDailyRisk" class="text-loss">$0.00</span>
                                 </div>
                                 <div class="flex justify-between">
                                     <span>$ por pip (1 contrato):</span>
@@ -272,12 +321,12 @@
                             <div class="grid grid-cols-2 gap-4 text-sm">
                                 <div class="col-span-2 bg-gray-900 p-3 rounded-lg border-l-4 border-red-400">
                                     <span class="text-gray-400">Riesgo Máximo por Trade:</span>
-                                    <p class="text-xl font-bold text-loss" id="maxRiskPerTrade">$48</p>
+                                    <p class="text-xl font-bold text-loss" id="maxRiskPerTrade">$0</p>
                                 </div>
 
                                 <div>
                                     <span class="text-gray-400">Contratos Óptimos:</span>
-                                    <p class="text-lg font-bold" id="optimalContracts">8</p>
+                                    <p class="text-lg font-bold" id="optimalContracts">0</p>
                                 </div>
                                 <div>
                                     <span class="text-gray-400">Stop Loss Sugerido:</span>
@@ -548,7 +597,7 @@
 
     <!-- Modal para Nuevo Trade -->
     <div id="tradeModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-        <div class="bg-trading-card p-6 rounded-lg border border-gray-700 w-full max-w-md mx-4">
+        <div class="bg-trading-card p-6 rounded-lg border border-gray-700 w-full max-w-lg mx-4">
             <h3 class="text-xl font-semibold text-gold mb-4">Nuevo Trade</h3>
             <form id="tradeForm" class="space-y-4">
                 <div class="grid grid-cols-2 gap-4">
@@ -579,6 +628,22 @@
                         <input type="number" id="tradeContracts" class="w-full p-2 bg-gray-800 border border-gray-600 rounded-lg text-white" min="1" required>
                     </div>
                 </div>
+
+                <!-- Sección de precios -->
+                <div class="bg-gray-800 p-4 rounded-lg border border-blue-500">
+                    <h4 class="font-semibold text-blue-400 mb-3">📊 Cálculo Automático P&L</h4>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Precio Entrada</label>
+                            <input type="number" id="entryPrice" class="w-full p-2 bg-gray-700 border border-gray-600 rounded-lg text-white" step="0.01" placeholder="2450.50">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Precio Salida</label>
+                            <input type="number" id="exitPrice" class="w-full p-2 bg-gray-700 border border-gray-600 rounded-lg text-white" step="0.01" placeholder="2465.30">
+                        </div>
+                    </div>
+                </div>
+
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium mb-2">Stop Loss (pips)</label>
@@ -600,6 +665,7 @@
                     <div>
                         <label class="block text-sm font-medium mb-2">P&L ($)</label>
                         <input type="number" id="tradePnL" class="w-full p-2 bg-gray-800 border border-gray-600 rounded-lg text-white" step="0.01" required>
+                        <p class="text-xs text-gray-400 mt-1">Se calcula automáticamente con los precios</p>
                     </div>
                 </div>
                 <div>
@@ -616,6 +682,112 @@
                 </div>
             </form>
         </div>
+    </div>
+
+    <!-- Modal para Retiros -->
+    <div id="withdrawalModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-trading-card p-6 rounded-lg border border-gray-700 w-full max-w-md mx-4">
+            <h3 class="text-xl font-semibold text-orange-400 mb-4">💰 Registrar Retiro</h3>
+            <form id="withdrawalForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-2">Fecha del Retiro</label>
+                    <input type="date" id="withdrawalDate" class="w-full p-3 bg-gray-800 border border-gray-600 rounded-lg text-white" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Cantidad ($)</label>
+                    <input type="number" id="withdrawalAmount" class="w-full p-3 bg-gray-800 border border-gray-600 rounded-lg text-white" min="1" step="0.01" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Concepto</label>
+                    <input type="text" id="withdrawalConcept" class="w-full p-3 bg-gray-800 border border-gray-600 rounded-lg text-white" placeholder="Gastos personales, inversión, etc.">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Notas</label>
+                    <textarea id="withdrawalNotes" class="w-full p-3 bg-gray-800 border border-gray-600 rounded-lg text-white h-20" placeholder="Notas adicionales..."></textarea>
+                </div>
+                <div class="flex space-x-4">
+                    <button type="submit" class="flex-1 bg-orange-600 hover:bg-orange-700 px-4 py-2 rounded-lg font-medium">
+                        Registrar Retiro
+                    </button>
+                    <button type="button" id="cancelWithdrawalBtn" class="flex-1 bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded-lg font-medium">
+                        Cancelar
+                    </button>
+                </div>
+            </form>
+
+            <!-- Lista de retiros recientes -->
+            <div class="mt-6 pt-4 border-t border-gray-700">
+                <h4 class="font-semibold text-gray-300 mb-3">Retiros Recientes</h4>
+                <div id="recentWithdrawals" class="space-y-2 max-h-32 overflow-y-auto">
+                    <!-- Retiros serán insertados aquí -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Agregar Capital -->
+    <div id="addCapitalModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-trading-card p-6 rounded-lg border border-gray-700 w-full max-w-md mx-4">
+            <h3 class="text-xl font-semibold text-profit mb-4">💰 Agregar Capital</h3>
+            <form id="addCapitalForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-2">Fecha</label>
+                    <input type="date" id="addCapitalDate" class="w-full p-3 bg-gray-800 border border-gray-600 rounded-lg text-white" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Cantidad a Agregar ($)</label>
+                    <input type="number" id="addCapitalAmount" class="w-full p-3 bg-gray-800 border border-gray-600 rounded-lg text-white" min="0.01" step="0.01" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Concepto</label>
+                    <input type="text" id="addCapitalConcept" class="w-full p-3 bg-gray-800 border border-gray-600 rounded-lg text-white" placeholder="Depósito, ganancias reinvertidas, etc.">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Notas</label>
+                    <textarea id="addCapitalNotes" class="w-full p-3 bg-gray-800 border border-gray-600 rounded-lg text-white h-20" placeholder="Notas adicionales..."></textarea>
+                </div>
+                <div class="flex space-x-4">
+                    <button type="submit" class="flex-1 bg-profit hover:bg-green-600 px-4 py-2 rounded-lg font-medium">
+                        Agregar Capital
+                    </button>
+                    <button type="button" id="cancelAddCapitalBtn" class="flex-1 bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded-lg font-medium">
+                        Cancelar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmación para Reset -->
+    <div id="resetConfirmModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-trading-card p-6 rounded-lg border border-red-500 w-full max-w-md mx-4">
+            <h3 class="text-xl font-semibold text-red-400 mb-4">⚠️ Confirmar Reset de Capital</h3>
+            <div class="mb-6">
+                <p class="text-gray-300 mb-4">¿Estás seguro de resetear el capital?</p>
+                <div class="bg-red-900 bg-opacity-30 p-3 rounded-lg border border-red-500">
+                    <p class="text-red-400 font-semibold mb-2">Al aceptar se borrarán:</p>
+                    <ul class="text-sm text-red-300 space-y-1">
+                        <li>• Todos los registros de trades</li>
+                        <li>• Historial de retiros y depósitos</li>
+                        <li>• Observaciones y estadísticas</li>
+                        <li>• El capital se establecerá en $0.00</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="flex space-x-4">
+                <button id="confirmResetBtn" class="flex-1 bg-red-600 hover:bg-red-700 px-4 py-3 rounded-lg font-medium">
+                    Sí, Resetear Todo
+                </button>
+                <button id="cancelResetBtn" class="flex-1 bg-gray-600 hover:bg-gray-700 px-4 py-3 rounded-lg font-medium">
+                    Cancelar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tooltip para comentarios -->
+    <div id="commentTooltip" class="fixed bg-gray-900 text-white p-3 rounded-lg border border-gray-600 text-sm max-w-xs z-50 hidden shadow-lg">
+        <div id="tooltipContent"></div>
     </div>
 
     <script src="firebase-app.js"></script>
