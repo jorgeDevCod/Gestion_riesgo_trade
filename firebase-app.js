@@ -497,7 +497,9 @@ function renderStrategyStats() {
 }
 
 function renderCapitalSection() {
-    document.getElementById( 'currentCapitalDisplay' ).textContent = currentCapital.toFixed( 2 );
+    const inputCapital = document.getElementById( 'currentCapitalDisplay' );
+    inputCapital.value = currentCapital.toFixed( 2 );
+    
     document.getElementById( 'maxDailyRisk' ).textContent = `$${( currentCapital * 0.05 ).toFixed( 2 )}`;
 
     // Actualizar calculadora de estrategia
