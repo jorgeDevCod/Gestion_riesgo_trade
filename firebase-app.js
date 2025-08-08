@@ -829,13 +829,13 @@ function calculatePnLFromPrices() {
 
     if ( entryPrice && exitPrice && contracts && direction ) {
         let pnl = 0;
-        // Corregido: Para oro, cada pip = 0.1 y cada contrato = $1 por pip
-        const pipDifference = Math.abs( exitPrice - entryPrice ) / 0.1; // Convertir diferencia de precio a pips
+        // Para oro: cada punto = $1 por contrato (no cada pip)
+        const pointDifference = Math.abs( exitPrice - entryPrice );
 
         if ( direction === 'buy' ) {
-            pnl = exitPrice > entryPrice ? pipDifference * contracts : -pipDifference * contracts;
+            pnl = exitPrice > entryPrice ? pointDifference * contracts : -pointDifference * contracts;
         } else { // sell
-            pnl = exitPrice < entryPrice ? pipDifference * contracts : -pipDifference * contracts;
+            pnl = exitPrice < entryPrice ? pointDifference * contracts : -pointDifference * contracts;
         }
 
         const pnlInput = document.getElementById( 'tradePnL' );
