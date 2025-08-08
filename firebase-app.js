@@ -763,6 +763,10 @@ document.addEventListener( 'DOMContentLoaded', function () {
         }
     } );
 
+    function closeAuthModal() {
+        document.getElementById( 'authModal' ).classList.add( 'hidden' );
+    }
+
     // Inicializar valores por defecto
     updateCapitalCalculations();
     updateSetupChecklist();
@@ -770,6 +774,11 @@ document.addEventListener( 'DOMContentLoaded', function () {
     updateDisciplineTracking();
     updateObservationsList();
 } );
+
+//Cerrar modal
+function closeAuthModal() {
+    document.getElementById( 'authModal' ).classList.add( 'hidden' );
+}
 
 // Observer para cambios de autenticación
 auth.onAuthStateChanged( async ( user ) => {
