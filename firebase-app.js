@@ -134,14 +134,40 @@ function showUserMenu( user ) {
     const guestSection = document.getElementById( 'guestSection' );
     const userMenu = document.getElementById( 'userMenu' );
     const userPhoto = document.getElementById( 'userPhoto' );
-    const userName = document.getElementById( 'userName' );
 
     if ( guestSection ) guestSection.classList.add( 'hidden' );
 
-    if ( userPhoto ) userPhoto.src = user.photoURL || 'https://via.placeholder.com/32';
-    if ( userName ) userName.textContent = user.displayName || user.email;
+    if ( userPhoto ) {
+        userPhoto.src = user.photoURL || 'https://via.placeholder.com/32';
+        userPhoto.title = `${user.displayName || user.email} - Click para opciones`;
+    }
 
     if ( userMenu ) userMenu.classList.remove( 'hidden' );
+
+    // Mostrar banner de bienvenida
+    showWelcomeBanner( user );
+}
+
+function showWelcomeBanner( user ) {
+    const banner = document.getElementById( 'welcomeBanner' );
+    const userPhoto = document.getElementById( 'welcomeUserPhoto' );
+    const userName = document.getElementById( 'welcomeUserName' );
+
+    if ( banner && userPhoto && userName ) {
+        userPhoto.src = user.photoURL || 'https://via.placeholder.com/32';
+        userName.textContent = user.displayName || user.email;
+
+        banner.classList.remove( 'hidden' );
+        banner.style.transform = 'translateY(0)';
+
+        // Ocultar después de 20 segundos
+        setTimeout( () => {
+            banner.style.transform = 'translateY(-100%)';
+            setTimeout( () => {
+                banner.classList.add( 'hidden' );
+            }, 500 );
+        }, 20000 );
+    }
 }
 
 function showGuestSection() {
@@ -499,7 +525,7 @@ function renderStrategyStats() {
 function renderCapitalSection() {
     const inputCapital = document.getElementById( 'currentCapitalDisplay' );
     inputCapital.value = currentCapital.toFixed( 2 );
-    
+
     document.getElementById( 'maxDailyRisk' ).textContent = `$${( currentCapital * 0.05 ).toFixed( 2 )}`;
 
     // Actualizar calculadora de estrategia
@@ -796,7 +822,8 @@ function calculatePnLFromPrices() {
 
     if ( entryPrice && exitPrice && contracts && direction ) {
         let pnl = 0;
-        const pipDifference = Math.abs( exitPrice - entryPrice ) * 10; // Assuming gold pips
+        // Corregido: Para oro, cada pip = 0.1 y cada contrato = $1 por pip
+        const pipDifference = Math.abs( exitPrice - entryPrice ) / 0.1; // Convertir diferencia de precio a pips
 
         if ( direction === 'buy' ) {
             pnl = exitPrice > entryPrice ? pipDifference * contracts : -pipDifference * contracts;
@@ -895,6 +922,30 @@ document.addEventListener( 'DOMContentLoaded', function () {
             currentUser = null;
             showGuestSection();
             isInitializing = false;
+        }
+    } );
+
+    // Dropdown del usuario
+    document.getElementById( 'userPhoto' )?.addEventListener( 'click', function () {
+        const dropdown = document.getElementById( 'userDropdown' );
+        if ( dropdown ) {
+            dropdown.classList.toggle( 'hidden' );
+
+            // Actualizar nombre en dropdown
+            const userNameInDropdown = document.getElementById( 'userNameInDropdown' );
+            if ( userNameInDropdown && currentUser ) {
+                userNameInDropdown.textContent = currentUser.displayName || currentUser.email;
+            }
+        }
+    } );
+
+    // Cerrar dropdown al hacer click fuera
+    document.addEventListener( 'click', function ( e ) {
+        const userPhoto = document.getElementById( 'userPhoto' );
+        const dropdown = document.getElementById( 'userDropdown' );
+
+        if ( userPhoto && dropdown && !userPhoto.contains( e.target ) && !dropdown.contains( e.target ) ) {
+            dropdown.classList.add( 'hidden' );
         }
     } );
 

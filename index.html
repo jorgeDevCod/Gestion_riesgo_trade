@@ -58,29 +58,43 @@
         </div>
     </div>
 
+    <!-- Welcome Banner (shows user name for 20 seconds) -->
+    <div id="welcomeBanner" class="fixed top-0 left-0 right-0 bg-gradient-to-r from-blue-600 to-purple-600 text-white p-3 z-60 transform -translate-y-full transition-transform duration-500 hidden">
+        <div class="container mx-auto flex items-center justify-center">
+            <img id="welcomeUserPhoto" class="w-8 h-8 rounded-full mr-3" alt="User">
+            <span class="text-sm font-medium">
+                ¡Bienvenido, <span id="welcomeUserName"></span>! Tus datos están sincronizados.
+            </span>
+        </div>
+    </div>
+
     <!-- User Menu / Google Login -->
     <div id="userSection" class="fixed top-4 right-4 z-40">
         <!-- Cuando no está logueado -->
-        <div id="guestSection" class="bg-trading-card p-3 rounded-lg border border-gray-700 flex items-center space-x-3">
-            <span class="text-sm text-gray-300">Modo Invitado</span>
-            <button id="topGoogleSignInBtn" class="bg-blue-600 hover:bg-blue-700 px-3 py-2 rounded-lg text-sm font-medium flex items-center">
-                <svg class="w-4 h-4 mr-1" viewBox="0 0 24 24">
+        <div id="guestSection" class="bg-trading-card p-2 sm:p-3 rounded-lg border border-gray-700 flex items-center space-x-2 sm:space-x-3">
+            <span class="text-xs sm:text-sm text-gray-300">Modo Invitado</span>
+            <button id="topGoogleSignInBtn" class="bg-blue-600 hover:bg-blue-700 px-2 sm:px-3 py-1 sm:py-2 rounded-lg text-xs sm:text-sm font-medium flex items-center">
+                <svg class="w-3 h-3 sm:w-4 sm:h-4 mr-1" viewBox="0 0 24 24">
                     <path fill="white" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
                     <path fill="white" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
                     <path fill="white" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
                     <path fill="white" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
                 </svg>
-                Google
+                <span class="hidden sm:inline">Google</span>
             </button>
         </div>
 
-        <!-- Cuando está logueado -->
-        <div id="userMenu" class="bg-trading-card p-3 rounded-lg border border-gray-700 flex items-center space-x-3 hidden">
-            <img id="userPhoto" class="w-8 h-8 rounded-full" alt="User">
-            <span id="userName" class="text-sm"></span>
-            <button id="signOutBtn" class="text-red-400 hover:text-red-300 text-sm">
-                Cerrar Sesión
-            </button>
+        <!-- Cuando está logueado - Solo logo después del banner -->
+        <div id="userMenu" class="bg-trading-card p-2 rounded-lg border border-gray-700 hidden">
+            <div class="flex items-center space-x-2">
+                <img id="userPhoto" class="w-6 h-6 sm:w-8 sm:h-8 rounded-full cursor-pointer" alt="User" title="Click para opciones">
+                <div id="userDropdown" class="hidden absolute top-full right-0 mt-1 bg-trading-card border border-gray-600 rounded-lg p-2 shadow-lg min-w-48">
+                    <div class="text-xs text-gray-300 mb-2" id="userNameInDropdown"></div>
+                    <button id="signOutBtn" class="text-red-400 hover:text-red-300 text-xs w-full text-left">
+                        Cerrar Sesión
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -93,14 +107,15 @@
     </div>
 
     <!-- Header -->
-    <header class="bg-trading-card border-b border-gray-700 p-4">
+    <header class="bg-trading-card border-b border-gray-700 p-2 sm:p-4">
         <div class="container mx-auto flex items-center justify-between">
-            <h1 class="text-2xl font-bold text-gold flex items-center">
-                <span class="mr-2">📊</span>
-                Trading Dashboard: Gestion y Control Operativo
+            <h1 class="text-lg sm:text-2xl font-bold text-gold flex items-center">
+                <span class="mr-1 sm:mr-2 text-base sm:text-2xl">📊</span>
+                <span class="hidden sm:inline">Trading Dashboard: Gestion y Control Operativo</span>
+                <span class="sm:hidden">Trading Dashboard</span>
             </h1>
-            <div class="flex items-center space-x-4">
-                <div class="text-sm text-gray-400">
+            <div class="flex items-center space-x-2 sm:space-x-4">
+                <div class="text-xs sm:text-sm text-gray-400">
                     <span id="currentTime"></span>
                 </div>
             </div>
@@ -111,124 +126,123 @@
     <nav class="bg-trading-card border-b border-gray-700">
         <div class="container mx-auto">
             <div class="flex space-x-0 overflow-x-auto">
-                <button class="tab-btn px-6 py-3 font-medium border-b-2 border-gold text-gold whitespace-nowrap" data-tab="dashboard">Dashboard</button>
-                <button class="tab-btn px-6 py-3 font-medium border-b-2 border-transparent hover:text-gold whitespace-nowrap" data-tab="capital">Capital & Riesgo</button>
-                <button class="tab-btn px-6 py-3 font-medium border-b-2 border-transparent hover:text-gold whitespace-nowrap" data-tab="trades">Registro Trades</button>
-                <button class="tab-btn px-6 py-3 font-medium border-b-2 border-transparent hover:text-gold whitespace-nowrap" data-tab="signals">Señales & Setup</button>
-                <button class="tab-btn px-6 py-3 font-medium border-b-2 border-transparent hover:text-gold whitespace-nowrap" data-tab="discipline">Disciplina</button>
+                <button class="tab-btn px-3 sm:px-6 py-2 sm:py-3 font-medium border-b-2 border-gold text-gold whitespace-nowrap text-xs sm:text-base" data-tab="dashboard">Dashboard</button>
+                <button class="tab-btn px-3 sm:px-6 py-2 sm:py-3 font-medium border-b-2 border-transparent hover:text-gold whitespace-nowrap text-xs sm:text-base" data-tab="capital">Capital & Riesgo</button>
+                <button class="tab-btn px-3 sm:px-6 py-2 sm:py-3 font-medium border-b-2 border-transparent hover:text-gold whitespace-nowrap text-xs sm:text-base" data-tab="trades">Registro Trades</button>
+                <button class="tab-btn px-3 sm:px-6 py-2 sm:py-3 font-medium border-b-2 border-transparent hover:text-gold whitespace-nowrap text-xs sm:text-base" data-tab="signals">Señales & Setup</button>
+                <button class="tab-btn px-3 sm:px-6 py-2 sm:py-3 font-medium border-b-2 border-transparent hover:text-gold whitespace-nowrap text-xs sm:text-base" data-tab="discipline">Disciplina</button>
             </div>
         </div>
     </nav>
 
     <!-- Main Content -->
-    <main class="container mx-auto p-4">
+    <main class="container mx-auto p-2 sm:p-4">
         <!-- Dashboard Tab -->
         <div id="dashboard" class="tab-content">
-            <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3
-             gap-4 mb-8">
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-2 sm:gap-4 mb-4 sm:mb-8">
                 <!-- Capital Actual -->
-                <div class="bg-trading-card p-4 rounded-lg border border-gray-700">
-                    <h3 class="text-sm font-semibold text-gold mb-2">Capital Total</h3>
-                    <p class="text-xl font-bold" id="dashCapital">$1,930</p>
+                <div class="bg-trading-card p-3 sm:p-4 rounded-lg border border-gray-700">
+                    <h3 class="text-xs sm:text-sm font-semibold text-gold mb-1 sm:mb-2">Capital Total</h3>
+                    <p class="text-lg sm:text-xl font-bold" id="dashCapital">$1,930</p>
                     <p class="text-xs text-gray-400 mt-1">Riesgo: <span id="dashRisk">$96.50</span></p>
                 </div>
 
                 <!-- Win Rate -->
-                <div class="bg-trading-card p-4 rounded-lg border border-gray-700">
-                    <h3 class="text-sm font-semibold text-profit mb-2">Win Rate</h3>
-                    <p class="text-xl font-bold" id="currentWinRate">0%</p>
+                <div class="bg-trading-card p-3 sm:p-4 rounded-lg border border-gray-700">
+                    <h3 class="text-xs sm:text-sm font-semibold text-profit mb-1 sm:mb-2">Win Rate</h3>
+                    <p class="text-lg sm:text-xl font-bold" id="currentWinRate">0%</p>
                     <p class="text-xs text-gray-400 mt-1">Trades: <span id="totalTrades">0</span></p>
                 </div>
 
                 <!-- P&L Diario -->
-                <div class="bg-trading-card p-4 rounded-lg border border-gray-700">
-                    <h3 class="text-sm font-semibold mb-2">P&L Diario</h3>
-                    <p class="text-xl font-bold" id="dailyPnL">$0.00</p>
+                <div class="bg-trading-card p-3 sm:p-4 rounded-lg border border-gray-700">
+                    <h3 class="text-xs sm:text-sm font-semibold mb-1 sm:mb-2">P&L Diario</h3>
+                    <p class="text-lg sm:text-xl font-bold" id="dailyPnL">$0.00</p>
                     <p class="text-xs text-gray-400 mt-1">DD: <span id="drawdown">0%</span></p>
                 </div>
 
                 <!-- Trades Hoy -->
-                <div class="bg-trading-card p-4 rounded-lg border border-gray-700">
-                    <h3 class="text-sm font-semibold text-neutral mb-2">Trades Hoy</h3>
-                    <p class="text-xl font-bold" id="todayTrades">0</p>
+                <div class="bg-trading-card p-3 sm:p-4 rounded-lg border border-gray-700">
+                    <h3 class="text-xs sm:text-sm font-semibold text-neutral mb-1 sm:mb-2">Trades Hoy</h3>
+                    <p class="text-lg sm:text-xl font-bold" id="todayTrades">0</p>
                     <p class="text-xs text-gray-400 mt-1">Límite: 4</p>
                 </div>
 
                 <!-- Retiros -->
-                <div class="bg-trading-card p-4 rounded-lg border border-gray-700">
-                    <h3 class="text-sm font-semibold text-orange-400 mb-2">Retiros</h3>
-                    <p class="text-xl font-bold" id="totalWithdrawals">$0.00</p>
+                <div class="bg-trading-card p-3 sm:p-4 rounded-lg border border-gray-700">
+                    <h3 class="text-xs sm:text-sm font-semibold text-orange-400 mb-1 sm:mb-2">Retiros</h3>
+                    <p class="text-lg sm:text-xl font-bold" id="totalWithdrawals">$0.00</p>
                     <p class="text-xs text-gray-400 mt-1">Total</p>
                 </div>
 
                 <!-- P&L Total -->
-                <div class="bg-trading-card p-4 rounded-lg border border-gray-700">
-                    <h3 class="text-sm font-semibold text-blue-400 mb-2">P&L Total</h3>
-                    <p class="text-xl font-bold text-profit" id="totalPnL">$0.00</p>
+                <div class="bg-trading-card p-3 sm:p-4 rounded-lg border border-gray-700">
+                    <h3 class="text-xs sm:text-sm font-semibold text-blue-400 mb-1 sm:mb-2">P&L Total</h3>
+                    <p class="text-lg sm:text-xl font-bold text-profit" id="totalPnL">$0.00</p>
                     <p class="text-xs text-gray-400 mt-1">Acumulado</p>
                 </div>
             </div>
 
             <!-- Performance por Estrategia -->
-            <div class="bg-trading-card p-6 rounded-lg border border-gray-700 mb-6">
-                <h3 class="text-xl font-semibold text-gold mb-4">Performance por Estrategia</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-trading-card p-4 sm:p-6 rounded-lg border border-gray-700 mb-4 sm:mb-6">
+                <h3 class="text-lg sm:text-xl font-semibold text-gold mb-3 sm:mb-4">Performance por Estrategia</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                     <div class="strategy-stats" data-strategy="regulares">
-                        <h4 class="font-semibold text-blue-400">Trades Regulares</h4>
-                        <div class="flex justify-between mt-2">
+                        <h4 class="font-semibold text-blue-400 text-sm sm:text-base">Trades Regulares</h4>
+                        <div class="flex justify-between mt-2 text-xs sm:text-sm">
                             <span>Win Rate:</span>
                             <span class="strategy-winrate">0%</span>
                         </div>
-                        <div class="flex justify-between">
+                        <div class="flex justify-between text-xs sm:text-sm">
                             <span>P&L:</span>
                             <span class="strategy-pnl">$0</span>
                         </div>
-                        <div class="flex justify-between">
+                        <div class="flex justify-between text-xs sm:text-sm">
                             <span>Trades:</span>
                             <span class="strategy-count">0</span>
                         </div>
                     </div>
                     <div class="strategy-stats" data-strategy="ema-macd">
-                        <h4 class="font-semibold text-purple-400">EMA + MACD</h4>
-                        <div class="flex justify-between mt-2">
+                        <h4 class="font-semibold text-purple-400 text-sm sm:text-base">EMA + MACD</h4>
+                        <div class="flex justify-between mt-2 text-xs sm:text-sm">
                             <span>Win Rate:</span>
                             <span class="strategy-winrate">0%</span>
                         </div>
-                        <div class="flex justify-between">
+                        <div class="flex justify-between text-xs sm:text-sm">
                             <span>P&L:</span>
                             <span class="strategy-pnl">$0</span>
                         </div>
-                        <div class="flex justify-between">
+                        <div class="flex justify-between text-xs sm:text-sm">
                             <span>Trades:</span>
                             <span class="strategy-count">0</span>
                         </div>
                     </div>
                     <div class="strategy-stats" data-strategy="contra-tendencia">
-                        <h4 class="font-semibold text-orange-400">Contra-Tendencia</h4>
-                        <div class="flex justify-between mt-2">
+                        <h4 class="font-semibold text-orange-400 text-sm sm:text-base">Contra-Tendencia</h4>
+                        <div class="flex justify-between mt-2 text-xs sm:text-sm">
                             <span>Win Rate:</span>
                             <span class="strategy-winrate">0%</span>
                         </div>
-                        <div class="flex justify-between">
+                        <div class="flex justify-between text-xs sm:text-sm">
                             <span>P&L:</span>
                             <span class="strategy-pnl">$0</span>
                         </div>
-                        <div class="flex justify-between">
+                        <div class="flex justify-between text-xs sm:text-sm">
                             <span>Trades:</span>
                             <span class="strategy-count">0</span>
                         </div>
                     </div>
                     <div class="strategy-stats" data-strategy="extremos">
-                        <h4 class="font-semibold text-red-400">Trades Extremos</h4>
-                        <div class="flex justify-between mt-2">
+                        <h4 class="font-semibold text-red-400 text-sm sm:text-base">Trades Extremos</h4>
+                        <div class="flex justify-between mt-2 text-xs sm:text-sm">
                             <span>Win Rate:</span>
                             <span class="strategy-winrate">0%</span>
                         </div>
-                        <div class="flex justify-between">
+                        <div class="flex justify-between text-xs sm:text-sm">
                             <span>P&L:</span>
                             <span class="strategy-pnl">$0</span>
                         </div>
-                        <div class="flex justify-between">
+                        <div class="flex justify-between text-xs sm:text-sm">
                             <span>Trades:</span>
                             <span class="strategy-count">0</span>
                         </div>
@@ -387,14 +401,6 @@
                     <table class="w-full table-auto">
                         <thead>
                             <tr class="border-b border-gray-700">
-                                <th class="text-left p-3 text-gold">Fecha</th>
-                                <th class="text-left p-3 text-gold">Estrategia</th>
-                                <th class="text-left p-3 text-gold">Dirección</th>
-                                <th class="text-left p-3 text-gold">Contratos</th>
-                                <th class="text-left p-3 text-gold">SL</th>
-                                <th class="text-left p-3 text-gold">TP</th>
-                                <th class="text-left p-3 text-gold">Resultado</th>
-                                <th class="text-left p-3 text-gold">P&L</th>
                                 <th class="text-left p-3 text-gold">Comentarios</th>
                                 <th class="text-left p-3 text-gold">Acciones</th>
                             </tr>
@@ -794,6 +800,10 @@
     </div>
 
     <script src="firebase-app.js"></script>
+
+</body>
+
+<script src="firebase-app.js"></script>
 
 </body>
 
