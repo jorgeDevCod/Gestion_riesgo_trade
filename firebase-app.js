@@ -24,6 +24,8 @@ let currentCapital = 0;
 let currentTab = 'dashboard';
 let currentUser = null;
 let isInitializing = true;
+let hasShownWelcomeBanner = false;
+let hasShownAuthModal = false;
 
 // Configuraciones de estrategias
 const strategyConfigs = {
@@ -117,8 +119,9 @@ provider.addScope( 'email' );
 
 // ===== FUNCIONES DE AUTENTICACIÓN =====
 function showAuthModal() {
-    if ( !currentUser && !isInitializing ) {
+    if ( !currentUser && !isInitializing && !hasShownAuthModal ) {
         document.getElementById( 'authModal' ).classList.remove( 'hidden' );
+        hasShownAuthModal = true;
     }
 }
 
@@ -149,6 +152,9 @@ function showUserMenu( user ) {
 }
 
 function showWelcomeBanner( user ) {
+    // Solo mostrar si no se ha mostrado antes en esta sesión
+    if ( hasShownWelcomeBanner ) return;
+
     const banner = document.getElementById( 'welcomeBanner' );
     const userPhoto = document.getElementById( 'welcomeUserPhoto' );
     const userName = document.getElementById( 'welcomeUserName' );
@@ -159,6 +165,7 @@ function showWelcomeBanner( user ) {
 
         banner.classList.remove( 'hidden' );
         banner.style.transform = 'translateY(0)';
+        hasShownWelcomeBanner = true;
 
         // Ocultar después de 20 segundos
         setTimeout( () => {
@@ -166,7 +173,7 @@ function showWelcomeBanner( user ) {
             setTimeout( () => {
                 banner.classList.add( 'hidden' );
             }, 500 );
-        }, 20000 );
+        }, 15000 );
     }
 }
 
@@ -922,6 +929,8 @@ document.addEventListener( 'DOMContentLoaded', function () {
             currentUser = null;
             showGuestSection();
             isInitializing = false;
+            // Reset para permitir mostrar el modal de auth si se desloguea
+            hasShownAuthModal = false;
         }
     } );
 
