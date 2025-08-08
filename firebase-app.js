@@ -173,7 +173,7 @@ function showWelcomeBanner( user ) {
             setTimeout( () => {
                 banner.classList.add( 'hidden' );
             }, 500 );
-        }, 15000 );
+        }, 10000 );
     }
 }
 
