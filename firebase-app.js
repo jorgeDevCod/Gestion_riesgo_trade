@@ -167,13 +167,13 @@ function showWelcomeBanner( user ) {
         banner.style.transform = 'translateY(0)';
         hasShownWelcomeBanner = true;
 
-        // Ocultar después de 20 segundos
+        // Ocultar después de 5 segundos
         setTimeout( () => {
             banner.style.transform = 'translateY(-100%)';
             setTimeout( () => {
                 banner.classList.add( 'hidden' );
             }, 500 );
-        }, 7500 );
+        }, 5000 );
     }
 }
 
