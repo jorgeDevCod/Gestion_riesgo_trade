@@ -15,6 +15,14 @@ firebase.initializeApp( firebaseConfig );
 const auth = firebase.auth();
 const db = firebase.firestore();
 
+auth.setPersistence( firebase.auth.Auth.Persistence.LOCAL )
+    .then( () => {
+        console.log( 'Persistencia de autenticación configurada' );
+    } )
+    .catch( ( error ) => {
+        console.log( 'Error configurando persistencia:', error );
+    } );
+
 // Variables globales
 let trades = [];
 let observations = [];
@@ -118,6 +126,14 @@ const provider = new firebase.auth.GoogleAuthProvider();
 provider.addScope( 'profile' );
 provider.addScope( 'email' );
 
+// AGREGAR estas configuraciones adicionales:
+provider.setCustomParameters( {
+    'login_hint': 'user@example.com'
+} );
+
+// Configurar parámetros adicionales para evitar problemas de CORS
+auth.useDeviceLanguage();
+
 // ===== FUNCIONES DE AUTENTICACIÓN =====
 function showAuthModal() {
     // Solo mostrar si no está logueado, no está inicializando Y no se ha mostrado antes en esta sesión
@@ -126,6 +142,8 @@ function showAuthModal() {
         hasShownAuthModal = true;
     }
 }
+
+
 
 // Funciones para manejar cookies
 function setCookie( name, value, days = 365 ) {
@@ -229,15 +247,26 @@ function updateSyncStatus( status, isOnline = true ) {
 }
 
 function signInWithGoogle() {
-    auth.signInWithPopup( provider )
+    // Configurar opciones adicionales para el popup
+    const authOptions = {
+        prompt: 'select_account'
+    };
+
+    auth.signInWithPopup( provider, authOptions )
         .then( ( result ) => {
-            // Ocultar modal inmediatamente al loguearse
             hideAuthModal();
-            hasShownAuthModal = true; // Marcar como mostrado para evitar que aparezca de nuevo
+            authModalShownInSession = true;
             updateSyncStatus( 'Conectado y sincronizado', true );
         } )
         .catch( ( error ) => {
             console.error( 'Error al iniciar sesión:', error );
+
+            // Si falla el popup, intentar con redirect como fallback
+            if ( error.code === 'auth/popup-blocked' || error.code === 'auth/popup-closed-by-user' ) {
+                console.log( 'Popup bloqueado, intentando redirect...' );
+                auth.signInWithRedirect( provider );
+            }
+
             updateSyncStatus( 'Error de conexión', false );
         } );
 }
@@ -1109,6 +1138,7 @@ document.addEventListener( 'DOMContentLoaded', function () {
     } );
 
     document.getElementById( 'cancelTradeBtn' )?.addEventListener( 'click', () => hideModal( 'tradeModal' ) );
+
 
     // Cálculo automático de P&L
     [ 'entryPrice', 'exitPrice', 'tradeContracts', 'tradeDirection' ].forEach( id => {
