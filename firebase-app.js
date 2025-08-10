@@ -119,6 +119,7 @@ provider.addScope( 'email' );
 
 // ===== FUNCIONES DE AUTENTICACIÓN =====
 function showAuthModal() {
+    // Solo mostrar si no está logueado, no está inicializando Y no se ha mostrado antes en esta sesión
     if ( !currentUser && !isInitializing && !hasShownAuthModal ) {
         document.getElementById( 'authModal' ).classList.remove( 'hidden' );
         hasShownAuthModal = true;
@@ -207,6 +208,9 @@ function updateSyncStatus( status, isOnline = true ) {
 function signInWithGoogle() {
     auth.signInWithPopup( provider )
         .then( ( result ) => {
+            // Ocultar modal inmediatamente al loguearse
+            hideAuthModal();
+            hasShownAuthModal = true; // Marcar como mostrado para evitar que aparezca de nuevo
             updateSyncStatus( 'Conectado y sincronizado', true );
         } )
         .catch( ( error ) => {
@@ -220,6 +224,7 @@ function signOut() {
         .then( () => {
             showGuestSection();
             updateSyncStatus( 'Desconectado', false );
+            // NO resetear hasShownAuthModal aquí para evitar que aparezca el modal automáticamente
         } )
         .catch( ( error ) => {
             console.error( 'Error al cerrar sesión:', error );
@@ -922,6 +927,9 @@ document.addEventListener( 'DOMContentLoaded', function () {
         if ( user ) {
             currentUser = user;
             showUserMenu( user );
+            // Ocultar modal si está visible cuando el usuario se autentica
+            hideAuthModal();
+            hasShownAuthModal = true;
             loadDataFromFirebase().then( () => {
                 isInitializing = false;
             } );
@@ -929,8 +937,7 @@ document.addEventListener( 'DOMContentLoaded', function () {
             currentUser = null;
             showGuestSection();
             isInitializing = false;
-            // Reset para permitir mostrar el modal de auth si se desloguea
-            hasShownAuthModal = false;
+            // NO resetear hasShownAuthModal aquí para evitar modal automático tras logout
         }
     } );
 
@@ -1136,7 +1143,8 @@ document.addEventListener( 'DOMContentLoaded', function () {
 
     // Mostrar modal de autenticación después de un retraso si no está logueado
     setTimeout( () => {
-        if ( !currentUser && !isInitializing ) {
+        // Solo mostrar modal si nunca se ha autenticado en esta sesión
+        if ( !currentUser && !isInitializing && !hasShownAuthModal ) {
             showAuthModal();
         }
     }, 3000 );
