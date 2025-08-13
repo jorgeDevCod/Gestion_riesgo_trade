@@ -656,8 +656,8 @@ function renderTrades() {
                     </span>
                 </td>
                 <td class="p-3">${trade.contracts}</td>
-                <td class="p-3">${trade.sl} pips</td>
-                <td class="p-3">${trade.tp} pips</td>
+                <td class="p-3">${trade.sl.toFixed( 1 )} pips</td>
+                <td class="p-3">${trade.tp.toFixed( 1 )} pips</td>  
                 <td class="p-3">
                     <span class="px-2 py-1 rounded text-xs ${trade.result === 'win' ? 'bg-green-800 text-green-200' : 'bg-red-800 text-red-200'}">
                         ${trade.result === 'win' ? 'Ganador' : 'Perdedor'}
@@ -1122,8 +1122,8 @@ document.addEventListener( 'DOMContentLoaded', function () {
             strategy: document.getElementById( 'tradeStrategy' ).value,
             direction: document.getElementById( 'tradeDirection' ).value,
             contracts: parseInt( document.getElementById( 'tradeContracts' ).value ),
-            sl: parseInt( document.getElementById( 'tradeSL' ).value ),
-            tp: parseInt( document.getElementById( 'tradeTP' ).value ),
+            sl: parseFloat( document.getElementById( 'tradeSL' ).value ),
+            tp: parseFloat( document.getElementById( 'tradeTP' ).value ),
             result: document.getElementById( 'tradeResult' ).value,
             pnl: parseFloat( document.getElementById( 'tradePnL' ).value ),
             comments: document.getElementById( 'tradeComments' ).value || ''
