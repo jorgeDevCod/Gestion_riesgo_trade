@@ -500,8 +500,15 @@ function getTotalWithdrawals() {
 
 function calculateDrawdown() {
     const totalPnL = calculateTotalPnL();
-    if ( currentCapital === 0 ) return 0;
-    return Math.round( Math.abs( Math.min( 0, totalPnL / currentCapital ) * 100 ) );
+    const effectiveCapital = calculateEffectiveCapital();
+
+    if ( effectiveCapital === 0 ) return 0;
+
+    // Calcular el drawdown como el porcentaje de pérdida desde el pico más alto
+    const peakCapital = Math.max( effectiveCapital, currentCapital );
+    const currentDrawdown = Math.max( 0, ( ( peakCapital - effectiveCapital ) / peakCapital ) * 100 );
+
+    return Math.round( currentDrawdown );
 }
 
 function calculateStrategyStats() {
@@ -534,6 +541,57 @@ function calculateOptimalContracts( strategy ) {
     return Math.floor( riskAmount / ( stopLossPips * pipValue ) );
 }
 
+// 9. Función para agregar información detallada al dashboard
+function addCapitalBreakdownToHTML() {
+    // Esta función agrega una sección de desglose de capital al HTML
+    const dashboardHTML = `
+    <!-- Agregar después de las métricas principales -->
+    <div class="bg-trading-card p-4 sm:p-6 rounded-lg border border-gray-700 mb-4 sm:mb-6">
+        <h3 class="text-lg sm:text-xl font-semibold text-gold mb-3 sm:mb-4">Desglose de Capital</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
+            <div class="bg-gray-800 p-3 rounded-lg">
+                <h4 class="font-semibold text-blue-400 text-sm">Capital Base</h4>
+                <p class="text-lg font-bold" id="baseCapital">$0.00</p>
+                <p class="text-xs text-gray-400">Capital ingresado</p>
+            </div>
+            <div class="bg-gray-800 p-3 rounded-lg">
+                <h4 class="font-semibold text-profit text-sm">P&L Trading</h4>
+                <p class="text-lg font-bold" id="tradingPnL">$0.00</p>
+                <p class="text-xs text-gray-400">Ganancias/Pérdidas</p>
+            </div>
+            <div class="bg-gray-800 p-3 rounded-lg">
+                <h4 class="font-semibold text-orange-400 text-sm">Capital Efectivo</h4>
+                <p class="text-lg font-bold" id="effectiveCapitalDisplay">$0.00</p>
+                <p class="text-xs text-gray-400">Base + P&L - Retiros</p>
+            </div>
+        </div>
+    </div>
+    `;
+    return dashboardHTML;
+}
+
+// 10. Función para actualizar el desglose de capital
+function updateCapitalBreakdown() {
+    const totalPnL = calculateTotalPnL();
+    const effectiveCapital = calculateEffectiveCapital();
+
+    const baseCapitalEl = document.getElementById( 'baseCapital' );
+    const tradingPnLEl = document.getElementById( 'tradingPnL' );
+    const effectiveCapitalEl = document.getElementById( 'effectiveCapitalDisplay' );
+
+    if ( baseCapitalEl ) baseCapitalEl.textContent = `$${currentCapital.toFixed( 2 )}`;
+
+    if ( tradingPnLEl ) {
+        tradingPnLEl.textContent = `$${totalPnL.toFixed( 2 )}`;
+        tradingPnLEl.className = `text-lg font-bold ${totalPnL >= 0 ? 'text-profit' : 'text-loss'}`;
+    }
+
+    if ( effectiveCapitalEl ) {
+        effectiveCapitalEl.textContent = `$${effectiveCapital.toFixed( 2 )}`;
+        effectiveCapitalEl.className = `text-lg font-bold ${effectiveCapital >= currentCapital ? 'text-profit' : 'text-loss'}`;
+    }
+}
+
 // ===== FUNCIONES DE RENDERIZADO =====
 function renderDashboard() {
     const winRate = calculateWinRate();
@@ -542,17 +600,18 @@ function renderDashboard() {
     const todayTrades = getTodayTradesCount();
     const totalWithdrawals = getTotalWithdrawals();
     const drawdown = calculateDrawdown();
-    const maxDailyRisk = currentCapital * 0.05;
+    const effectiveCapital = calculateEffectiveCapital();
+    const maxDailyRisk = effectiveCapital * 0.05; // Usar capital efectivo para el riesgo
 
     // Actualizar elementos del dashboard
-    document.getElementById( 'dashCapital' ).textContent = `$${currentCapital.toFixed( 2 )}`;
+    document.getElementById( 'dashCapital' ).textContent = `$${effectiveCapital.toFixed( 2 )}`;
     document.getElementById( 'dashRisk' ).textContent = `$${maxDailyRisk.toFixed( 2 )}`;
     document.getElementById( 'currentWinRate' ).textContent = `${winRate}%`;
     document.getElementById( 'totalTrades' ).textContent = trades.length;
 
     const dailyPnLElement = document.getElementById( 'dailyPnL' );
     dailyPnLElement.textContent = `$${dailyPnL.toFixed( 2 )}`;
-    dailyPnLElement.className = `text-xl font-bold ${dailyPnL >= 0 ? 'text-profit' : 'text-loss'}`;
+    dailyPnLElement.className = `text-lg sm:text-xl font-bold ${dailyPnL >= 0 ? 'text-profit' : 'text-loss'}`;
 
     document.getElementById( 'drawdown' ).textContent = `${drawdown}%`;
     document.getElementById( 'todayTrades' ).textContent = todayTrades;
@@ -560,7 +619,7 @@ function renderDashboard() {
 
     const totalPnLElement = document.getElementById( 'totalPnL' );
     totalPnLElement.textContent = `$${totalPnL.toFixed( 2 )}`;
-    totalPnLElement.className = `text-xl font-bold ${totalPnL >= 0 ? 'text-profit' : 'text-loss'}`;
+    totalPnLElement.className = `text-lg sm:text-xl font-bold ${totalPnL >= 0 ? 'text-profit' : 'text-loss'}`;
 
     // Renderizar estadísticas por estrategia
     renderStrategyStats();
@@ -576,21 +635,38 @@ function renderStrategyStats() {
             const pnlElement = strategyElement.querySelector( '.strategy-pnl' );
             const countElement = strategyElement.querySelector( '.strategy-count' );
 
-            if ( winRateElement ) winRateElement.textContent = `${stats[ strategy ].winRate}%`;
+            if ( winRateElement ) {
+                winRateElement.textContent = `${stats[ strategy ].winRate}%`;
+            }
+
             if ( pnlElement ) {
                 pnlElement.textContent = `$${stats[ strategy ].pnl.toFixed( 2 )}`;
-                pnlElement.className = stats[ strategy ].pnl >= 0 ? 'text-profit' : 'text-loss';
+                // Aplicar color según P&L
+                pnlElement.className = `strategy-pnl ${stats[ strategy ].pnl >= 0 ? 'text-profit' : 'text-loss'}`;
             }
-            if ( countElement ) countElement.textContent = stats[ strategy ].count;
+
+            if ( countElement ) {
+                countElement.textContent = stats[ strategy ].count;
+            }
         }
     } );
 }
 
+function calculateEffectiveCapital() {
+    const totalPnL = calculateTotalPnL();
+    const totalWithdrawals = getTotalWithdrawals();
+    return currentCapital + totalPnL - totalWithdrawals;
+}
+
 function renderCapitalSection() {
+    const effectiveCapital = calculateEffectiveCapital();
     const inputCapital = document.getElementById( 'currentCapitalDisplay' );
+
+    // Mostrar el capital base ingresado (sin P&L ni retiros)
     inputCapital.value = currentCapital.toFixed( 2 );
 
-    document.getElementById( 'maxDailyRisk' ).textContent = `$${( currentCapital * 0.05 ).toFixed( 2 )}`;
+    // Actualizar el riesgo diario máximo basado en capital efectivo
+    document.getElementById( 'maxDailyRisk' ).textContent = `$${( effectiveCapital * 0.05 ).toFixed( 2 )}`;
 
     // Actualizar calculadora de estrategia
     updateStrategyCalculator();
@@ -605,8 +681,10 @@ function updateStrategyCalculator() {
         document.getElementById( 'strategyRR' ).textContent = `${config.rrRatio}:1`;
         document.getElementById( 'strategyRiskPercent' ).textContent = `${config.riskPercent}%`;
 
-        const maxRisk = ( currentCapital * config.riskPercent ) / 100;
-        const optimalContracts = calculateOptimalContracts( selectedStrategy );
+        // Usar capital efectivo para los cálculos
+        const effectiveCapital = calculateEffectiveCapital();
+        const maxRisk = ( effectiveCapital * config.riskPercent ) / 100;
+        const optimalContracts = calculateOptimalContractsWithEffectiveCapital( selectedStrategy );
 
         document.getElementById( 'maxRiskPerTrade' ).textContent = `$${maxRisk.toFixed( 2 )}`;
         document.getElementById( 'optimalContracts' ).textContent = optimalContracts;
@@ -614,6 +692,19 @@ function updateStrategyCalculator() {
         document.getElementById( 'takeProfit1' ).textContent = `${config.takeProfit1} pips`;
         document.getElementById( 'takeProfit2' ).textContent = `${config.takeProfit2} pips`;
     }
+}
+
+function calculateOptimalContractsWithEffectiveCapital( strategy ) {
+    const config = strategyConfigs[ strategy ];
+    const effectiveCapital = calculateEffectiveCapital();
+
+    if ( !config || effectiveCapital <= 0 ) return 0;
+
+    const riskAmount = ( effectiveCapital * config.riskPercent ) / 100;
+    const stopLossPips = config.stopLoss;
+    const pipValue = 1; // $1 por pip por contrato
+
+    return Math.floor( riskAmount / ( stopLossPips * pipValue ) );
 }
 
 function renderTrades() {
@@ -783,10 +874,12 @@ function renderAllData() {
     renderTrades();
     renderObservations();
     renderRecentWithdrawals();
+    updateCapitalBreakdown(); // Agregar esta línea
     if ( currentTab === 'signals' ) {
         renderSetupChecklist();
     }
 }
+
 
 // ===== FUNCIONES DE INTERFAZ =====
 function switchTab( tabName ) {
@@ -1203,8 +1296,23 @@ document.addEventListener( 'DOMContentLoaded', function () {
     }, 3000 );
 } );
 
+function debugTradesData() {
+    console.log( '=== DEBUG TRADES DATA ===' );
+    console.log( 'Total trades:', trades.length );
+    console.log( 'Trades data:', trades );
+
+    const stats = calculateStrategyStats();
+    console.log( 'Strategy stats:', stats );
+
+    console.log( 'Current capital:', currentCapital );
+    console.log( 'Total P&L:', calculateTotalPnL() );
+    console.log( 'Effective capital:', calculateEffectiveCapital() );
+    console.log( '========================' );
+}
+
 // ===== FUNCIONES GLOBALES =====
 window.deleteTrade = deleteTrade;
 window.deleteObservation = deleteObservation;
 window.showCommentTooltip = showCommentTooltip;
 window.updateSetupScore = updateSetupScore;
+
