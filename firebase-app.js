@@ -5,7 +5,7 @@ const firebaseConfig = {
     projectId: "tradingapp-9c93a",
     storageBucket: "tradingapp-9c93a.firebasestorage.app",
     messagingSenderId: "1047446621998",
-    appId: "1:1047446621998:web:829b640a8dba719b08f4bf"
+    appId: "1:1047446621998:web:829b640a8dba719b08f4bf",
 };
 
 // Inicializar Firebase
@@ -15,12 +15,13 @@ firebase.initializeApp( firebaseConfig );
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-auth.setPersistence( firebase.auth.Auth.Persistence.LOCAL )
+auth
+    .setPersistence( firebase.auth.Auth.Persistence.LOCAL )
     .then( () => {
-        console.log( 'Persistencia de autenticación configurada' );
+        console.log( "Persistencia de autenticación configurada" );
     } )
     .catch( ( error ) => {
-        console.log( 'Error configurando persistencia:', error );
+        console.log( "Error configurando persistencia:", error );
     } );
 
 // Variables globales
@@ -29,106 +30,111 @@ let observations = [];
 let withdrawals = [];
 let capitalAdditions = [];
 let currentCapital = 0;
-let currentTab = 'dashboard';
+let currentTab = "dashboard";
 let currentUser = null;
 let isInitializing = true;
 let hasShownWelcomeBanner = false;
 let hasShownAuthModal = false;
-let authModalShownInSession = false;
+let criticalLevels = {
+    resistances: [],
+    supports: [],
+    lastUpdate: null,
+};
+let editingTradeId = null;
 
 // Configuraciones de estrategias
 const strategyConfigs = {
-    'regulares': {
-        name: 'Trades Regulares',
+    regulares: {
+        name: "Trades Regulares",
         riskPercent: 2.0,
         stopLoss: 6,
         takeProfit1: 13,
         takeProfit2: 24,
         winRate: 55,
-        rrRatio: 2.2
+        rrRatio: 2.2,
     },
-    'ema-macd': {
-        name: 'EMA + MACD',
+    "ema-macd": {
+        name: "EMA + MACD",
         riskPercent: 3.0,
         stopLoss: 5,
         takeProfit1: 12,
         takeProfit2: 22,
         winRate: 62,
-        rrRatio: 2.4
+        rrRatio: 2.4,
     },
-    'contra-tendencia': {
-        name: 'Contra-Tendencia',
+    "contra-tendencia": {
+        name: "Contra-Tendencia",
         riskPercent: 2.5,
         stopLoss: 6,
         takeProfit1: 15,
         takeProfit2: 28,
         winRate: 48,
-        rrRatio: 2.8
+        rrRatio: 2.8,
     },
-    'extremos': {
-        name: 'Trades Extremos',
+    extremos: {
+        name: "Trades Extremos",
         riskPercent: 3.0,
         stopLoss: 5,
         takeProfit1: 13,
         takeProfit2: 25,
         winRate: 65,
-        rrRatio: 2.6
-    }
+        rrRatio: 2.6,
+    },
 };
 
 // Setup checklists para cada estrategia
 const setupChecklists = {
-    'regulares': [
-        'Estructura mínimos/máximos en dirección correcta (4H)',
-        'Williams %R en zona objetivo y moviéndose correctamente',
-        'MACD cambiando dirección + histograma cambiando color',
-        'Precio en/cerca de nivel clave (soporte/resistencia)',
-        'Volumen > 1.2x promedio en vela de señal',
-        'Confirmación 15M: Mecha larga >4 pips + cuerpo pequeño',
-        'Williams %R 15M en zona -20 a -40',
-        'Incremento volumen acompañando precio'
+    regulares: [
+        "Estructura mínimos/máximos en dirección correcta (4H)",
+        "Williams %R en zona objetivo y moviéndose correctamente",
+        "MACD cambiando dirección + histograma cambiando color",
+        "Precio en/cerca de nivel clave (soporte/resistencia)",
+        "Volumen > 1.2x promedio en vela de señal",
+        "Confirmación 15M: Mecha larga >4 pips + cuerpo pequeño",
+        "Williams %R 15M en zona -20 a -40",
+        "Incremento volumen acompañando precio",
     ],
-    'ema-macd': [
-        'EMA 21 cruza EMA 50 con separación >3 pips',
-        'MACD: Línea cruza por encima/debajo de señal',
-        'Precio en zona soporte/resistencia clave',
-        'Williams %R saliendo de extremo hacia objetivo',
-        'Histograma MACD creciendo/decreciendo 2+ velas',
-        'Precio manteniéndose respecto EMA 21 por 2+ velas',
-        'Vela confirmando EMA y MACD en misma dirección'
+    "ema-macd": [
+        "EMA 21 cruza EMA 50 con separación >3 pips",
+        "MACD: Línea cruza por encima/debajo de señal",
+        "Precio en zona soporte/resistencia clave",
+        "Williams %R saliendo de extremo hacia objetivo",
+        "Histograma MACD creciendo/decreciendo 2+ velas",
+        "Precio manteniéndose respecto EMA 21 por 2+ velas",
+        "Vela confirmando EMA y MACD en misma dirección",
     ],
-    'contra-tendencia': [
-        'Tendencia fuerte 3+ días consecutivos (4H)',
-        'Williams %R en extremos 4+ velas 4H (-95/-85 o -15/-5)',
-        'Precio alejado 30+ pips de EMA 21 en 4H',
-        'Divergencia clara MACD 4H',
-        'Precio llegando a soporte/resistencia extrema ±3 pips',
-        'Williams %R 15M divergencia clara',
-        'Vela rechazo: mecha 6-7+ pips + cuerpo direccional',
-        'Volumen rechazo 1.8x promedio',
-        '2+ velas consecutivas cuerpos 4+ pips (5M)',
-        'Cierre 50%+ rango vela rechazo'
+    "contra-tendencia": [
+        "Tendencia fuerte 3+ días consecutivos (4H)",
+        "Williams %R en extremos 4+ velas 4H (-95/-85 o -15/-5)",
+        "Precio alejado 30+ pips de EMA 21 en 4H",
+        "Divergencia clara MACD 4H",
+        "Precio llegando a soporte/resistencia extrema ±3 pips",
+        "Williams %R 15M divergencia clara",
+        "Vela rechazo: mecha 6-7+ pips + cuerpo direccional",
+        "Volumen rechazo 1.8x promedio",
+        "2+ velas consecutivas cuerpos 4+ pips (5M)",
+        "Cierre 50%+ rango vela rechazo",
     ],
-    'extremos': [
-        'Precio en zona crítica histórica ±5 pips',
-        'Williams %R extremo 4H (-95/-85 o -15/-5)',
-        'Mecha institucional 4H: 8+ pips tras movimiento 35+ pips',
-        'Volumen explosivo: 4H 2x + 1H 1.8x promedio',
-        'EMA confluencia: Precio superando/cayendo EMA 21/50',
-        'MACD triple divergencia: 4H, 1H y 15M',
-        'Confirmación 15M: Rebote/rechazo EMA o nivel',
-        'Mínimo 7 factores de confluencia cumplidos'
-    ]
+    extremos: [
+        "Precio en zona crítica histórica ±5 pips",
+        "Williams %R extremo 4H (-95/-85 o -15/-5)",
+        "Mecha institucional 4H: 8+ pips tras movimiento 35+ pips",
+        "Volumen explosivo: 4H 2x + 1H 1.8x promedio",
+        "EMA confluencia: Precio superando/cayendo EMA 21/50",
+        "MACD triple divergencia: 4H, 1H y 15M",
+        "Confirmación 15M: Rebote/rechazo EMA o nivel",
+        "Mínimo 7 factores de confluencia cumplidos",
+    ],
 };
 
 // Configurar proveedor de autenticación de Google
 const provider = new firebase.auth.GoogleAuthProvider();
-provider.addScope( 'profile' );
-provider.addScope( 'email' );
+provider.addScope( "profile" );
+provider.addScope( "email" );
 
 // AGREGAR estas configuraciones adicionales:
 provider.setCustomParameters( {
-    'login_hint': 'user@example.com'
+    login_hint: "user@example.com",
 } );
 
 // Configurar parámetros adicionales para evitar problemas de CORS
@@ -138,26 +144,24 @@ auth.useDeviceLanguage();
 function showAuthModal() {
     // Solo mostrar si no está logueado, no está inicializando Y no se ha mostrado antes en esta sesión
     if ( !currentUser && !isInitializing && !hasShownAuthModal ) {
-        document.getElementById( 'authModal' ).classList.remove( 'hidden' );
+        document.getElementById( "authModal" ).classList.remove( "hidden" );
         hasShownAuthModal = true;
     }
 }
 
-
-
 // Funciones para manejar cookies
 function setCookie( name, value, days = 365 ) {
     const expires = new Date();
-    expires.setTime( expires.getTime() + ( days * 24 * 60 * 60 * 1000 ) );
+    expires.setTime( expires.getTime() + days * 24 * 60 * 60 * 1000 );
     document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/`;
 }
 
 function getCookie( name ) {
     const nameEQ = name + "=";
-    const ca = document.cookie.split( ';' );
+    const ca = document.cookie.split( ";" );
     for ( let i = 0; i < ca.length; i++ ) {
         let c = ca[ i ];
-        while ( c.charAt( 0 ) === ' ' ) c = c.substring( 1, c.length );
+        while ( c.charAt( 0 ) === " " ) c = c.substring( 1, c.length );
         if ( c.indexOf( nameEQ ) === 0 ) return c.substring( nameEQ.length, c.length );
     }
     return null;
@@ -168,26 +172,26 @@ function deleteCookie( name ) {
 }
 
 function hideAuthModal() {
-    document.getElementById( 'authModal' ).classList.add( 'hidden' );
+    document.getElementById( "authModal" ).classList.add( "hidden" );
 }
 
 function closeAuthModal() {
-    document.getElementById( 'authModal' ).classList.add( 'hidden' );
+    document.getElementById( "authModal" ).classList.add( "hidden" );
 }
 
 function showUserMenu( user ) {
-    const guestSection = document.getElementById( 'guestSection' );
-    const userMenu = document.getElementById( 'userMenu' );
-    const userPhoto = document.getElementById( 'userPhoto' );
+    const guestSection = document.getElementById( "guestSection" );
+    const userMenu = document.getElementById( "userMenu" );
+    const userPhoto = document.getElementById( "userPhoto" );
 
-    if ( guestSection ) guestSection.classList.add( 'hidden' );
+    if ( guestSection ) guestSection.classList.add( "hidden" );
 
     if ( userPhoto ) {
-        userPhoto.src = user.photoURL || 'https://via.placeholder.com/32';
+        userPhoto.src = user.photoURL || "https://via.placeholder.com/32";
         userPhoto.title = `${user.displayName || user.email} - Click para opciones`;
     }
 
-    if ( userMenu ) userMenu.classList.remove( 'hidden' );
+    if ( userMenu ) userMenu.classList.remove( "hidden" );
 
     // Mostrar banner de bienvenida
     showWelcomeBanner( user );
@@ -197,51 +201,51 @@ function showWelcomeBanner( user ) {
     // Solo mostrar si no se ha mostrado antes en esta sesión
     if ( hasShownWelcomeBanner ) return;
 
-    const banner = document.getElementById( 'welcomeBanner' );
-    const userPhoto = document.getElementById( 'welcomeUserPhoto' );
-    const userName = document.getElementById( 'welcomeUserName' );
+    const banner = document.getElementById( "welcomeBanner" );
+    const userPhoto = document.getElementById( "welcomeUserPhoto" );
+    const userName = document.getElementById( "welcomeUserName" );
 
     if ( banner && userPhoto && userName ) {
-        userPhoto.src = user.photoURL || 'https://via.placeholder.com/32';
+        userPhoto.src = user.photoURL || "https://via.placeholder.com/32";
         userName.textContent = user.displayName || user.email;
 
-        banner.classList.remove( 'hidden' );
-        banner.style.transform = 'translateY(0)';
+        banner.classList.remove( "hidden" );
+        banner.style.transform = "translateY(0)";
         hasShownWelcomeBanner = true;
 
         // Ocultar después de 5 segundos
         setTimeout( () => {
-            banner.style.transform = 'translateY(-100%)';
+            banner.style.transform = "translateY(-100%)";
             setTimeout( () => {
-                banner.classList.add( 'hidden' );
+                banner.classList.add( "hidden" );
             }, 500 );
         }, 5000 );
     }
 }
 
 function showGuestSection() {
-    const guestSection = document.getElementById( 'guestSection' );
-    const userMenu = document.getElementById( 'userMenu' );
+    const guestSection = document.getElementById( "guestSection" );
+    const userMenu = document.getElementById( "userMenu" );
 
-    if ( userMenu ) userMenu.classList.add( 'hidden' );
-    if ( guestSection ) guestSection.classList.remove( 'hidden' );
+    if ( userMenu ) userMenu.classList.add( "hidden" );
+    if ( guestSection ) guestSection.classList.remove( "hidden" );
 }
 
 function updateSyncStatus( status, isOnline = true ) {
-    const syncStatus = document.getElementById( 'syncStatus' );
-    const syncIndicator = document.getElementById( 'syncIndicator' );
-    const syncText = document.getElementById( 'syncText' );
+    const syncStatus = document.getElementById( "syncStatus" );
+    const syncIndicator = document.getElementById( "syncIndicator" );
+    const syncText = document.getElementById( "syncText" );
 
     if ( syncText ) syncText.textContent = status;
     if ( syncIndicator ) {
-        syncIndicator.className = `w-3 h-3 rounded-full ${isOnline ? 'bg-green-500' : 'bg-red-500'}`;
+        syncIndicator.className = `w-3 h-3 rounded-full ${isOnline ? "bg-green-500" : "bg-red-500"}`;
     }
 
-    if ( syncStatus ) syncStatus.classList.remove( 'hidden' );
+    if ( syncStatus ) syncStatus.classList.remove( "hidden" );
 
     if ( isOnline ) {
         setTimeout( () => {
-            if ( syncStatus ) syncStatus.classList.add( 'hidden' );
+            if ( syncStatus ) syncStatus.classList.add( "hidden" );
         }, 3000 );
     }
 }
@@ -249,37 +253,42 @@ function updateSyncStatus( status, isOnline = true ) {
 function signInWithGoogle() {
     // Configurar opciones adicionales para el popup
     const authOptions = {
-        prompt: 'select_account'
+        prompt: "select_account",
     };
 
-    auth.signInWithPopup( provider, authOptions )
+    auth
+        .signInWithPopup( provider, authOptions )
         .then( ( result ) => {
             hideAuthModal();
             authModalShownInSession = true;
-            updateSyncStatus( 'Conectado y sincronizado', true );
+            updateSyncStatus( "Conectado y sincronizado", true );
         } )
         .catch( ( error ) => {
-            console.error( 'Error al iniciar sesión:', error );
+            console.error( "Error al iniciar sesión:", error );
 
             // Si falla el popup, intentar con redirect como fallback
-            if ( error.code === 'auth/popup-blocked' || error.code === 'auth/popup-closed-by-user' ) {
-                console.log( 'Popup bloqueado, intentando redirect...' );
+            if (
+                error.code === "auth/popup-blocked" ||
+                error.code === "auth/popup-closed-by-user"
+            ) {
+                console.log( "Popup bloqueado, intentando redirect..." );
                 auth.signInWithRedirect( provider );
             }
 
-            updateSyncStatus( 'Error de conexión', false );
+            updateSyncStatus( "Error de conexión", false );
         } );
 }
 
 function signOut() {
-    auth.signOut()
+    auth
+        .signOut()
         .then( () => {
             showGuestSection();
-            updateSyncStatus( 'Desconectado', false );
+            updateSyncStatus( "Desconectado", false );
             // NO resetear hasShownAuthModal aquí para evitar que aparezca el modal automáticamente
         } )
         .catch( ( error ) => {
-            console.error( 'Error al cerrar sesión:', error );
+            console.error( "Error al cerrar sesión:", error );
         } );
 }
 
@@ -293,16 +302,20 @@ function syncDataToFirebase() {
         withdrawals: withdrawals,
         capitalAdditions: capitalAdditions,
         currentCapital: currentCapital,
-        lastUpdate: firebase.firestore.FieldValue.serverTimestamp()
+        criticalLevels: criticalLevels,
+        lastUpdate: firebase.firestore.FieldValue.serverTimestamp(),
     };
 
-    return db.collection( 'users' ).doc( currentUser.uid ).set( userData );
+    return db.collection( "users" ).doc( currentUser.uid ).set( userData );
 }
 
 function loadDataFromFirebase() {
     if ( !currentUser ) return Promise.resolve();
 
-    return db.collection( 'users' ).doc( currentUser.uid ).get()
+    return db
+        .collection( "users" )
+        .doc( currentUser.uid )
+        .get()
         .then( ( doc ) => {
             if ( doc.exists ) {
                 const data = doc.data();
@@ -312,13 +325,16 @@ function loadDataFromFirebase() {
                 capitalAdditions = data.capitalAdditions || [];
                 currentCapital = data.currentCapital || 0;
 
+                criticalLevels = data.criticalLevels || { resistances: [], supports: [], lastUpdate: null };
+                updateLevelsLastUpdate();
+
                 renderAllData();
-                updateSyncStatus( 'Datos sincronizados', true );
+                updateSyncStatus( "Datos sincronizados", true );
             }
         } )
         .catch( ( error ) => {
-            console.error( 'Error cargando datos:', error );
-            updateSyncStatus( 'Error de sincronización', false );
+            console.error( "Error cargando datos:", error );
+            updateSyncStatus( "Error de sincronización", false );
         } );
 }
 
@@ -328,23 +344,36 @@ function saveDataLocally() {
         observations: observations,
         withdrawals: withdrawals,
         capitalAdditions: capitalAdditions,
-        currentCapital: currentCapital
+        currentCapital: currentCapital,
+        criticalLevels: criticalLevels
     };
 
-    Object.keys( data ).forEach( key => {
+    Object.keys( data ).forEach( ( key ) => {
         localStorage.setItem( `trading_${key}`, JSON.stringify( data[ key ] ) );
     } );
 }
 
 function loadDataLocally() {
     try {
-        trades = JSON.parse( localStorage.getItem( 'trading_trades' ) || '[]' );
-        observations = JSON.parse( localStorage.getItem( 'trading_observations' ) || '[]' );
-        withdrawals = JSON.parse( localStorage.getItem( 'trading_withdrawals' ) || '[]' );
-        capitalAdditions = JSON.parse( localStorage.getItem( 'trading_capitalAdditions' ) || '[]' );
-        currentCapital = parseFloat( localStorage.getItem( 'trading_currentCapital' ) || '0' );
+        trades = JSON.parse( localStorage.getItem( "trading_trades" ) || "[]" );
+        observations = JSON.parse(
+            localStorage.getItem( "trading_observations" ) || "[]"
+        );
+        withdrawals = JSON.parse(
+            localStorage.getItem( "trading_withdrawals" ) || "[]"
+        );
+        capitalAdditions = JSON.parse(
+            localStorage.getItem( "trading_capitalAdditions" ) || "[]"
+        );
+        currentCapital = parseFloat(
+            localStorage.getItem( "trading_currentCapital" ) || "0"
+        );
+        criticalLevels = JSON.parse( localStorage.getItem( 'trading_criticalLevels' ) ||
+            '{"resistances":[],"supports":[],"lastUpdate":null}'
+        );
+
     } catch ( error ) {
-        console.error( 'Error cargando datos locales:', error );
+        console.error( "Error cargando datos locales:", error );
         resetAllData();
     }
 }
@@ -357,7 +386,7 @@ function addCapital( amount, concept, notes, date ) {
         amount: amount,
         concept: concept,
         notes: notes,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
     };
 
     capitalAdditions.push( addition );
@@ -378,7 +407,7 @@ function registerWithdrawal( amount, concept, notes, date ) {
         amount: amount,
         concept: concept,
         notes: notes,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
     };
 
     withdrawals.push( withdrawal );
@@ -415,7 +444,7 @@ function addTrade( tradeData ) {
     const trade = {
         id: Date.now().toString(),
         ...tradeData,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
     };
 
     trades.push( trade );
@@ -429,7 +458,7 @@ function addTrade( tradeData ) {
 }
 
 function deleteTrade( tradeId ) {
-    trades = trades.filter( trade => trade.id !== tradeId );
+    trades = trades.filter( ( trade ) => trade.id !== tradeId );
 
     saveDataLocally();
     if ( currentUser ) {
@@ -440,7 +469,7 @@ function deleteTrade( tradeId ) {
 }
 
 function editTrade( tradeId, updatedData ) {
-    const tradeIndex = trades.findIndex( trade => trade.id === tradeId );
+    const tradeIndex = trades.findIndex( ( trade ) => trade.id === tradeId );
     if ( tradeIndex !== -1 ) {
         trades[ tradeIndex ] = { ...trades[ tradeIndex ], ...updatedData };
 
@@ -459,7 +488,7 @@ function addObservation( text ) {
         id: Date.now().toString(),
         text: text,
         date: new Date().toLocaleDateString(),
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
     };
 
     observations.push( observation );
@@ -475,7 +504,7 @@ function addObservation( text ) {
 // ===== FUNCIONES DE CÁLCULO =====
 function calculateWinRate() {
     if ( trades.length === 0 ) return 0;
-    const winningTrades = trades.filter( trade => trade.result === 'win' ).length;
+    const winningTrades = trades.filter( ( trade ) => trade.result === "win" ).length;
     return Math.round( ( winningTrades / trades.length ) * 100 );
 }
 
@@ -484,14 +513,17 @@ function calculateTotalPnL() {
 }
 
 function calculateDailyPnL() {
-    const today = new Date().toISOString().split( 'T' )[ 0 ];
-    const todayTrades = trades.filter( trade => trade.date === today );
-    return todayTrades.reduce( ( total, trade ) => total + parseFloat( trade.pnl || 0 ), 0 );
+    const today = new Date().toISOString().split( "T" )[ 0 ];
+    const todayTrades = trades.filter( ( trade ) => trade.date === today );
+    return todayTrades.reduce(
+        ( total, trade ) => total + parseFloat( trade.pnl || 0 ),
+        0
+    );
 }
 
 function getTodayTradesCount() {
-    const today = new Date().toISOString().split( 'T' )[ 0 ];
-    return trades.filter( trade => trade.date === today ).length;
+    const today = new Date().toISOString().split( "T" )[ 0 ];
+    return trades.filter( ( trade ) => trade.date === today ).length;
 }
 
 function getTotalWithdrawals() {
@@ -506,7 +538,10 @@ function calculateDrawdown() {
 
     // Calcular el drawdown como el porcentaje de pérdida desde el pico más alto
     const peakCapital = Math.max( effectiveCapital, currentCapital );
-    const currentDrawdown = Math.max( 0, ( ( peakCapital - effectiveCapital ) / peakCapital ) * 100 );
+    const currentDrawdown = Math.max(
+        0,
+        ( ( peakCapital - effectiveCapital ) / peakCapital ) * 100
+    );
 
     return Math.round( currentDrawdown );
 }
@@ -514,60 +549,30 @@ function calculateDrawdown() {
 function calculateStrategyStats() {
     const stats = {};
 
-    Object.keys( strategyConfigs ).forEach( strategy => {
-        const strategyTrades = trades.filter( trade => trade.strategy === strategy );
-        const wins = strategyTrades.filter( trade => trade.result === 'win' ).length;
-        const winRate = strategyTrades.length > 0 ? Math.round( ( wins / strategyTrades.length ) * 100 ) : 0;
-        const pnl = strategyTrades.reduce( ( total, trade ) => total + parseFloat( trade.pnl || 0 ), 0 );
+    Object.keys( strategyConfigs ).forEach( ( strategy ) => {
+        const strategyTrades = trades.filter(
+            ( trade ) => trade.strategy === strategy
+        );
+        const wins = strategyTrades.filter(
+            ( trade ) => trade.result === "win"
+        ).length;
+        const winRate =
+            strategyTrades.length > 0
+                ? Math.round( ( wins / strategyTrades.length ) * 100 )
+                : 0;
+        const pnl = strategyTrades.reduce(
+            ( total, trade ) => total + parseFloat( trade.pnl || 0 ),
+            0
+        );
 
         stats[ strategy ] = {
             winRate: winRate,
             pnl: pnl,
-            count: strategyTrades.length
+            count: strategyTrades.length,
         };
     } );
 
     return stats;
-}
-
-function calculateOptimalContracts( strategy ) {
-    const config = strategyConfigs[ strategy ];
-    if ( !config || currentCapital === 0 ) return 0;
-
-    const riskAmount = ( currentCapital * config.riskPercent ) / 100;
-    const stopLossPips = config.stopLoss;
-    const pipValue = 1; // $1 por pip por contrato
-
-    return Math.floor( riskAmount / ( stopLossPips * pipValue ) );
-}
-
-// 9. Función para agregar información detallada al dashboard
-function addCapitalBreakdownToHTML() {
-    // Esta función agrega una sección de desglose de capital al HTML
-    const dashboardHTML = `
-    <!-- Agregar después de las métricas principales -->
-    <div class="bg-trading-card p-4 sm:p-6 rounded-lg border border-gray-700 mb-4 sm:mb-6">
-        <h3 class="text-lg sm:text-xl font-semibold text-gold mb-3 sm:mb-4">Desglose de Capital</h3>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
-            <div class="bg-gray-800 p-3 rounded-lg">
-                <h4 class="font-semibold text-blue-400 text-sm">Capital Base</h4>
-                <p class="text-lg font-bold" id="baseCapital">$0.00</p>
-                <p class="text-xs text-gray-400">Capital ingresado</p>
-            </div>
-            <div class="bg-gray-800 p-3 rounded-lg">
-                <h4 class="font-semibold text-profit text-sm">P&L Trading</h4>
-                <p class="text-lg font-bold" id="tradingPnL">$0.00</p>
-                <p class="text-xs text-gray-400">Ganancias/Pérdidas</p>
-            </div>
-            <div class="bg-gray-800 p-3 rounded-lg">
-                <h4 class="font-semibold text-orange-400 text-sm">Capital Efectivo</h4>
-                <p class="text-lg font-bold" id="effectiveCapitalDisplay">$0.00</p>
-                <p class="text-xs text-gray-400">Base + P&L - Retiros</p>
-            </div>
-        </div>
-    </div>
-    `;
-    return dashboardHTML;
 }
 
 // 10. Función para actualizar el desglose de capital
@@ -575,20 +580,21 @@ function updateCapitalBreakdown() {
     const totalPnL = calculateTotalPnL();
     const effectiveCapital = calculateEffectiveCapital();
 
-    const baseCapitalEl = document.getElementById( 'baseCapital' );
-    const tradingPnLEl = document.getElementById( 'tradingPnL' );
-    const effectiveCapitalEl = document.getElementById( 'effectiveCapitalDisplay' );
+    const baseCapitalEl = document.getElementById( "baseCapital" );
+    const tradingPnLEl = document.getElementById( "tradingPnL" );
+    const effectiveCapitalEl = document.getElementById( "effectiveCapitalDisplay" );
 
-    if ( baseCapitalEl ) baseCapitalEl.textContent = `$${currentCapital.toFixed( 2 )}`;
+    if ( baseCapitalEl )
+        baseCapitalEl.textContent = `$${currentCapital.toFixed( 2 )}`;
 
     if ( tradingPnLEl ) {
         tradingPnLEl.textContent = `$${totalPnL.toFixed( 2 )}`;
-        tradingPnLEl.className = `text-lg font-bold ${totalPnL >= 0 ? 'text-profit' : 'text-loss'}`;
+        tradingPnLEl.className = `text-lg font-bold ${totalPnL >= 0 ? "text-profit" : "text-loss"}`;
     }
 
     if ( effectiveCapitalEl ) {
         effectiveCapitalEl.textContent = `$${effectiveCapital.toFixed( 2 )}`;
-        effectiveCapitalEl.className = `text-lg font-bold ${effectiveCapital >= currentCapital ? 'text-profit' : 'text-loss'}`;
+        effectiveCapitalEl.className = `text-lg font-bold ${effectiveCapital >= currentCapital ? "text-profit" : "text-loss"}`;
     }
 }
 
@@ -604,22 +610,25 @@ function renderDashboard() {
     const maxDailyRisk = effectiveCapital * 0.05; // Usar capital efectivo para el riesgo
 
     // Actualizar elementos del dashboard
-    document.getElementById( 'dashCapital' ).textContent = `$${effectiveCapital.toFixed( 2 )}`;
-    document.getElementById( 'dashRisk' ).textContent = `$${maxDailyRisk.toFixed( 2 )}`;
-    document.getElementById( 'currentWinRate' ).textContent = `${winRate}%`;
-    document.getElementById( 'totalTrades' ).textContent = trades.length;
+    document.getElementById( "dashCapital" ).textContent =
+        `$${effectiveCapital.toFixed( 2 )}`;
+    document.getElementById( "dashRisk" ).textContent =
+        `$${maxDailyRisk.toFixed( 2 )}`;
+    document.getElementById( "currentWinRate" ).textContent = `${winRate}%`;
+    document.getElementById( "totalTrades" ).textContent = trades.length;
 
-    const dailyPnLElement = document.getElementById( 'dailyPnL' );
+    const dailyPnLElement = document.getElementById( "dailyPnL" );
     dailyPnLElement.textContent = `$${dailyPnL.toFixed( 2 )}`;
-    dailyPnLElement.className = `text-lg sm:text-xl font-bold ${dailyPnL >= 0 ? 'text-profit' : 'text-loss'}`;
+    dailyPnLElement.className = `text-lg sm:text-xl font-bold ${dailyPnL >= 0 ? "text-profit" : "text-loss"}`;
 
-    document.getElementById( 'drawdown' ).textContent = `${drawdown}%`;
-    document.getElementById( 'todayTrades' ).textContent = todayTrades;
-    document.getElementById( 'totalWithdrawals' ).textContent = `$${totalWithdrawals.toFixed( 2 )}`;
+    document.getElementById( "drawdown" ).textContent = `${drawdown}%`;
+    document.getElementById( "todayTrades" ).textContent = todayTrades;
+    document.getElementById( "totalWithdrawals" ).textContent =
+        `$${totalWithdrawals.toFixed( 2 )}`;
 
-    const totalPnLElement = document.getElementById( 'totalPnL' );
+    const totalPnLElement = document.getElementById( "totalPnL" );
     totalPnLElement.textContent = `$${totalPnL.toFixed( 2 )}`;
-    totalPnLElement.className = `text-lg sm:text-xl font-bold ${totalPnL >= 0 ? 'text-profit' : 'text-loss'}`;
+    totalPnLElement.className = `text-lg sm:text-xl font-bold ${totalPnL >= 0 ? "text-profit" : "text-loss"}`;
 
     // Renderizar estadísticas por estrategia
     renderStrategyStats();
@@ -628,12 +637,14 @@ function renderDashboard() {
 function renderStrategyStats() {
     const stats = calculateStrategyStats();
 
-    Object.keys( stats ).forEach( strategy => {
-        const strategyElement = document.querySelector( `.strategy-stats[data-strategy="${strategy}"]` );
+    Object.keys( stats ).forEach( ( strategy ) => {
+        const strategyElement = document.querySelector(
+            `.strategy-stats[data-strategy="${strategy}"]`
+        );
         if ( strategyElement ) {
-            const winRateElement = strategyElement.querySelector( '.strategy-winrate' );
-            const pnlElement = strategyElement.querySelector( '.strategy-pnl' );
-            const countElement = strategyElement.querySelector( '.strategy-count' );
+            const winRateElement = strategyElement.querySelector( ".strategy-winrate" );
+            const pnlElement = strategyElement.querySelector( ".strategy-pnl" );
+            const countElement = strategyElement.querySelector( ".strategy-count" );
 
             if ( winRateElement ) {
                 winRateElement.textContent = `${stats[ strategy ].winRate}%`;
@@ -642,7 +653,7 @@ function renderStrategyStats() {
             if ( pnlElement ) {
                 pnlElement.textContent = `$${stats[ strategy ].pnl.toFixed( 2 )}`;
                 // Aplicar color según P&L
-                pnlElement.className = `strategy-pnl ${stats[ strategy ].pnl >= 0 ? 'text-profit' : 'text-loss'}`;
+                pnlElement.className = `strategy-pnl ${stats[ strategy ].pnl >= 0 ? "text-profit" : "text-loss"}`;
             }
 
             if ( countElement ) {
@@ -660,37 +671,46 @@ function calculateEffectiveCapital() {
 
 function renderCapitalSection() {
     const effectiveCapital = calculateEffectiveCapital();
-    const inputCapital = document.getElementById( 'currentCapitalDisplay' );
+    const inputCapital = document.getElementById( "currentCapitalDisplay" );
 
     // Mostrar el capital base ingresado (sin P&L ni retiros)
     inputCapital.value = currentCapital.toFixed( 2 );
 
     // Actualizar el riesgo diario máximo basado en capital efectivo
-    document.getElementById( 'maxDailyRisk' ).textContent = `$${( effectiveCapital * 0.05 ).toFixed( 2 )}`;
+    document.getElementById( "maxDailyRisk" ).textContent =
+        `$${( effectiveCapital * 0.05 ).toFixed( 2 )}`;
 
     // Actualizar calculadora de estrategia
     updateStrategyCalculator();
 }
 
 function updateStrategyCalculator() {
-    const selectedStrategy = document.getElementById( 'strategySelect' )?.value || 'regulares';
+    const selectedStrategy =
+        document.getElementById( "strategySelect" )?.value || "regulares";
     const config = strategyConfigs[ selectedStrategy ];
 
     if ( config ) {
-        document.getElementById( 'strategyWinRate' ).textContent = `${config.winRate}%`;
-        document.getElementById( 'strategyRR' ).textContent = `${config.rrRatio}:1`;
-        document.getElementById( 'strategyRiskPercent' ).textContent = `${config.riskPercent}%`;
+        document.getElementById( "strategyWinRate" ).textContent =
+            `${config.winRate}%`;
+        document.getElementById( "strategyRR" ).textContent = `${config.rrRatio}:1`;
+        document.getElementById( "strategyRiskPercent" ).textContent =
+            `${config.riskPercent}%`;
 
         // Usar capital efectivo para los cálculos
         const effectiveCapital = calculateEffectiveCapital();
         const maxRisk = ( effectiveCapital * config.riskPercent ) / 100;
-        const optimalContracts = calculateOptimalContractsWithEffectiveCapital( selectedStrategy );
+        const optimalContracts =
+            calculateOptimalContractsWithEffectiveCapital( selectedStrategy );
 
-        document.getElementById( 'maxRiskPerTrade' ).textContent = `$${maxRisk.toFixed( 2 )}`;
-        document.getElementById( 'optimalContracts' ).textContent = optimalContracts;
-        document.getElementById( 'suggestedSL' ).textContent = `${config.stopLoss} pips`;
-        document.getElementById( 'takeProfit1' ).textContent = `${config.takeProfit1} pips`;
-        document.getElementById( 'takeProfit2' ).textContent = `${config.takeProfit2} pips`;
+        document.getElementById( "maxRiskPerTrade" ).textContent =
+            `$${maxRisk.toFixed( 2 )}`;
+        document.getElementById( "optimalContracts" ).textContent = optimalContracts;
+        document.getElementById( "suggestedSL" ).textContent =
+            `${config.stopLoss} pips`;
+        document.getElementById( "takeProfit1" ).textContent =
+            `${config.takeProfit1} pips`;
+        document.getElementById( "takeProfit2" ).textContent =
+            `${config.takeProfit2} pips`;
     }
 }
 
@@ -708,79 +728,96 @@ function calculateOptimalContractsWithEffectiveCapital( strategy ) {
 }
 
 function renderTrades() {
-    const tbody = document.getElementById( 'tradesTableBody' );
+    const tbody = document.getElementById( "tradesTableBody" );
     if ( !tbody ) return;
 
     let filteredTrades = [ ...trades ];
 
     // Aplicar filtros
-    const strategyFilter = document.getElementById( 'filterStrategy' )?.value;
-    const resultFilter = document.getElementById( 'filterResult' )?.value;
-    const dateFilter = document.getElementById( 'filterDate' )?.value;
+    const strategyFilter = document.getElementById( "filterStrategy" )?.value;
+    const resultFilter = document.getElementById( "filterResult" )?.value;
+    const dateFilter = document.getElementById( "filterDate" )?.value;
 
     if ( strategyFilter ) {
-        filteredTrades = filteredTrades.filter( trade => trade.strategy === strategyFilter );
+        filteredTrades = filteredTrades.filter(
+            ( trade ) => trade.strategy === strategyFilter
+        );
     }
 
     if ( resultFilter ) {
-        filteredTrades = filteredTrades.filter( trade => trade.result === resultFilter );
+        filteredTrades = filteredTrades.filter(
+            ( trade ) => trade.result === resultFilter
+        );
     }
 
     if ( dateFilter ) {
-        filteredTrades = filteredTrades.filter( trade => trade.date === dateFilter );
+        filteredTrades = filteredTrades.filter(
+            ( trade ) => trade.date === dateFilter
+        );
     }
 
     // Ordenar por fecha descendente
     filteredTrades.sort( ( a, b ) => new Date( b.date ) - new Date( a.date ) );
 
-    tbody.innerHTML = filteredTrades.map( trade => {
-        const strategyName = strategyConfigs[ trade.strategy ]?.name || trade.strategy;
-        const pnlClass = parseFloat( trade.pnl ) >= 0 ? 'text-profit' : 'text-loss';
+    tbody.innerHTML = filteredTrades
+        .map( ( trade ) => {
+            const strategyName =
+                strategyConfigs[ trade.strategy ]?.name || trade.strategy;
+            const pnlClass = parseFloat( trade.pnl ) >= 0 ? "text-profit" : "text-loss";
 
-        return `
+            return `
             <tr class="border-b border-gray-700 hover:bg-gray-800">
                 <td class="p-3">${new Date( trade.date ).toLocaleDateString()}</td>
                 <td class="p-3">${strategyName}</td>
                 <td class="p-3">
-                    <span class="px-2 py-1 rounded text-xs ${trade.direction === 'buy' ? 'bg-green-800 text-green-200' : 'bg-red-800 text-red-200'}">
-                        ${trade.direction === 'buy' ? 'Compra' : 'Venta'}
+                    <span class="px-2 py-1 rounded text-xs ${trade.direction === "buy" ? "bg-green-800 text-green-200" : "bg-red-800 text-red-200"}">
+                        ${trade.direction === "buy" ? "Compra" : "Venta"}
                     </span>
                 </td>
                 <td class="p-3">${trade.contracts}</td>
                 <td class="p-3">${trade.sl.toFixed( 1 )} pips</td>
                 <td class="p-3">${trade.tp.toFixed( 1 )} pips</td>  
                 <td class="p-3">
-                    <span class="px-2 py-1 rounded text-xs ${trade.result === 'win' ? 'bg-green-800 text-green-200' : 'bg-red-800 text-red-200'}">
-                        ${trade.result === 'win' ? 'Ganador' : 'Perdedor'}
+                    <span class="px-2 py-1 rounded text-xs ${trade.result === "win" ? "bg-green-800 text-green-200" : "bg-red-800 text-red-200"}">
+                        ${trade.result === "win" ? "Ganador" : "Perdedor"}
                     </span>
                 </td>
                 <td class="p-3 ${pnlClass} font-semibold">$${parseFloat( trade.pnl ).toFixed( 2 )}</td>
                 <td class="p-3">
                     <span class="cursor-pointer text-blue-400 hover:text-blue-300" 
                           onclick="showCommentTooltip(event, '${trade.comments.replace( /'/g, "\\'" )}')">
-                        ${trade.comments.length > 20 ? trade.comments.substring( 0, 20 ) + '...' : trade.comments}
+                        ${trade.comments.length > 20 ? trade.comments.substring( 0, 20 ) + "..." : trade.comments}
                     </span>
                 </td>
                 <td class="p-3">
-                    <button onclick="deleteTrade('${trade.id}')" 
-                            class="text-red-400 hover:text-red-300 text-sm">
-                        Eliminar
-                    </button>
-                </td>
+    <div class="flex space-x-2">
+        <button onclick="showEditTradeModal('${trade.id}')" 
+                class="text-blue-400 hover:text-blue-300 text-sm">
+            Editar
+        </button>
+        <button onclick="deleteTrade('${trade.id}')" 
+                class="text-red-400 hover:text-red-300 text-sm">
+            Eliminar
+        </button>
+    </div>
+</td>
             </tr>
         `;
-    } ).join( '' );
+        } )
+        .join( "" );
 }
 
 function renderObservations() {
-    const container = document.getElementById( 'observationsList' );
+    const container = document.getElementById( "observationsList" );
     if ( !container ) return;
 
-    const sortedObservations = [ ...observations ].sort( ( a, b ) =>
-        new Date( b.timestamp ) - new Date( a.timestamp )
+    const sortedObservations = [ ...observations ].sort(
+        ( a, b ) => new Date( b.timestamp ) - new Date( a.timestamp )
     );
 
-    container.innerHTML = sortedObservations.map( obs => `
+    container.innerHTML = sortedObservations
+        .map(
+            ( obs ) => `
         <div class="bg-gray-800 p-3 rounded-lg border border-gray-600">
             <p class="text-sm">${obs.text}</p>
             <div class="flex justify-between items-center mt-2">
@@ -791,18 +828,23 @@ function renderObservations() {
                 </button>
             </div>
         </div>
-    `).join( '' );
+    `
+        )
+        .join( "" );
 }
 
 function renderRecentWithdrawals() {
-    const container = document.getElementById( 'recentWithdrawals' );
+    const container = document.getElementById( "recentWithdrawals" );
     if ( !container ) return;
 
     const recentWithdrawals = withdrawals
         .sort( ( a, b ) => new Date( b.timestamp ) - new Date( a.timestamp ) )
         .slice( 0, 3 );
 
-    container.innerHTML = recentWithdrawals.map( w => `
+    container.innerHTML =
+        recentWithdrawals
+            .map(
+                ( w ) => `
         <div class="text-sm bg-gray-800 p-2 rounded">
             <div class="flex justify-between">
                 <span>${w.concept}</span>
@@ -810,61 +852,605 @@ function renderRecentWithdrawals() {
             </div>
             <div class="text-xs text-gray-500">${new Date( w.date ).toLocaleDateString()}</div>
         </div>
-    `).join( '' ) || '<p class="text-sm text-gray-500">No hay retiros recientes</p>';
+    `
+            )
+            .join( "" ) ||
+        '<p class="text-sm text-gray-500">No hay retiros recientes</p>';
 }
 
+// ===== SETUP CHECKER MEJORADO =====
 function renderSetupChecklist() {
-    const strategy = document.getElementById( 'setupStrategy' )?.value || 'regulares';
-    const checklist = setupChecklists[ strategy ] || [];
-    const container = document.getElementById( 'setupChecklist' );
+    const strategySelector = document.getElementById( "signalStrategySelect" );
 
+    if ( !strategySelector ) {
+        console.warn( "No se encontró selector de estrategia" );
+        return;
+    }
+
+    const strategy = strategySelector.value || "regulares";
+
+    // Actualizar información rápida de la estrategia
+    updateQuickStrategyInfo( strategy );
+
+    // Renderizar checklist
+    renderDynamicChecklist( strategy );
+
+    // Mostrar template de la estrategia
+    displayStrategyTemplate( strategy );
+
+    // Actualizar score inicial
+    updateDynamicSetupScore();
+
+    // Restaurar estado si existe
+    restoreSetupState();
+}
+
+// Nueva función para actualizar la información rápida de la estrategia
+function updateQuickStrategyInfo( strategy ) {
+    const config = strategyConfigs[ strategy ];
+    if ( !config ) return;
+
+    const effectiveCapital = calculateEffectiveCapital();
+    const optimalContracts = calculateOptimalContractsWithEffectiveCapital( strategy );
+
+    // Actualizar elementos de información rápida
+    const elements = {
+        'strategyWinRateQuick': `${config.winRate}%`,
+        'strategyRRQuick': `${config.rrRatio}:1`,
+        'strategyRiskQuick': `${config.riskPercent}%`,
+        'optimalContractsQuick': optimalContracts.toString()
+    };
+
+    Object.entries( elements ).forEach( ( [ id, value ] ) => {
+        const element = document.getElementById( id );
+        if ( element ) element.textContent = value;
+    } );
+}
+
+// Nueva función para mostrar el template de estrategia en el lado derecho
+function displayStrategyTemplate( strategy ) {
+    const container = document.getElementById( 'strategyTemplateDisplay' );
     if ( !container ) return;
 
-    container.innerHTML = checklist.map( ( item, index ) => `
-        <div class="flex items-start space-x-3">
-            <input type="checkbox" id="check_${index}" 
-                   class="mt-1 rounded text-gold focus:ring-gold" 
-                   onchange="updateSetupScore()">
-            <label for="check_${index}" class="text-sm flex-1">${item}</label>
-        </div>
-    `).join( '' );
+    // Limpiar contenido anterior
+    container.innerHTML = '';
 
-    updateSetupScore();
+    // Obtener template
+    const templateId = `template-${strategy}`;
+    const templateElement = document.getElementById( templateId );
+
+    if ( templateElement ) {
+        // Clonar y mostrar template
+        const templateClone = templateElement.cloneNode( true );
+        templateClone.classList.remove( 'strategy-template', 'hidden' );
+        templateClone.id = `active-${templateId}`;
+
+        // Aplicar estilos para el contenedor más pequeño
+        templateClone.classList.add( 'text-sm' );
+
+        // Ajustar grid para espacios más pequeños
+        const grids = templateClone.querySelectorAll( '.grid' );
+        grids.forEach( grid => {
+            if ( grid.classList.contains( 'md:grid-cols-2' ) ) {
+                grid.classList.remove( 'md:grid-cols-2' );
+                grid.classList.add( 'grid-cols-1' );
+            }
+        } );
+
+        container.appendChild( templateClone );
+    } else {
+        // Fallback: mostrar información básica
+        const config = strategyConfigs[ strategy ];
+        container.innerHTML = `
+            <div class="p-4 bg-gradient-to-r from-gray-800 to-gray-700 rounded-lg border border-gold/20">
+                <h3 class="text-lg font-bold text-gold mb-3">${config.name}</h3>
+                <div class="text-sm text-gray-300">
+                    <p><strong>Win Rate:</strong> ${config.winRate}%</p>
+                    <p><strong>R:R Ratio:</strong> ${config.rrRatio}:1</p>
+                    <p><strong>Riesgo:</strong> ${config.riskPercent}%</p>
+                    <p><strong>Stop Loss:</strong> ${config.stopLoss} pips</p>
+                    <p><strong>Take Profit:</strong> ${config.takeProfit1}/${config.takeProfit2} pips</p>
+                </div>
+            </div>
+        `;
+    }
 }
 
-function updateSetupScore() {
-    const checkboxes = document.querySelectorAll( '#setupChecklist input[type="checkbox"]' );
+// Función actualizada para renderizar checklist dinámico
+function renderDynamicChecklist( strategy ) {
+    const container = document.getElementById( "setupCheckerContent" );
+    if ( !container ) return;
+
+    const checklist = setupChecklists[ strategy ] || [];
+
+    if ( checklist.length === 0 ) {
+        container.innerHTML = `
+            <div class="bg-yellow-900 bg-opacity-20 p-4 rounded-lg border border-yellow-500">
+                <p class="text-yellow-400 text-sm">⚠️ Checklist no disponible para esta estrategia</p>
+            </div>
+        `;
+        return;
+    }
+
+    const checklistHTML = `
+        <div class="space-y-3">
+            <div class="flex justify-between items-center mb-4">
+                <h4 class="text-lg font-semibold text-white">✅ Setup Verification</h4>
+                <div class="flex space-x-2">
+                    <button onclick="toggleAllCheckboxes(true)" 
+                            class="text-xs px-2 py-1 bg-green-700 hover:bg-green-600 rounded transition-colors">
+                        Todo
+                    </button>
+                    <button onclick="toggleAllCheckboxes(false)" 
+                            class="text-xs px-2 py-1 bg-red-700 hover:bg-red-600 rounded transition-colors">
+                        Limpiar
+                    </button>
+                </div>
+            </div>
+            
+            <div class="space-y-2 max-h-64 overflow-y-auto">
+                ${checklist.map( ( item, index ) => `
+                    <div class="flex items-start space-x-2 p-2 bg-gray-800/50 rounded hover:bg-gray-800 transition-colors">
+                        <input type="checkbox" 
+                               id="dynamic_check_${index}" 
+                               class="mt-1 rounded text-gold focus:ring-gold focus:ring-1 h-4 w-4 flex-shrink-0" 
+                               onchange="updateDynamicSetupScore()">
+                        <label for="dynamic_check_${index}" 
+                               class="text-xs flex-1 cursor-pointer hover:text-gold transition-colors leading-relaxed">
+                            ${item}
+                        </label>
+                    </div>
+                `).join( '' )}
+            </div>
+        </div>
+    `;
+
+    container.innerHTML = checklistHTML;
+}
+
+// Función actualizada para el listener del selector de estrategia
+function setupImprovedStrategyListeners() {
+    const strategySelector = document.getElementById( 'signalStrategySelect' );
+
+    if ( strategySelector ) {
+        let debounceTimer;
+
+        strategySelector.addEventListener( 'change', function () {
+            clearTimeout( debounceTimer );
+            debounceTimer = setTimeout( () => {
+                console.log( 'Strategy changed to:', this.value );
+                renderSetupChecklist();
+            }, 200 );
+        } );
+    }
+}
+
+function initializeImprovedSetupListeners() {
+    setupImprovedStrategyListeners();
+    setupButtonListeners(); // Esta función ya existe en tu código
+
+    // Auto-save periódico del estado
+    setInterval( () => {
+        const checkboxes = document.querySelectorAll( 'input[id^="dynamic_check_"]' );
+        if ( checkboxes.length > 0 ) {
+            saveSetupState();
+        }
+    }, 30000 );
+
+    console.log( 'Setup listeners mejorados inicializados correctamente' );
+}
+
+
+// Función para actualizar solo el display del score
+function updateScoreDisplay() {
+    // Buscar elementos existentes del score
+    let scoreSection = document.getElementById( "setupScore" );
+
+    // Si no existe, buscar en el HTML fijo
+    if ( !scoreSection ) {
+        scoreSection = document.querySelector( '[role="progressbar"]' )?.parentElement;
+    }
+
+    // Si aún no existe, crear solo la sección de score (sin botones)
+    if ( !scoreSection ) {
+        const container = document.getElementById( "setupCheckerContent" );
+        if ( container ) {
+            const scoreHTML = `
+                <div id="setupScore" class="mt-6 p-4 bg-gray-800 rounded-lg border border-gray-700">
+                    <div class="text-center mb-4">
+                        <div id="scoreValue" class="text-4xl font-bold text-gray-400 mb-2">0%</div>
+                        <div class="w-full bg-gray-700 rounded-full h-4 mb-2">
+                            <div id="scoreBar" class="h-4 rounded-full bg-gray-600 transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                        <div id="setupFeedback" class="text-sm text-gray-400 hidden"></div>
+                    </div>
+                </div>
+            `;
+            container.insertAdjacentHTML( 'beforeend', scoreHTML );
+        }
+    }
+}
+
+// Función mejorada para actualizar score dinámico
+function updateDynamicSetupScore() {
+    const checkboxes = document.querySelectorAll( 'input[id^="dynamic_check_"]' );
+
+    if ( checkboxes.length === 0 ) {
+        console.warn( "No se encontraron checkboxes para calcular score" );
+        return;
+    }
+
     const checkedCount = Array.from( checkboxes ).filter( cb => cb.checked ).length;
     const totalCount = checkboxes.length;
     const score = Math.round( ( checkedCount / totalCount ) * 100 );
 
-    const scoreElement = document.getElementById( 'scoreValue' );
-    const scoreBar = document.getElementById( 'scoreBar' );
-    const executeBtn = document.getElementById( 'executeSetupBtn' );
-    const scoreContainer = document.getElementById( 'setupScore' );
+    // Actualizar elementos de score
+    const scoreElement = document.getElementById( "scoreValue" );
+    const scoreBar = document.getElementById( "scoreBar" );
+    const feedbackElement = document.getElementById( "setupFeedback" );
 
-    if ( scoreElement ) scoreElement.textContent = `${score}%`;
-    if ( scoreContainer ) scoreContainer.classList.remove( 'hidden' );
-
-    if ( scoreBar ) {
-        scoreBar.style.width = `${score}%`;
-        if ( score >= 80 ) {
-            scoreBar.className = 'h-2 rounded-full bg-profit transition-all duration-300';
-            if ( scoreElement ) scoreElement.className = 'text-2xl font-bold text-profit';
-        } else if ( score >= 60 ) {
-            scoreBar.className = 'h-2 rounded-full bg-gold transition-all duration-300';
-            if ( scoreElement ) scoreElement.className = 'text-2xl font-bold text-gold';
-        } else {
-            scoreBar.className = 'h-2 rounded-full bg-loss transition-all duration-300';
-            if ( scoreElement ) scoreElement.className = 'text-2xl font-bold text-loss';
-        }
+    // Actualizar valor
+    if ( scoreElement ) {
+        scoreElement.textContent = `${score}%`;
     }
 
-    if ( executeBtn ) {
-        executeBtn.disabled = score < 70;
-        executeBtn.className = score >= 70
-            ? 'flex-1 bg-profit hover:bg-green-600 px-4 py-2 rounded-lg font-medium'
-            : 'flex-1 bg-gray-600 px-4 py-2 rounded-lg font-medium cursor-not-allowed';
+    // Actualizar barra y colores
+    if ( scoreBar ) {
+        scoreBar.style.width = `${score}%`;
+
+        let barClass, scoreClass;
+        if ( score >= 80 ) {
+            barClass = "h-4 rounded-full bg-profit transition-all duration-500";
+            scoreClass = "text-4xl font-bold text-profit mb-2";
+        } else if ( score >= 60 ) {
+            barClass = "h-4 rounded-full bg-gold transition-all duration-500";
+            scoreClass = "text-4xl font-bold text-gold mb-2";
+        } else {
+            barClass = "h-4 rounded-full bg-loss transition-all duration-500";
+            scoreClass = "text-4xl font-bold text-loss mb-2";
+        }
+
+        scoreBar.className = barClass;
+        if ( scoreElement ) scoreElement.className = scoreClass;
+    }
+
+    // Actualizar TODOS los botones ejecutar (tanto del HTML como del JS)
+    const executeButtons = document.querySelectorAll( '#executeSetupBtn, [data-action="execute"]' );
+    executeButtons.forEach( btn => {
+        const isEnabled = score >= 70;
+        btn.disabled = !isEnabled;
+
+        if ( isEnabled ) {
+            btn.className = "flex-1 bg-profit hover:bg-green-600 px-4 py-3 rounded-lg font-medium transition-all duration-200 hover:scale-[1.02] shadow-lg";
+            btn.innerHTML = `
+                <span class="flex items-center justify-center space-x-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                              d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                    </svg>
+                    <span>✅ Ejecutar Trade (${score}%)</span>
+                </span>
+            `;
+        } else {
+            btn.className = "flex-1 bg-gray-600 px-4 py-3 rounded-lg font-medium cursor-not-allowed opacity-75";
+            btn.innerHTML = `
+                <span class="flex items-center justify-center space-x-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                    </svg>
+                    <span>Necesario 70%+ (${score}%)</span>
+                </span>
+            `;
+        }
+    } );
+
+    // Feedback mejorado
+    if ( feedbackElement ) {
+        let feedbackText, feedbackClass;
+
+        if ( score >= 90 ) {
+            feedbackText = "🎯 Setup excepcional - Probabilidad muy alta de éxito";
+            feedbackClass = "text-profit font-bold animate-pulse";
+        } else if ( score >= 80 ) {
+            feedbackText = "✅ Setup sólido - Alta probabilidad de éxito";
+            feedbackClass = "text-profit font-semibold";
+        } else if ( score >= 70 ) {
+            feedbackText = "⚠️ Setup aceptable - Probabilidad media, proceder con cautela";
+            feedbackClass = "text-gold font-medium";
+        } else if ( score >= 50 ) {
+            feedbackText = "⚡ Setup débil - Considera esperar mejores condiciones";
+            feedbackClass = "text-orange-400";
+        } else {
+            feedbackText = "❌ Setup insuficiente - No recomendado para ejecución";
+            feedbackClass = "text-loss font-medium";
+        }
+
+        feedbackElement.innerHTML = `<p class="${feedbackClass} text-sm">${feedbackText}</p>`;
+        feedbackElement.classList.remove( "hidden" );
+    }
+
+    // Auto-save del estado
+    saveSetupState();
+
+    console.log( `Setup Score actualizado: ${score}% (${checkedCount}/${totalCount})` );
+}
+
+
+// Funciones auxiliares para estado del setup
+function saveSetupState() {
+    const checkboxes = document.querySelectorAll( 'input[id^="dynamic_check_"]' );
+    const state = Array.from( checkboxes ).map( cb => cb.checked );
+    const strategy = document.getElementById( 'signalStrategySelect' )?.value ||
+        document.getElementById( 'setupStrategy' )?.value || 'regulares';
+
+    const setupState = {
+        strategy: strategy,
+        checkboxes: state,
+        timestamp: Date.now()
+    };
+
+    localStorage.setItem( 'trading_setupState', JSON.stringify( setupState ) );
+}
+
+function restoreSetupState() {
+    try {
+        const savedState = localStorage.getItem( 'trading_setupState' );
+        if ( !savedState ) return;
+
+        const state = JSON.parse( savedState );
+        const timeDiff = Date.now() - ( state.timestamp || 0 );
+
+        // Solo restaurar si es menor a 2 horas
+        if ( timeDiff > 7200000 ) return;
+
+        // Restaurar checkboxes
+        const checkboxes = document.querySelectorAll( 'input[id^="dynamic_check_"]' );
+        checkboxes.forEach( ( cb, index ) => {
+            if ( state.checkboxes && state.checkboxes[ index ] !== undefined ) {
+                cb.checked = state.checkboxes[ index ];
+            }
+        } );
+
+        // Actualizar score
+        setTimeout( () => updateDynamicSetupScore(), 100 );
+
+    } catch ( error ) {
+        console.warn( 'Error restaurando estado del setup:', error );
+    }
+}
+
+// Función para manejar el click del botón ejecutar
+function executeValidatedSetup() {
+    const scoreElement = document.getElementById( "scoreValue" );
+    const score = scoreElement ? parseInt( scoreElement.textContent ) : 0;
+
+    if ( score >= 70 ) {
+        const strategySelector =
+            document.getElementById( "signalStrategySelect" ) ||
+            document.getElementById( "setupStrategy" );
+
+        if ( strategySelector ) {
+            const strategy = strategySelector.value;
+
+            // Prellenar formulario de trade
+            const tradeStrategySelect = document.getElementById( "tradeStrategy" );
+            if ( tradeStrategySelect ) {
+                tradeStrategySelect.value = strategy;
+            }
+
+            // Rellenar datos sugeridos
+            fillTradeFormFromStrategy( strategy );
+
+            // Mostrar modal de trade
+            showModal( "tradeModal" );
+
+            // Limpiar checklist tras uso exitoso
+            setTimeout( () => {
+                resetSetupChecker();
+            }, 500 );
+
+            updateSyncStatus( "Setup ejecutado - Formulario preparado", true );
+        }
+    } else {
+        // Feedback visual mejorado para score insuficiente
+        const feedbackEl = document.getElementById( 'setupFeedback' );
+        if ( feedbackEl ) {
+            feedbackEl.innerHTML = `
+                <p class="text-red-400 font-medium animate-bounce">
+                    ⚠️ Score insuficiente: ${score}%. Mínimo requerido: 70%
+                </p>
+            `;
+            feedbackEl.classList.remove( 'hidden' );
+
+            // Auto-hide después de 3 segundos
+            setTimeout( () => {
+                feedbackEl.classList.add( 'hidden' );
+            }, 3000 );
+        }
+    }
+}
+
+// Función mejorada para reset que funciona con botones existentes
+function resetSetupChecker() {
+    // Desmarcar todos los checkboxes dinámicos
+    const checkboxes = document.querySelectorAll( 'input[id^="dynamic_check_"]' );
+
+    checkboxes.forEach( cb => {
+        cb.checked = false;
+    } );
+
+    // Resetear score
+    updateDynamicSetupScore();
+
+    // Ocultar feedback si existe
+    const feedbackElement = document.getElementById( "setupFeedback" );
+    if ( feedbackElement ) {
+        feedbackElement.classList.add( "hidden" );
+    }
+
+    // Limpiar estado guardado
+    localStorage.removeItem( 'trading_setupState' );
+
+    updateSyncStatus( "Setup checker reiniciado", true );
+}
+
+
+// Función para prellenar formulario de trade basado en estrategia
+function fillTradeFormFromStrategy( strategy ) {
+    const config = strategyConfigs[ strategy ];
+    if ( !config ) return;
+
+    const today = new Date().toISOString().split( "T" )[ 0 ];
+    const effectiveCapital = calculateEffectiveCapital();
+    const optimalContracts = calculateOptimalContractsWithEffectiveCapital( strategy );
+
+    // Prellenar campos básicos
+    const fields = {
+        "tradeDate": today,
+        "tradeStrategy": strategy,
+        "tradeContracts": Math.max( 1, optimalContracts ).toString(),
+        "tradeSL": config.stopLoss.toString(),
+        "tradeTP": config.takeProfit1.toString()
+    };
+
+    Object.entries( fields ).forEach( ( [ id, value ] ) => {
+        const element = document.getElementById( id );
+        if ( element ) {
+            element.value = value;
+        }
+    } );
+
+    // Agregar comentario automático
+    const commentsField = document.getElementById( "tradeComments" );
+    if ( commentsField ) {
+        commentsField.value = `Setup ${config.name} validado con score alto. Capital efectivo: $${effectiveCapital.toFixed( 2 )}`;
+    }
+}
+
+// Función para alternar todos los checkboxes
+function toggleAllCheckboxes( checked = true ) {
+    const checkboxes = document.querySelectorAll(
+        '#setupCheckerContent input[type="checkbox"], #setupChecklist input[type="checkbox"], input[id^="dynamic_check_"]'
+    );
+
+    checkboxes.forEach( cb => {
+        cb.checked = checked;
+    } );
+
+    updateDynamicSetupScore();
+}
+
+function showEditLevelsModal() {
+    renderLevelsList();
+    showModal( "editLevelsModal" );
+}
+
+function renderLevelsList() {
+    const resistancesContainer = document.getElementById( "resistancesList" );
+    const supportsContainer = document.getElementById( "supportsList" );
+
+    if ( resistancesContainer ) {
+        resistancesContainer.innerHTML = criticalLevels.resistances
+            .map(
+                ( level, index ) => `
+            <div class="flex items-center space-x-2 mb-2">
+                <input type="number" value="${level.price}" step="0.01" 
+                       onchange="updateResistancePrice(${index}, this.value)"
+                       class="bg-gray-700 border border-gray-600 rounded px-2 py-1 text-sm flex-1">
+                <input type="text" value="${level.note || ""}" 
+                       onchange="updateResistanceNote(${index}, this.value)"
+                       placeholder="Nota opcional"
+                       class="bg-gray-700 border border-gray-600 rounded px-2 py-1 text-sm flex-1">
+                <button onclick="removeResistance(${index})" 
+                        class="text-red-400 hover:text-red-300 px-2">×</button>
+            </div>
+        `
+            )
+            .join( "" );
+    }
+
+    if ( supportsContainer ) {
+        supportsContainer.innerHTML = criticalLevels.supports
+            .map(
+                ( level, index ) => `
+            <div class="flex items-center space-x-2 mb-2">
+                <input type="number" value="${level.price}" step="0.01" 
+                       onchange="updateSupportPrice(${index}, this.value)"
+                       class="bg-gray-700 border border-gray-600 rounded px-2 py-1 text-sm flex-1">
+                <input type="text" value="${level.note || ""}" 
+                       onchange="updateSupportNote(${index}, this.value)"
+                       placeholder="Nota opcional"
+                       class="bg-gray-700 border border-gray-600 rounded px-2 py-1 text-sm flex-1">
+                <button onclick="removeSupport(${index})" 
+                        class="text-red-400 hover:text-red-300 px-2">×</button>
+            </div>
+        `
+            )
+            .join( "" );
+    }
+}
+
+function addResistance() {
+    criticalLevels.resistances.push( { price: 2500, note: "" } );
+    renderLevelsList();
+}
+
+function addSupport() {
+    criticalLevels.supports.push( { price: 2400, note: "" } );
+    renderLevelsList();
+}
+
+function updateResistancePrice( index, price ) {
+    criticalLevels.resistances[ index ].price = parseFloat( price );
+}
+
+function updateResistanceNote( index, note ) {
+    criticalLevels.resistances[ index ].note = note;
+}
+
+function updateSupportPrice( index, price ) {
+    criticalLevels.supports[ index ].price = parseFloat( price );
+}
+
+function updateSupportNote( index, note ) {
+    criticalLevels.supports[ index ].note = note;
+}
+
+function removeResistance( index ) {
+    criticalLevels.resistances.splice( index, 1 );
+    renderLevelsList();
+}
+
+function removeSupport( index ) {
+    criticalLevels.supports.splice( index, 1 );
+    renderLevelsList();
+}
+
+function saveCriticalLevels() {
+    criticalLevels.lastUpdate = new Date().toISOString();
+
+    // Guardar localmente
+    localStorage.setItem(
+        "trading_criticalLevels",
+        JSON.stringify( criticalLevels )
+    );
+
+    // Sincronizar con Firebase si está disponible
+    if ( currentUser ) {
+        syncDataToFirebase();
+    }
+
+    hideModal( "editLevelsModal" );
+    updateLevelsLastUpdate();
+    updateSyncStatus( "Niveles actualizados", true );
+}
+
+function updateLevelsLastUpdate() {
+    const element = document.getElementById( "levelsLastUpdate" );
+    if ( element && criticalLevels.lastUpdate ) {
+        const date = new Date( criticalLevels.lastUpdate );
+        element.textContent = date.toLocaleDateString();
     }
 }
 
@@ -875,68 +1461,71 @@ function renderAllData() {
     renderObservations();
     renderRecentWithdrawals();
     updateCapitalBreakdown(); // Agregar esta línea
-    if ( currentTab === 'signals' ) {
+    if ( currentTab === "signals" ) {
         renderSetupChecklist();
     }
 }
 
-
 // ===== FUNCIONES DE INTERFAZ =====
 function switchTab( tabName ) {
     // Ocultar todos los tabs
-    document.querySelectorAll( '.tab-content' ).forEach( tab => {
-        tab.classList.add( 'hidden' );
+    document.querySelectorAll( ".tab-content" ).forEach( ( tab ) => {
+        tab.classList.add( "hidden" );
     } );
 
     // Mostrar el tab seleccionado
     const selectedTab = document.getElementById( tabName );
     if ( selectedTab ) {
-        selectedTab.classList.remove( 'hidden' );
+        selectedTab.classList.remove( "hidden" );
     }
 
     // Actualizar botones de navegación
-    document.querySelectorAll( '.tab-btn' ).forEach( btn => {
-        btn.classList.remove( 'border-gold', 'text-gold' );
-        btn.classList.add( 'border-transparent' );
+    document.querySelectorAll( ".tab-btn" ).forEach( ( btn ) => {
+        btn.classList.remove( "border-gold", "text-gold" );
+        btn.classList.add( "border-transparent" );
     } );
 
     const activeBtn = document.querySelector( `.tab-btn[data-tab="${tabName}"]` );
     if ( activeBtn ) {
-        activeBtn.classList.add( 'border-gold', 'text-gold' );
-        activeBtn.classList.remove( 'border-transparent' );
+        activeBtn.classList.add( "border-gold", "text-gold" );
+        activeBtn.classList.remove( "border-transparent" );
     }
 
     currentTab = tabName;
 
     // Renderizar datos específicos del tab
-    if ( tabName === 'signals' ) {
+    if ( tabName === "signals" ) {
         renderSetupChecklist();
+    }
+
+    if ( tabName === 'trade-management' ) {
+        updateLevelsLastUpdate();
     }
 }
 
 function showModal( modalId ) {
     const modal = document.getElementById( modalId );
     if ( modal ) {
-        modal.classList.remove( 'hidden' );
-        modal.classList.add( 'flex' );
+        modal.classList.remove( "hidden" );
+        modal.classList.add( "flex" );
     }
 }
 
 function hideModal( modalId ) {
     const modal = document.getElementById( modalId );
     if ( modal ) {
-        modal.classList.add( 'hidden' );
-        modal.classList.remove( 'flex' );
+        modal.classList.add( "hidden" );
+        modal.classList.remove( "flex" );
     }
 }
 
 function showCommentTooltip( event, comment ) {
-    const tooltip = document.getElementById( 'commentTooltip' );
-    const content = document.getElementById( 'tooltipContent' );
+    const tooltip = document.getElementById( "commentTooltip" );
+    const content = document.getElementById( "tooltipContent" );
 
     if ( tooltip && content && comment ) {
         content.textContent = comment;
-        tooltip.classList.remove( 'hidden' );
+        tooltip.classList.remove( "hidden" );
 
         const rect = event.target.getBoundingClientRect();
         tooltip.style.left = `${rect.left + window.scrollX}px`;
@@ -946,56 +1535,69 @@ function showCommentTooltip( event, comment ) {
         setTimeout( () => {
             const hideTooltip = ( e ) => {
                 if ( !tooltip.contains( e.target ) ) {
-                    tooltip.classList.add( 'hidden' );
-                    document.removeEventListener( 'click', hideTooltip );
+                    tooltip.classList.add( "hidden" );
+                    document.removeEventListener( "click", hideTooltip );
                 }
             };
-            document.addEventListener( 'click', hideTooltip );
+            document.addEventListener( "click", hideTooltip );
         }, 100 );
     }
 }
 
 function updateCurrentTime() {
-    const timeElement = document.getElementById( 'currentTime' );
+    const timeElement = document.getElementById( "currentTime" );
     if ( timeElement ) {
         const now = new Date();
-        timeElement.textContent = now.toLocaleString( 'es-ES', {
-            timeZone: 'America/Lima',
+        timeElement.textContent = now.toLocaleString( "es-ES", {
+            timeZone: "America/Lima",
             hour12: false,
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit'
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
         } );
     }
 }
 
 function calculatePnLFromPrices() {
-    const entryPrice = parseFloat( document.getElementById( 'entryPrice' )?.value || 0 );
-    const exitPrice = parseFloat( document.getElementById( 'exitPrice' )?.value || 0 );
-    const contracts = parseInt( document.getElementById( 'tradeContracts' )?.value || 1 );
-    const direction = document.getElementById( 'tradeDirection' )?.value;
+    const entryPrice = parseFloat(
+        document.getElementById( "entryPrice" )?.value || 0
+    );
+    const exitPrice = parseFloat(
+        document.getElementById( "exitPrice" )?.value || 0
+    );
+    const contracts = parseInt(
+        document.getElementById( "tradeContracts" )?.value || 1
+    );
+    const direction = document.getElementById( "tradeDirection" )?.value;
 
     if ( entryPrice && exitPrice && contracts && direction ) {
         let pnl = 0;
         // Para oro: cada punto = $1 por contrato (no cada pip)
         const pointDifference = Math.abs( exitPrice - entryPrice );
 
-        if ( direction === 'buy' ) {
-            pnl = exitPrice > entryPrice ? pointDifference * contracts : -pointDifference * contracts;
-        } else { // sell
-            pnl = exitPrice < entryPrice ? pointDifference * contracts : -pointDifference * contracts;
+        if ( direction === "buy" ) {
+            pnl =
+                exitPrice > entryPrice
+                    ? pointDifference * contracts
+                    : -pointDifference * contracts;
+        } else {
+            // sell
+            pnl =
+                exitPrice < entryPrice
+                    ? pointDifference * contracts
+                    : -pointDifference * contracts;
         }
 
-        const pnlInput = document.getElementById( 'tradePnL' );
+        const pnlInput = document.getElementById( "tradePnL" );
         if ( pnlInput ) {
             pnlInput.value = pnl.toFixed( 2 );
 
             // Actualizar automáticamente el resultado
-            const resultSelect = document.getElementById( 'tradeResult' );
+            const resultSelect = document.getElementById( "tradeResult" );
             if ( resultSelect ) {
-                resultSelect.value = pnl >= 0 ? 'win' : 'loss';
+                resultSelect.value = pnl >= 0 ? "win" : "loss";
             }
         }
     }
@@ -1003,34 +1605,46 @@ function calculatePnLFromPrices() {
 
 function exportTradesToCSV() {
     if ( trades.length === 0 ) {
-        alert( 'No hay trades para exportar' );
+        alert( "No hay trades para exportar" );
         return;
     }
 
-    const headers = [ 'Fecha', 'Estrategia', 'Dirección', 'Contratos', 'SL (pips)', 'TP (pips)', 'Resultado', 'P&L ($)', 'Comentarios' ];
+    const headers = [
+        "Fecha",
+        "Estrategia",
+        "Dirección",
+        "Contratos",
+        "SL (pips)",
+        "TP (pips)",
+        "Resultado",
+        "P&L ($)",
+        "Comentarios",
+    ];
 
     const csvContent = [
-        headers.join( ',' ),
-        ...trades.map( trade => [
-            trade.date,
-            strategyConfigs[ trade.strategy ]?.name || trade.strategy,
-            trade.direction === 'buy' ? 'Compra' : 'Venta',
-            trade.contracts,
-            trade.sl,
-            trade.tp,
-            trade.result === 'win' ? 'Ganador' : 'Perdedor',
-            trade.pnl,
-            `"${trade.comments.replace( /"/g, '""' )}"`
-        ].join( ',' ) )
-    ].join( '\n' );
+        headers.join( "," ),
+        ...trades.map( ( trade ) =>
+            [
+                trade.date,
+                strategyConfigs[ trade.strategy ]?.name || trade.strategy,
+                trade.direction === "buy" ? "Compra" : "Venta",
+                trade.contracts,
+                trade.sl,
+                trade.tp,
+                trade.result === "win" ? "Ganador" : "Perdedor",
+                trade.pnl,
+                `"${trade.comments.replace( /"/g, '""' )}"`,
+            ].join( "," )
+        ),
+    ].join( "\n" );
 
-    const blob = new Blob( [ csvContent ], { type: 'text/csv' } );
+    const blob = new Blob( [ csvContent ], { type: "text/csv" } );
     const url = window.URL.createObjectURL( blob );
-    const a = document.createElement( 'a' );
+    const a = document.createElement( "a" );
 
-    a.style.display = 'none';
+    a.style.display = "none";
     a.href = url;
-    a.download = `trades_${new Date().toISOString().split( 'T' )[ 0 ]}.csv`;
+    a.download = `trades_${new Date().toISOString().split( "T" )[ 0 ]}.csv`;
 
     document.body.appendChild( a );
     a.click();
@@ -1039,7 +1653,7 @@ function exportTradesToCSV() {
 }
 
 function deleteObservation( obsId ) {
-    observations = observations.filter( obs => obs.id !== obsId );
+    observations = observations.filter( ( obs ) => obs.id !== obsId );
     saveDataLocally();
     if ( currentUser ) {
         syncDataToFirebase();
@@ -1047,8 +1661,290 @@ function deleteObservation( obsId ) {
     renderObservations();
 }
 
+function showEditTradeModal( tradeId ) {
+    const trade = trades.find( ( t ) => t.id === tradeId );
+    if ( !trade ) return;
+
+    editingTradeId = tradeId;
+
+    // Llenar formulario con datos actuales
+    document.getElementById( "editTradeId" ).value = trade.id;
+    document.getElementById( "editTradeDate" ).value = trade.date;
+    document.getElementById( "editTradeStrategy" ).value = trade.strategy;
+    document.getElementById( "editTradeDirection" ).value = trade.direction;
+    document.getElementById( "editTradeContracts" ).value = trade.contracts;
+    document.getElementById( "editTradeSL" ).value = trade.sl;
+    document.getElementById( "editTradeTP" ).value = trade.tp;
+    document.getElementById( "editTradeResult" ).value = trade.result;
+    document.getElementById( "editTradePnL" ).value = trade.pnl;
+    document.getElementById( "editTradeComments" ).value = trade.comments || "";
+
+    showModal( "editTradeModal" );
+}
+
+function updateTrade() {
+    if ( !editingTradeId ) return;
+
+    const updatedData = {
+        date: document.getElementById( "editTradeDate" ).value,
+        strategy: document.getElementById( "editTradeStrategy" ).value,
+        direction: document.getElementById( "editTradeDirection" ).value,
+        contracts: parseInt( document.getElementById( "editTradeContracts" ).value ),
+        sl: parseFloat( document.getElementById( "editTradeSL" ).value ),
+        tp: parseFloat( document.getElementById( "editTradeTP" ).value ),
+        result: document.getElementById( "editTradeResult" ).value,
+        pnl: parseFloat( document.getElementById( "editTradePnL" ).value ),
+        comments: document.getElementById( "editTradeComments" ).value || "",
+    };
+
+    editTrade( editingTradeId, updatedData );
+    hideModal( "editTradeModal" );
+    editingTradeId = null;
+    updateSyncStatus( "Trade actualizado correctamente", true );
+}
+
+function savePostTradeAnalysis() {
+    const analysis = document.getElementById( "postTradeAnalysis" )?.value?.trim();
+    if ( !analysis ) return;
+
+    const analysisData = {
+        id: Date.now().toString(),
+        text: analysis,
+        date: new Date().toLocaleDateString(),
+        timestamp: new Date().toISOString(),
+        type: "post-trade",
+    };
+
+    observations.push( analysisData );
+
+    saveDataLocally();
+    if ( currentUser ) {
+        syncDataToFirebase();
+    }
+
+    document.getElementById( "postTradeAnalysis" ).value = "";
+    renderObservations();
+    updateSyncStatus( "Análisis post-trade guardado", true );
+}
+
+function generateWeeklyAnalysis() {
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate( oneWeekAgo.getDate() - 7 );
+
+    const weeklyTrades = trades.filter(
+        ( trade ) => new Date( trade.date ) >= oneWeekAgo
+    );
+
+    if ( weeklyTrades.length === 0 ) {
+        alert( "No hay trades en la última semana para analizar" );
+        return;
+    }
+
+    const wins = weeklyTrades.filter( ( t ) => t.result === "win" ).length;
+    const losses = weeklyTrades.filter( ( t ) => t.result === "loss" ).length;
+    const winRate = Math.round( ( wins / weeklyTrades.length ) * 100 );
+    const totalPnL = weeklyTrades.reduce(
+        ( sum, t ) => sum + parseFloat( t.pnl || 0 ),
+        0
+    );
+
+    // Análisis por estrategia
+    const strategyAnalysis = {};
+    Object.keys( strategyConfigs ).forEach( ( strategy ) => {
+        const stratTrades = weeklyTrades.filter( ( t ) => t.strategy === strategy );
+        if ( stratTrades.length > 0 ) {
+            const stratWins = stratTrades.filter( ( t ) => t.result === "win" ).length;
+            strategyAnalysis[ strategy ] = {
+                count: stratTrades.length,
+                winRate: Math.round( ( stratWins / stratTrades.length ) * 100 ),
+                pnl: stratTrades.reduce( ( sum, t ) => sum + parseFloat( t.pnl || 0 ), 0 ),
+            };
+        }
+    } );
+
+    const analysisText = `📊 ANÁLISIS SEMANAL
+📅 Periodo: ${oneWeekAgo.toLocaleDateString()} - ${new Date().toLocaleDateString()}
+
+📈 RESUMEN GENERAL:
+• Total Trades: ${weeklyTrades.length}
+• Ganadores: ${wins} | Perdedores: ${losses}
+• Win Rate: ${winRate}%
+• P&L Total: $${totalPnL.toFixed( 2 )}
+
+🎯 POR ESTRATEGIA:
+${Object.entries( strategyAnalysis )
+            .map(
+                ( [ strategy, data ] ) =>
+                    `• ${strategyConfigs[ strategy ]?.name}: ${data.count} trades, ${data.winRate}% WR, $${data.pnl.toFixed( 2 )}`
+            )
+            .join( "\n" )}
+
+💡 OBSERVACIONES:
+${totalPnL >= 0 ? "✅ Semana positiva" : "❌ Semana negativa"}
+${winRate >= 60 ? "✅ Win rate saludable" : winRate >= 50 ? "⚠️ Win rate aceptable" : "❌ Win rate bajo"}`;
+
+    document.getElementById( "postTradeAnalysis" ).value = analysisText;
+}
+
+// Botones de setup con mejor manejo de errores
+function setupButtonListeners() {
+    // Ejecutar setup
+    const executeButtons = [ 'executeSetupBtn', 'executeTradeBtn' ];
+    executeButtons.forEach( btnId => {
+        const btn = document.getElementById( btnId );
+        if ( btn ) {
+            btn.addEventListener( 'click', function ( e ) {
+                e.preventDefault();
+
+                const scoreElement = document.getElementById( 'scoreValue' );
+                const score = scoreElement ? parseInt( scoreElement.textContent ) : 0;
+
+                if ( score >= 70 ) {
+                    executeValidatedSetup();
+                } else {
+                    // Feedback visual mejorado
+                    const feedbackEl = document.getElementById( 'setupFeedback' );
+                    if ( feedbackEl ) {
+                        feedbackEl.innerHTML = `
+                            <p class="text-red-400 font-medium animate-bounce">
+                                ⚠️ Score insuficiente: ${score}%. Mínimo requerido: 70%
+                            </p>
+                        `;
+                        feedbackEl.classList.remove( 'hidden' );
+
+                        // Auto-hide después de 3 segundos
+                        setTimeout( () => {
+                            feedbackEl.classList.add( 'hidden' );
+                        }, 3000 );
+                    }
+                }
+            } );
+        }
+    } );
+
+    // Reset setup
+    const resetButtons = [ 'discardSetupBtn', 'resetSetupBtn', 'clearSetupBtn' ];
+    resetButtons.forEach( btnId => {
+        const btn = document.getElementById( btnId );
+        if ( btn ) {
+            btn.addEventListener( 'click', function ( e ) {
+                e.preventDefault();
+                resetSetupChecker();
+            } );
+        }
+    } );
+
+    // Utilidades adicionales
+    const utilityButtons = [
+        { id: 'selectAllBtn', action: () => toggleAllCheckboxes( true ) },
+        { id: 'clearAllBtn', action: () => toggleAllCheckboxes( false ) }
+    ];
+
+    utilityButtons.forEach( ( { id, action } ) => {
+        const btn = document.getElementById( id );
+        if ( btn ) {
+            btn.addEventListener( 'click', action );
+        }
+    } );
+}
+
+// Inicializar todos los listeners de setup
+function initializeSetupListeners() {
+    setupButtonListeners();
+
+    // Auto-save periódico del estado
+    setInterval( () => {
+        const checkboxes = document.querySelectorAll( 'input[id^="dynamic_check_"]' );
+        if ( checkboxes.length > 0 ) {
+            saveSetupState();
+        }
+    }, 30000 ); // Cada 30 segundos
+
+    console.log( 'Setup listeners inicializados correctamente' );
+}
+
+// Mostrar modal de autenticación solo bajo condiciones específicas
+function checkAuthModalDisplay() {
+
+    if ( !currentUser &&
+        !isInitializing &&
+        !hasShownAuthModal &&
+        !getCookie( 'hideAuthModal' ) ) {
+
+        // Verificar si hay datos locales significativos
+        const hasLocalData = trades.length > 0 ||
+            observations.length > 0 ||
+            currentCapital > 0;
+
+        // Si no hay datos locales, sugerir autenticación
+        if ( !hasLocalData ) {
+            setTimeout( () => {
+                if ( !currentUser && !hasShownAuthModal ) {
+                    showAuthModal();
+                }
+            }, 5000 ); // Esperar 5 segundos en lugar de 3
+        }
+    }
+}
+
+// Función mejorada para ocultar modal con opción de "No mostrar más"
+function hideAuthModalPermanently() {
+    hideAuthModal();
+    setCookie( 'hideAuthModal', 'true', 7 ); // Por 7 días
+    hasShownAuthModal = true;
+}
+
+// Nueva función para agregar checklist dinámico
+function addDynamicChecklist( strategy, container ) {
+    const checklist = setupChecklists[ strategy ] || [];
+
+    if ( checklist.length === 0 ) {
+        container.innerHTML += `
+            <div class="bg-yellow-900 bg-opacity-20 p-4 rounded-lg border border-yellow-500 mb-4">
+                <p class="text-yellow-400">⚠️ Checklist no disponible para esta estrategia</p>
+            </div>
+        `;
+        return;
+    }
+
+    const checklistHTML = `
+        <div class="mb-6">
+            <div class="flex justify-between items-center mt-6 mb-4">
+                <h4 class="text-lg font-semibold text-white">✅ Setup Verification</h4>
+                <div class="flex space-x-2">
+                    <button onclick="toggleAllCheckboxes(true)" 
+                            class="text-sm px-3 py-1 bg-green-700 hover:bg-green-600 rounded transition-colors">
+                        Marcar Todo
+                    </button>
+                    <button onclick="toggleAllCheckboxes(false)" 
+                            class="text-sm px-3 py-1 bg-red-700 hover:bg-red-600 rounded transition-colors">
+                        Limpiar
+                    </button>
+                </div>
+            </div>
+            <div class="space-y-3">
+                ${checklist.map( ( item, index ) => `
+                    <div class="flex items-start space-x-3 p-1 bg-gray-800/50 rounded-lg hover:bg-gray-800 transition-colors">
+                        <input type="checkbox" 
+                               id="dynamic_check_${index}" 
+                               class="mt-1 rounded text-gold focus:ring-gold focus:ring-2 h-5 w-5" 
+                               onchange="updateDynamicSetupScore()">
+                        <label for="dynamic_check_${index}" 
+                               class="text-sm flex-1 cursor-pointer hover:text-gold transition-colors leading-relaxed">
+                            ${item}
+                        </label>
+                    </div>
+                `).join( '' )}
+            </div>
+        </div>
+    `;
+
+    container.innerHTML += checklistHTML;
+}
+
+
 // ===== EVENT LISTENERS =====
-document.addEventListener( 'DOMContentLoaded', function () {
+document.addEventListener( "DOMContentLoaded", function () {
     isInitializing = true;
 
     // Cargar datos locales inicialmente
@@ -1060,9 +1956,9 @@ document.addEventListener( 'DOMContentLoaded', function () {
     setInterval( updateCurrentTime, 60000 );
 
     // Establecer fecha actual en formularios
-    const today = new Date().toISOString().split( 'T' )[ 0 ];
-    const dateInputs = [ 'tradeDate', 'withdrawalDate', 'addCapitalDate' ];
-    dateInputs.forEach( id => {
+    const today = new Date().toISOString().split( "T" )[ 0 ];
+    const dateInputs = [ "tradeDate", "withdrawalDate", "addCapitalDate" ];
+    dateInputs.forEach( ( id ) => {
         const input = document.getElementById( id );
         if ( input ) input.value = today;
     } );
@@ -1087,199 +1983,234 @@ document.addEventListener( 'DOMContentLoaded', function () {
     } );
 
     // Dropdown del usuario
-    document.getElementById( 'userPhoto' )?.addEventListener( 'click', function () {
-        const dropdown = document.getElementById( 'userDropdown' );
+    document.getElementById( "userPhoto" )?.addEventListener( "click", function () {
+        const dropdown = document.getElementById( "userDropdown" );
         if ( dropdown ) {
-            dropdown.classList.toggle( 'hidden' );
+            dropdown.classList.toggle( "hidden" );
 
             // Actualizar nombre en dropdown
-            const userNameInDropdown = document.getElementById( 'userNameInDropdown' );
+            const userNameInDropdown = document.getElementById( "userNameInDropdown" );
             if ( userNameInDropdown && currentUser ) {
-                userNameInDropdown.textContent = currentUser.displayName || currentUser.email;
+                userNameInDropdown.textContent =
+                    currentUser.displayName || currentUser.email;
             }
         }
     } );
 
     // Cerrar dropdown al hacer click fuera
-    document.addEventListener( 'click', function ( e ) {
-        const userPhoto = document.getElementById( 'userPhoto' );
-        const dropdown = document.getElementById( 'userDropdown' );
+    document.addEventListener( "click", function ( e ) {
+        const userPhoto = document.getElementById( "userPhoto" );
+        const dropdown = document.getElementById( "userDropdown" );
 
-        if ( userPhoto && dropdown && !userPhoto.contains( e.target ) && !dropdown.contains( e.target ) ) {
-            dropdown.classList.add( 'hidden' );
+        if (
+            userPhoto &&
+            dropdown &&
+            !userPhoto.contains( e.target ) &&
+            !dropdown.contains( e.target )
+        ) {
+            dropdown.classList.add( "hidden" );
         }
     } );
 
     // Botones de autenticación
-    document.getElementById( 'googleSignInBtn' )?.addEventListener( 'click', signInWithGoogle );
-    document.getElementById( 'topGoogleSignInBtn' )?.addEventListener( 'click', signInWithGoogle );
-    document.getElementById( 'signOutBtn' )?.addEventListener( 'click', signOut );
-    document.getElementById( 'continueOfflineBtn' )?.addEventListener( 'click', hideAuthModal );
+    const authButtons = [
+        { id: "googleSignInBtn", action: signInWithGoogle },
+        { id: "topGoogleSignInBtn", action: signInWithGoogle },
+        { id: "signOutBtn", action: signOut },
+        { id: "continueOfflineBtn", action: hideAuthModal }
+    ];
+
+    authButtons.forEach( ( { id, action } ) => {
+        document.getElementById( id )?.addEventListener( "click", action );
+    } );
 
     // ===== TAB NAVIGATION =====
-    document.querySelectorAll( '.tab-btn' ).forEach( btn => {
-        btn.addEventListener( 'click', function () {
-            const tabName = this.getAttribute( 'data-tab' );
+    document.querySelectorAll( ".tab-btn" ).forEach( ( btn ) => {
+        btn.addEventListener( "click", function () {
+            const tabName = this.getAttribute( "data-tab" );
             switchTab( tabName );
         } );
     } );
 
     // ===== CAPITAL MANAGEMENT =====
-    document.getElementById( 'addCapitalBtn' )?.addEventListener( 'click', () => {
-        showModal( 'addCapitalModal' );
+    document.getElementById( "addCapitalBtn" )?.addEventListener( "click", () => {
+        showModal( "addCapitalModal" );
     } );
 
-    document.getElementById( 'withdrawalBtn' )?.addEventListener( 'click', () => {
-        showModal( 'withdrawalModal' );
+    document.getElementById( "withdrawalBtn" )?.addEventListener( "click", () => {
+        showModal( "withdrawalModal" );
     } );
 
-    document.getElementById( 'resetCapitalBtn' )?.addEventListener( 'click', () => {
-        showModal( 'resetConfirmModal' );
+    document.getElementById( "resetCapitalBtn" )?.addEventListener( "click", () => {
+        showModal( "resetConfirmModal" );
     } );
 
     // Formulario agregar capital
-    document.getElementById( 'addCapitalForm' )?.addEventListener( 'submit', function ( e ) {
-        e.preventDefault();
+    document
+        .getElementById( "addCapitalForm" )
+        ?.addEventListener( "submit", function ( e ) {
+            e.preventDefault();
 
-        const amount = parseFloat( document.getElementById( 'addCapitalAmount' ).value );
-        const concept = document.getElementById( 'addCapitalConcept' ).value || 'Adición de capital';
-        const notes = document.getElementById( 'addCapitalNotes' ).value || '';
-        const date = document.getElementById( 'addCapitalDate' ).value;
+            const amount = parseFloat(
+                document.getElementById( "addCapitalAmount" ).value
+            );
+            const concept =
+                document.getElementById( "addCapitalConcept" ).value ||
+                "Adición de capital";
+            const notes = document.getElementById( "addCapitalNotes" ).value || "";
+            const date = document.getElementById( "addCapitalDate" ).value;
 
-        if ( amount > 0 ) {
-            addCapital( amount, concept, notes, date );
-            this.reset();
-            document.getElementById( 'addCapitalDate' ).value = new Date().toISOString().split( 'T' )[ 0 ];
-            hideModal( 'addCapitalModal' );
+            if ( amount > 0 ) {
+                addCapital( amount, concept, notes, date );
+                this.reset();
+                document.getElementById( "addCapitalDate" ).value = new Date()
+                    .toISOString()
+                    .split( "T" )[ 0 ];
+                hideModal( "addCapitalModal" );
 
-            // Mostrar notificación
-            updateSyncStatus( `Capital agregado: +${amount.toFixed( 2 )}`, true );
-        }
-    } );
+                // Mostrar notificación
+                updateSyncStatus( `Capital agregado: +${amount.toFixed( 2 )}`, true );
+            }
+        } );
 
     // Formulario retiro
-    document.getElementById( 'withdrawalForm' )?.addEventListener( 'submit', function ( e ) {
-        e.preventDefault();
+    document
+        .getElementById( "withdrawalForm" )
+        ?.addEventListener( "submit", function ( e ) {
+            e.preventDefault();
 
-        const amount = parseFloat( document.getElementById( 'withdrawalAmount' ).value );
-        const concept = document.getElementById( 'withdrawalConcept' ).value || 'Retiro';
-        const notes = document.getElementById( 'withdrawalNotes' ).value || '';
-        const date = document.getElementById( 'withdrawalDate' ).value;
+            const amount = parseFloat(
+                document.getElementById( "withdrawalAmount" ).value
+            );
+            const concept =
+                document.getElementById( "withdrawalConcept" ).value || "Retiro";
+            const notes = document.getElementById( "withdrawalNotes" ).value || "";
+            const date = document.getElementById( "withdrawalDate" ).value;
 
-        if ( amount > 0 && amount <= currentCapital ) {
-            registerWithdrawal( amount, concept, notes, date );
-            this.reset();
-            document.getElementById( 'withdrawalDate' ).value = new Date().toISOString().split( 'T' )[ 0 ];
-            hideModal( 'withdrawalModal' );
+            if ( amount > 0 && amount <= currentCapital ) {
+                registerWithdrawal( amount, concept, notes, date );
+                this.reset();
+                document.getElementById( "withdrawalDate" ).value = new Date()
+                    .toISOString()
+                    .split( "T" )[ 0 ];
+                hideModal( "withdrawalModal" );
 
-            // Mostrar notificación
-            updateSyncStatus( `Retiro registrado: -${amount.toFixed( 2 )}`, true );
-        } else {
-            alert( amount > currentCapital ? 'No tienes suficiente capital' : 'Ingrese una cantidad válida' );
-        }
-    } );
+                // Mostrar notificación
+                updateSyncStatus( `Retiro registrado: -${amount.toFixed( 2 )}`, true );
+            } else {
+                alert(
+                    amount > currentCapital
+                        ? "No tienes suficiente capital"
+                        : "Ingrese una cantidad válida"
+                );
+            }
+        } );
 
     // Confirmación de reset
-    document.getElementById( 'confirmResetBtn' )?.addEventListener( 'click', () => {
+    document.getElementById( "confirmResetBtn" )?.addEventListener( "click", () => {
         resetAllData();
-        hideModal( 'resetConfirmModal' );
-        updateSyncStatus( 'Capital y datos reseteados', true );
+        hideModal( "resetConfirmModal" );
+        updateSyncStatus( "Capital y datos reseteados", true );
     } );
 
     // Botones de cancelar modales
-    document.getElementById( 'cancelAddCapitalBtn' )?.addEventListener( 'click', () => hideModal( 'addCapitalModal' ) );
-    document.getElementById( 'cancelWithdrawalBtn' )?.addEventListener( 'click', () => hideModal( 'withdrawalModal' ) );
-    document.getElementById( 'cancelResetBtn' )?.addEventListener( 'click', () => hideModal( 'resetConfirmModal' ) );
+    const cancelButtons = [
+        { id: "cancelAddCapitalBtn", modal: "addCapitalModal" },
+        { id: "cancelWithdrawalBtn", modal: "withdrawalModal" },
+        { id: "cancelResetBtn", modal: "resetConfirmModal" }
+    ];
 
-    // ===== STRATEGY CALCULATOR =====
-    document.getElementById( 'strategySelect' )?.addEventListener( 'change', updateStrategyCalculator );
+    cancelButtons.forEach( ( { id, modal } ) => {
+        document.getElementById( id )?.addEventListener( "click", () => hideModal( modal ) );
+    } );
 
     // ===== TRADES =====
-    document.getElementById( 'addTradeBtn' )?.addEventListener( 'click', () => {
-        showModal( 'tradeModal' );
+    document.getElementById( "addTradeBtn" )?.addEventListener( "click", () => {
+        showModal( "tradeModal" );
     } );
 
-    document.getElementById( 'exportTradesBtn' )?.addEventListener( 'click', exportTradesToCSV );
+    document
+        .getElementById( "exportTradesBtn" )
+        ?.addEventListener( "click", exportTradesToCSV );
 
     // Filtros de trades
-    document.getElementById( 'filterStrategy' )?.addEventListener( 'change', renderTrades );
-    document.getElementById( 'filterResult' )?.addEventListener( 'change', renderTrades );
-    document.getElementById( 'filterDate' )?.addEventListener( 'change', renderTrades );
+    document
+        .getElementById( "filterStrategy" )
+        ?.addEventListener( "change", renderTrades );
+    document
+        .getElementById( "filterResult" )
+        ?.addEventListener( "change", renderTrades );
+    document
+        .getElementById( "filterDate" )
+        ?.addEventListener( "change", renderTrades );
 
     // Formulario de trade
-    document.getElementById( 'tradeForm' )?.addEventListener( 'submit', function ( e ) {
-        e.preventDefault();
+    document
+        .getElementById( "tradeForm" )
+        ?.addEventListener( "submit", function ( e ) {
+            e.preventDefault();
 
-        const tradeData = {
-            date: document.getElementById( 'tradeDate' ).value,
-            strategy: document.getElementById( 'tradeStrategy' ).value,
-            direction: document.getElementById( 'tradeDirection' ).value,
-            contracts: parseInt( document.getElementById( 'tradeContracts' ).value ),
-            sl: parseFloat( document.getElementById( 'tradeSL' ).value ),
-            tp: parseFloat( document.getElementById( 'tradeTP' ).value ),
-            result: document.getElementById( 'tradeResult' ).value,
-            pnl: parseFloat( document.getElementById( 'tradePnL' ).value ),
-            comments: document.getElementById( 'tradeComments' ).value || ''
-        };
+            const tradeData = {
+                date: document.getElementById( "tradeDate" ).value,
+                strategy: document.getElementById( "tradeStrategy" ).value,
+                direction: document.getElementById( "tradeDirection" ).value,
+                contracts: parseInt( document.getElementById( "tradeContracts" ).value ),
+                sl: parseFloat( document.getElementById( "tradeSL" ).value ),
+                tp: parseFloat( document.getElementById( "tradeTP" ).value ),
+                result: document.getElementById( "tradeResult" ).value,
+                pnl: parseFloat( document.getElementById( "tradePnL" ).value ),
+                comments: document.getElementById( "tradeComments" ).value || "",
+            };
 
-        addTrade( tradeData );
-        this.reset();
-        document.getElementById( 'tradeDate' ).value = new Date().toISOString().split( 'T' )[ 0 ];
-        hideModal( 'tradeModal' );
+            addTrade( tradeData );
+            this.reset();
+            document.getElementById( "tradeDate" ).value = new Date()
+                .toISOString()
+                .split( "T" )[ 0 ];
+            hideModal( "tradeModal" );
 
-        updateSyncStatus( 'Trade agregado correctamente', true );
-    } );
+            updateSyncStatus( "Trade agregado correctamente", true );
+        } );
 
-    document.getElementById( 'cancelTradeBtn' )?.addEventListener( 'click', () => hideModal( 'tradeModal' ) );
-
+    document
+        .getElementById( "cancelTradeBtn" )
+        ?.addEventListener( "click", () => hideModal( "tradeModal" ) );
 
     // Cálculo automático de P&L
-    [ 'entryPrice', 'exitPrice', 'tradeContracts', 'tradeDirection' ].forEach( id => {
-        document.getElementById( id )?.addEventListener( 'input', calculatePnLFromPrices );
-    } );
-
-    // ===== SIGNALS & SETUP =====
-    document.getElementById( 'setupStrategy' )?.addEventListener( 'change', renderSetupChecklist );
-
-    document.getElementById( 'executeSetupBtn' )?.addEventListener( 'click', () => {
-        const strategy = document.getElementById( 'setupStrategy' ).value;
-        const score = parseInt( document.getElementById( 'scoreValue' ).textContent );
-
-        if ( score >= 70 ) {
-            // Redirigir al formulario de trade con estrategia preseleccionada
-            document.getElementById( 'tradeStrategy' ).value = strategy;
-            showModal( 'tradeModal' );
-
-            // Reset checklist
-            document.querySelectorAll( '#setupChecklist input[type="checkbox"]' ).forEach( cb => {
-                cb.checked = false;
-            } );
-            updateSetupScore();
+    [ "entryPrice", "exitPrice", "tradeContracts", "tradeDirection" ].forEach(
+        ( id ) => {
+            document
+                .getElementById( id )
+                ?.addEventListener( "input", calculatePnLFromPrices );
         }
-    } );
+    );
 
-    document.getElementById( 'discardSetupBtn' )?.addEventListener( 'click', () => {
-        // Reset checklist
-        document.querySelectorAll( '#setupChecklist input[type="checkbox"]' ).forEach( cb => {
-            cb.checked = false;
-        } );
-        updateSetupScore();
-    } );
+    initializeImprovedSetupListeners();
 
     // ===== DISCIPLINE =====
-    document.getElementById( 'addObservationBtn' )?.addEventListener( 'click', () => {
-        const text = document.getElementById( 'observationInput' ).value.trim();
-        if ( text ) {
-            addObservation( text );
-            document.getElementById( 'observationInput' ).value = '';
-            updateSyncStatus( 'Observación agregada', true );
-        }
-    } );
+    document
+        .getElementById( "addObservationBtn" )
+        ?.addEventListener( "click", () => {
+            const text = document.getElementById( "observationInput" ).value.trim();
+            if ( text ) {
+                addObservation( text );
+                document.getElementById( "observationInput" ).value = "";
+                updateSyncStatus( "Observación agregada", true );
+            }
+        } );
 
     // ===== MODAL CLOSE ON OUTSIDE CLICK =====
-    document.addEventListener( 'click', function ( e ) {
-        const modals = [ 'tradeModal', 'withdrawalModal', 'addCapitalModal', 'resetConfirmModal' ];
-        modals.forEach( modalId => {
+    document.addEventListener( "click", function ( e ) {
+        const modals = [
+            "tradeModal",
+            "withdrawalModal",
+            "addCapitalModal",
+            "resetConfirmModal",
+            "editTradeModal",
+            "editLevelsModal",
+            "authModal"
+        ];
+        modals.forEach( ( modalId ) => {
             const modal = document.getElementById( modalId );
             if ( modal && e.target === modal ) {
                 hideModal( modalId );
@@ -1287,32 +2218,110 @@ document.addEventListener( 'DOMContentLoaded', function () {
         } );
     } );
 
-    // Mostrar modal de autenticación después de un retraso si no está logueado
-    setTimeout( () => {
-        // Solo mostrar modal si nunca se ha autenticado en esta sesión
-        if ( !currentUser && !isInitializing && !hasShownAuthModal ) {
-            showAuthModal();
+    // ===== EDICIÓN DE TRADES =====
+    document.getElementById( 'editTradeForm' )?.addEventListener( 'submit', function ( e ) {
+        e.preventDefault();
+        updateTrade();
+    } );
+
+    document.getElementById( 'deleteTradeBtn' )?.addEventListener( 'click', function () {
+        if ( editingTradeId && confirm( '¿Estás seguro de eliminar este trade?' ) ) {
+            deleteTrade( editingTradeId );
+            hideModal( 'editTradeModal' );
+            editingTradeId = null;
         }
-    }, 3000 );
+    } );
+
+    document.getElementById( 'cancelEditTradeBtn' )?.addEventListener( 'click', () => {
+        hideModal( 'editTradeModal' );
+        editingTradeId = null;
+    } );
+
+    // ===== GESTIÓN DE NIVELES CRÍTICOS =====
+    document.getElementById( 'editLevelsBtn' )?.addEventListener( 'click', showEditLevelsModal );
+    document.getElementById( 'addResistanceBtn' )?.addEventListener( 'click', addResistance );
+    document.getElementById( 'addSupportBtn' )?.addEventListener( 'click', addSupport );
+
+    document.getElementById( 'editLevelsForm' )?.addEventListener( 'submit', function ( e ) {
+        e.preventDefault();
+        saveCriticalLevels();
+    } );
+
+    document.getElementById( 'cancelEditLevelsBtn' )?.addEventListener( 'click', () => {
+        hideModal( 'editLevelsModal' );
+    } );
+
+    // ===== ANÁLISIS POST-TRADE =====
+    document.getElementById( 'savePostTradeBtn' )?.addEventListener( 'click', savePostTradeAnalysis );
+    document.getElementById( 'weeklyAnalysisBtn' )?.addEventListener( 'click', generateWeeklyAnalysis );
+
+    // Restaurar estado después de inicialización
+    setTimeout( restoreSetupState, 500 );
+
+    // Verificación de modal de autenticación con retraso
+    setTimeout( checkAuthModalDisplay, 2000 );
+
+    // Restaurar estado después de un pequeño delay
+    setTimeout( () => {
+        if ( currentTab === "signals" ) {
+            renderSetupChecklist();
+        }
+    }, 500 );
 } );
 
-function debugTradesData() {
-    console.log( '=== DEBUG TRADES DATA ===' );
-    console.log( 'Total trades:', trades.length );
-    console.log( 'Trades data:', trades );
+window.debugSetupChecker = function () {
+    console.log( "=== DEBUG SETUP CHECKER ===" );
 
-    const stats = calculateStrategyStats();
-    console.log( 'Strategy stats:', stats );
+    // Verificar selectores de estrategia
+    const strategySelectors = [
+        { id: 'signalStrategySelect', element: document.getElementById( 'signalStrategySelect' ) },
+        { id: 'setupStrategy', element: document.getElementById( 'setupStrategy' ) }
+    ];
 
-    console.log( 'Current capital:', currentCapital );
-    console.log( 'Total P&L:', calculateTotalPnL() );
-    console.log( 'Effective capital:', calculateEffectiveCapital() );
-    console.log( '========================' );
-}
+    strategySelectors.forEach( selector => {
+        console.log( `${selector.id}:`, selector.element ? `Found - Value: ${selector.element.value}` : 'Not found' );
+    } );
+
+    // Verificar contenedores
+    const containers = [
+        { id: 'setupCheckerContent', element: document.getElementById( 'setupCheckerContent' ) },
+        { id: 'setupChecklist', element: document.getElementById( 'setupChecklist' ) }
+    ];
+
+    containers.forEach( container => {
+        console.log( `${container.id}:`, container.element ? 'Found' : 'Not found' );
+    } );
+
+    // Verificar checkboxes
+    const checkboxes = document.querySelectorAll( 'input[id^="dynamic_check_"]' );
+    console.log( `Dynamic checkboxes found: ${checkboxes.length}` );
+
+    // Verificar botones
+    const buttons = [
+        { id: 'executeSetupBtn', element: document.getElementById( 'executeSetupBtn' ) },
+        { id: 'discardSetupBtn', element: document.getElementById( 'discardSetupBtn' ) }
+    ];
+
+    buttons.forEach( button => {
+        console.log( `${button.id}:`, button.element ? 'Found' : 'Not found' );
+    } );
+
+    // Verificar configuraciones
+    console.log( 'Strategy configs:', Object.keys( strategyConfigs ) );
+    console.log( 'Setup checklists:', Object.keys( setupChecklists ) );
+
+    console.log( "========================" );
+};
 
 // ===== FUNCIONES GLOBALES =====
 window.deleteTrade = deleteTrade;
 window.deleteObservation = deleteObservation;
 window.showCommentTooltip = showCommentTooltip;
-window.updateSetupScore = updateSetupScore;
-
+window.showEditTradeModal = showEditTradeModal;
+window.updateDynamicSetupScore = updateDynamicSetupScore;
+window.updateResistancePrice = updateResistancePrice;
+window.updateResistanceNote = updateResistanceNote;
+window.updateSupportPrice = updateSupportPrice;
+window.updateSupportNote = updateSupportNote;
+window.removeResistance = removeResistance;
+window.removeSupport = removeSupport;
