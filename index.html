@@ -444,12 +444,9 @@
         </div>
 
         <!-- Check y estrategias Tab -->
-        <!-- Tab Signals y Estrategias - REORGANIZADO -->
         <section id="signals" class="tab-content hidden p-6">
             <!-- PRIMERA FILA: Setup Checker + Strategy Cards (Compra/Venta) -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-
-                <!-- SETUP CHECKER - IZQUIERDA (50%) -->
+            <div class="grid grid-cols-1 lg:grid-cols-[45%_55%] gap-6 mb-6">
                 <div class="lg:col-span-1">
                     <article class="bg-trading-card p-6 rounded-lg border border-gray-700 h-full">
                         <!-- Header con selector de estrategia -->
@@ -1214,7 +1211,7 @@
         <!-- Template Trades Regulares -->
         <div id="template-regulares" class="strategy-template">
             <h4 class="text-lg font-semibold text-blue-400 mb-4">📈 ESTRATEGIA 1: Trades Regulares (PRINCIPAL)</h4>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <!-- COMPRAS -->
                 <div class="bg-green-900 bg-opacity-20 p-4 rounded-lg border border-green-500">
                     <h5 class="font-semibold text-green-400 mb-3">🟢 SETUP COMPRAS</h5>
@@ -1285,7 +1282,7 @@
         <!-- Template EMA + MACD -->
         <div id="template-ema-macd" class="strategy-template">
             <h4 class="text-lg font-semibold text-purple-400 mb-4">📊 ESTRATEGIA 2: EMA + MACD + CONFLUENCIA</h4>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <!-- COMPRAS EMA+MACD -->
                 <div class="bg-green-900 bg-opacity-20 p-4 rounded-lg border border-green-500">
                     <h5 class="font-semibold text-green-400 mb-3">🟢 SETUP COMPRAS</h5>
@@ -1293,7 +1290,7 @@
                         <div>
                             <h6 class="font-medium text-green-300">PASO 1 - Contexto 4H:</h6>
                             <ul class="mt-1 space-y-1 text-xs">
-                                <li>• MACD sin divergencia bajista + histograma verde creciendo 2+ velas</li>
+                                <li>• MACD sin divergencia bajista + histograma verde creciendo</li>
                                 <li>• No en caída libre de +3 días consecutivos</li>
                                 <li>• Precio supera +2 resistencias y se mantiene como soporte</li>
                             </ul>
@@ -1366,7 +1363,7 @@
                     <li>• Tendencia clara con MACD 4H mostrando divergencia contraria</li>
                 </ul>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <!-- Rebote Alcista -->
                 <div class="bg-green-900 bg-opacity-20 p-4 rounded-lg border border-green-500">
                     <h5 class="font-semibold text-green-400 mb-3">🟢 REBOTE EN AGOTAMIENTO BAJISTA</h5>
@@ -1451,7 +1448,7 @@
                     <li>• Confluencia múltiple de factores técnicos</li>
                 </ul>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <!-- Compras Extremas -->
                 <div class="bg-green-900 bg-opacity-20 p-4 rounded-lg border border-green-500">
                     <h5 class="font-semibold text-green-400 mb-3">🟢 SETUP COMPRAS (Mínimo 5 factores)</h5>
