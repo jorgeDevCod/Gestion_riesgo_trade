@@ -52,6 +52,7 @@ const strategyConfigs = {
         takeProfit2: 24,
         winRate: 55,
         rrRatio: 2.2,
+        timeframes: "4H → 1H → 15M"
     },
     "ema-macd": {
         name: "EMA + MACD",
@@ -61,6 +62,7 @@ const strategyConfigs = {
         takeProfit2: 22,
         winRate: 62,
         rrRatio: 2.4,
+        timeframes: "4H → 1H → 15M → 5M"
     },
     "contra-tendencia": {
         name: "Contra-Tendencia",
@@ -70,6 +72,7 @@ const strategyConfigs = {
         takeProfit2: 28,
         winRate: 48,
         rrRatio: 2.8,
+        timeframes: "4H → 1H → 15M → 5M"
     },
     extremos: {
         name: "Trades Extremos",
@@ -79,52 +82,56 @@ const strategyConfigs = {
         takeProfit2: 25,
         winRate: 65,
         rrRatio: 2.6,
-    },
+        timeframes: "4H → 1H → 15M"
+    }
 };
 
 // Setup checklists para cada estrategia
 const setupChecklists = {
     regulares: [
-        "Estructura mínimos/máximos en dirección correcta (4H)",
-        "Williams %R en zona objetivo y moviéndose correctamente",
-        "MACD cambiando dirección + histograma cambiando color",
-        "Precio en/cerca de nivel clave (soporte/resistencia)",
-        "Volumen > 1.2x promedio en vela de señal",
-        "Confirmación 15M: Mecha larga >4 pips + cuerpo pequeño",
-        "Williams %R 15M en zona -20 a -40",
-        "Incremento volumen acompañando precio",
+        "📊 4H: Estructura alcista/bajista (mínimos/máximos en dirección correcta)",
+        "📈 4H: Williams %R saliendo de extremos (-80↗ compra, -20↘ venta)",
+        "🟢 4H: MACD histograma cambiando color (verde↗, rojo↘)",
+        "🎯 1H: Precio en nivel clave (soporte/resistencia ±3 pips)",
+        "📊 1H: Volumen >1.2x promedio en vela de señal",
+        "✅ 15M: Confirmación con mecha larga >4 pips + cuerpo pequeño",
+        "📈 15M: Williams %R en zona -20 a -40 (zona objetivo)",
+        "📊 15M: Volumen acompaña movimiento direccional"
     ],
     "ema-macd": [
-        "EMA 21 cruza EMA 50 con separación >3 pips",
-        "MACD: Línea cruza por encima/debajo de señal",
-        "Precio en zona soporte/resistencia clave",
-        "Williams %R saliendo de extremo hacia objetivo",
-        "Histograma MACD creciendo/decreciendo 2+ velas",
-        "Precio manteniéndose respecto EMA 21 por 2+ velas",
-        "Vela confirmando EMA y MACD en misma dirección",
+        "📊 4H: MACD sin divergencia bajista + histograma creciendo 2+ velas",
+        "🎯 4H: Precio supera +2 resistencias/soportes clave",
+        "📍 4H: En zona soporte técnico o retesteo de nivel roto",
+        "🔄 1H: EMA 21 cruza EMA 50 con separación >3 pips",
+        "📈 1H: MACD líneas por cruzar hacia dirección del trade",
+        "🎯 1H: Precio rebota/rompe en zona soporte/resistencia",
+        "📊 1H: Precio encima/debajo EMA 21 por 3+ velas",
+        "🟢 15M: Histograma MACD creciendo/decreciendo 2+ velas",
+        "📈 15M: Precio encima/debajo ambas EMAs por 2+ velas",
+        "✅ 5M: Vela rebota en EMA con histograma confirmando"
     ],
     "contra-tendencia": [
-        "Tendencia fuerte 3+ días consecutivos (4H)",
-        "Williams %R en extremos 4+ velas 4H (-95/-85 o -15/-5)",
-        "Precio alejado 30+ pips de EMA 21 en 4H",
-        "Divergencia clara MACD 4H",
-        "Precio llegando a soporte/resistencia extrema ±3 pips",
-        "Williams %R 15M divergencia clara",
-        "Vela rechazo: mecha 6-7+ pips + cuerpo direccional",
-        "Volumen rechazo 1.8x promedio",
-        "2+ velas consecutivas cuerpos 4+ pips (5M)",
-        "Cierre 50%+ rango vela rechazo",
+        "📊 4H: Tendencia fuerte 3+ días consecutivos",
+        "📈 4H: Williams %R en extremos 4+ velas (-95/-85 o -15/-5)",
+        "📏 4H: Precio alejado 30+ pips de EMA 21",
+        "🔄 4H: Divergencia clara MACD visible",
+        "🎯 Precio llegando a soporte/resistencia extrema ±3 pips",
+        "📈 15M: Williams %R divergencia clara confirmada",
+        "🕯️ 15M: Vela rechazo: mecha 6-7+ pips + cuerpo direccional",
+        "📊 15M: Volumen rechazo 1.8x promedio",
+        "✅ 5M: 2+ velas consecutivas cuerpos 4+ pips",
+        "🎯 5M: Cierre 50%+ rango vela rechazo"
     ],
     extremos: [
-        "Precio en zona crítica histórica ±5 pips",
-        "Williams %R extremo 4H (-95/-85 o -15/-5)",
-        "Mecha institucional 4H: 8+ pips tras movimiento 35+ pips",
-        "Volumen explosivo: 4H 2x + 1H 1.8x promedio",
-        "EMA confluencia: Precio superando/cayendo EMA 21/50",
-        "MACD triple divergencia: 4H, 1H y 15M",
-        "Confirmación 15M: Rebote/rechazo EMA o nivel",
-        "Mínimo 7 factores de confluencia cumplidos",
-    ],
+        "🎯 Precio en zona crítica histórica ±5 pips",
+        "📈 4H: Williams %R extremo (-95/-85 o -15/-5)",
+        "🕯️ 4H: Mecha institucional 8+ pips tras movimiento 35+ pips",
+        "📊 Volumen explosivo: 4H (2x) + 1H (1.8x) promedio",
+        "🔄 EMA: Precio superando/cayendo EMA 21/50 con fuerza",
+        "📈 MACD: Triple divergencia (4H, 1H, 15M)",
+        "✅ 15M: Rebote/rechazo confirmado en EMA o nivel",
+        "🎯 Mínimo 7 factores de confluencia cumplidos"
+    ]
 };
 
 // Configurar proveedor de autenticación de Google
@@ -898,7 +905,8 @@ function updateQuickStrategyInfo( strategy ) {
         'strategyWinRateQuick': `${config.winRate}%`,
         'strategyRRQuick': `${config.rrRatio}:1`,
         'strategyRiskQuick': `${config.riskPercent}%`,
-        'optimalContractsQuick': optimalContracts.toString()
+        'optimalContractsQuick': optimalContracts.toString(),
+        'strategyTimeframesQuick': config.timeframes || "Multiple TF"
     };
 
     Object.entries( elements ).forEach( ( [ id, value ] ) => {
@@ -962,6 +970,7 @@ function renderDynamicChecklist( strategy ) {
     if ( !container ) return;
 
     const checklist = setupChecklists[ strategy ] || [];
+    const config = strategyConfigs[ strategy ];
 
     if ( checklist.length === 0 ) {
         container.innerHTML = `
@@ -973,12 +982,15 @@ function renderDynamicChecklist( strategy ) {
     }
 
     const checklistHTML = `
-        <div class="space-y-3">
+        <div class="space-y-4">
             <div class="flex justify-between items-center mb-4">
-                <h4 class="text-lg font-semibold text-white">✅ Setup Verification</h4>
+                <div>
+                    <h4 class="text-lg font-semibold text-white">✅ ${config?.name || 'Setup'} Verification</h4>
+                    <p class="text-xs text-gray-400 mt-1">📊 ${config?.timeframes || 'Multiple TF'}</p>
+                </div>
                 <div class="flex space-x-2">
                     <button onclick="toggleAllCheckboxes(true)" 
-                            class="text-xs px-2 py-1 bg-green-700 hover:bg-green-600 rounded transition-colors">
+                            class="text-xs px-4 py-1 bg-green-700 hover:bg-green-600 rounded transition-colors">
                         Todo
                     </button>
                     <button onclick="toggleAllCheckboxes(false)" 
@@ -988,25 +1000,33 @@ function renderDynamicChecklist( strategy ) {
                 </div>
             </div>
             
-            <div class="space-y-2 max-h-64 overflow-y-auto">
+            <div class="space-y-2 max-h-72 overflow-y-auto pr-2">
                 ${checklist.map( ( item, index ) => `
-                    <div class="flex items-start space-x-2 p-2 bg-gray-800/50 rounded hover:bg-gray-800 transition-colors">
+                    <div class="flex items-start space-x-3 p-2 bg-gray-800/50 rounded-lg hover:bg-gray-800 transition-colors group">
                         <input type="checkbox" 
                                id="dynamic_check_${index}" 
-                               class="mt-1 rounded text-gold focus:ring-gold focus:ring-1 h-4 w-4 flex-shrink-0" 
+                               class="mt-0.5 rounded text-gold focus:ring-gold focus:ring-1 h-4 w-4 flex-shrink-0" 
                                onchange="updateDynamicSetupScore()">
                         <label for="dynamic_check_${index}" 
-                               class="text-xs flex-1 cursor-pointer hover:text-gold transition-colors leading-relaxed">
+                               class="text-sm flex-1 cursor-pointer hover:text-gold transition-colors leading-relaxed group-hover:text-gray-200">
                             ${item}
                         </label>
                     </div>
                 `).join( '' )}
+            </div>
+
+            <div class="mt-4 p-3 bg-gray-800/30 rounded-lg border-l-4 border-gold/50">
+                <p class="text-xs text-gray-400">
+                    💡 <strong>Tip:</strong> Para ${config?.name || 'esta estrategia'}, 
+                    necesitas al menos 70% de los factores para ejecutar con seguridad.
+                </p>
             </div>
         </div>
     `;
 
     container.innerHTML = checklistHTML;
 }
+
 
 // Función actualizada para el listener del selector de estrategia
 function setupImprovedStrategyListeners() {
@@ -1084,6 +1104,11 @@ function updateDynamicSetupScore() {
     const totalCount = checkboxes.length;
     const score = Math.round( ( checkedCount / totalCount ) * 100 );
 
+    // Obtener estrategia actual
+    const strategySelector = document.getElementById( 'signalStrategySelect' );
+    const currentStrategy = strategySelector?.value || 'regulares';
+    const config = strategyConfigs[ currentStrategy ];
+
     // Actualizar elementos de score
     const scoreElement = document.getElementById( "scoreValue" );
     const scoreBar = document.getElementById( "scoreBar" );
@@ -1099,36 +1124,36 @@ function updateDynamicSetupScore() {
         scoreBar.style.width = `${score}%`;
 
         let barClass, scoreClass;
-        if ( score >= 80 ) {
-            barClass = "h-4 rounded-full bg-profit transition-all duration-500";
-            scoreClass = "text-4xl font-bold text-profit mb-2";
-        } else if ( score >= 60 ) {
-            barClass = "h-4 rounded-full bg-gold transition-all duration-500";
-            scoreClass = "text-4xl font-bold text-gold mb-2";
+        if ( score >= 85 ) {
+            barClass = "h-4 rounded-full bg-green-500 transition-all duration-500";
+            scoreClass = "text-4xl font-bold text-green-400 mb-2";
+        } else if ( score >= 70 ) {
+            barClass = "h-4 rounded-full bg-yellow-500 transition-all duration-500";
+            scoreClass = "text-4xl font-bold text-yellow-400 mb-2";
         } else {
-            barClass = "h-4 rounded-full bg-loss transition-all duration-500";
-            scoreClass = "text-4xl font-bold text-loss mb-2";
+            barClass = "h-4 rounded-full bg-red-500 transition-all duration-500";
+            scoreClass = "text-4xl font-bold text-red-400 mb-2";
         }
 
         scoreBar.className = barClass;
         if ( scoreElement ) scoreElement.className = scoreClass;
     }
 
-    // Actualizar TODOS los botones ejecutar (tanto del HTML como del JS)
+    // Actualizar botones ejecutar
     const executeButtons = document.querySelectorAll( '#executeSetupBtn, [data-action="execute"]' );
     executeButtons.forEach( btn => {
         const isEnabled = score >= 70;
         btn.disabled = !isEnabled;
 
         if ( isEnabled ) {
-            btn.className = "flex-1 bg-profit hover:bg-green-600 px-4 py-3 rounded-lg font-medium transition-all duration-200 hover:scale-[1.02] shadow-lg";
+            btn.className = "flex-1 bg-green-600 hover:bg-green-500 px-4 py-3 rounded-lg font-medium transition-all duration-200 hover:scale-[1.02] shadow-lg";
             btn.innerHTML = `
                 <span class="flex items-center justify-center space-x-2">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
                               d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                     </svg>
-                    <span>✅ Ejecutar Trade (${score}%)</span>
+                    <span>✅ Ejecutar ${config?.name || 'Trade'} (${score}%)</span>
                 </span>
             `;
         } else {
@@ -1145,35 +1170,44 @@ function updateDynamicSetupScore() {
         }
     } );
 
-    // Feedback mejorado
+    // Feedback específico por estrategia
     if ( feedbackElement ) {
         let feedbackText, feedbackClass;
 
         if ( score >= 90 ) {
-            feedbackText = "🎯 Setup excepcional - Probabilidad muy alta de éxito";
-            feedbackClass = "text-profit font-bold animate-pulse";
-        } else if ( score >= 80 ) {
-            feedbackText = "✅ Setup sólido - Alta probabilidad de éxito";
-            feedbackClass = "text-profit font-semibold";
+            feedbackText = `🎯 ${config?.name || 'Setup'} excepcional - Ejecutar inmediatamente`;
+            feedbackClass = "text-green-400 font-bold animate-pulse";
+        } else if ( score >= 85 ) {
+            feedbackText = `✅ ${config?.name || 'Setup'} sólido - Alta probabilidad R:R ${config?.rrRatio || '2.2'}:1`;
+            feedbackClass = "text-green-400 font-semibold";
         } else if ( score >= 70 ) {
-            feedbackText = "⚠️ Setup aceptable - Probabilidad media, proceder con cautela";
-            feedbackClass = "text-gold font-medium";
+            feedbackText = `⚠️ ${config?.name || 'Setup'} aceptable - Proceder con SL ${config?.stopLoss || '6'} pips`;
+            feedbackClass = "text-yellow-400 font-medium";
         } else if ( score >= 50 ) {
-            feedbackText = "⚡ Setup débil - Considera esperar mejores condiciones";
+            feedbackText = `⚡ Setup débil para ${config?.name || 'esta estrategia'} - Esperar más confluencias`;
             feedbackClass = "text-orange-400";
         } else {
-            feedbackText = "❌ Setup insuficiente - No recomendado para ejecución";
-            feedbackClass = "text-loss font-medium";
+            feedbackText = `❌ ${config?.name || 'Setup'} insuficiente - No cumple criterios mínimos`;
+            feedbackClass = "text-red-400 font-medium";
         }
 
-        feedbackElement.innerHTML = `<p class="${feedbackClass} text-sm">${feedbackText}</p>`;
+        feedbackElement.innerHTML = `
+            <div class="text-center">
+                <p class="${feedbackClass} text-sm mb-2">${feedbackText}</p>
+                <p class="text-xs text-gray-500">
+                    📊 Factores: ${checkedCount}/${totalCount} | 
+                    📈 TF: ${config?.timeframes || 'Multiple'} | 
+                    💰 Riesgo: ${config?.riskPercent || '2.5'}%
+                </p>
+            </div>
+        `;
         feedbackElement.classList.remove( "hidden" );
     }
 
     // Auto-save del estado
     saveSetupState();
 
-    console.log( `Setup Score actualizado: ${score}% (${checkedCount}/${totalCount})` );
+    console.log( `${config?.name || 'Setup'} Score: ${score}% (${checkedCount}/${totalCount})` );
 }
 
 
@@ -1913,11 +1947,11 @@ function addDynamicChecklist( strategy, container ) {
                 <h4 class="text-lg font-semibold text-white">✅ Setup Verification</h4>
                 <div class="flex space-x-2">
                     <button onclick="toggleAllCheckboxes(true)" 
-                            class="text-sm px-3 py-1 bg-green-700 hover:bg-green-600 rounded transition-colors">
+                            class="text-sm px-5 py-2 bg-green-700 hover:bg-green-600 rounded transition-colors">
                         Marcar Todo
                     </button>
                     <button onclick="toggleAllCheckboxes(false)" 
-                            class="text-sm px-3 py-1 bg-red-700 hover:bg-red-600 rounded transition-colors">
+                            class="text-sm px-2 py-2 bg-red-700 hover:bg-red-600 rounded transition-colors">
                         Limpiar
                     </button>
                 </div>
