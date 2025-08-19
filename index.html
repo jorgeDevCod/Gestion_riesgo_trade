@@ -1208,11 +1208,22 @@
 
     <!-- Templates para Estrategias (ocultos, se usan con JavaScript) -->
     <div id="strategyTemplates" class="hidden">
-        <!-- Template Trades Regulares -->
+        <!-- Template Trades Regulares ACTUALIZADO -->
         <div id="template-regulares" class="strategy-template">
             <h4 class="text-lg font-semibold text-blue-400 mb-4">📈 ESTRATEGIA 1: Trades Regulares (PRINCIPAL)</h4>
+        
+            <!-- FILTROS PREVENTIVOS - NUEVO -->
+            <div class="mb-4 bg-red-900 bg-opacity-30 p-3 rounded-lg border border-red-500">
+                <h5 class="font-semibold text-red-400 mb-2 text-sm">🚫 NO OPERAR CUANDO:</h5>
+                <ul class="text-xs space-y-1">
+                    <li>• MACD 4H/1H contradictorio al trade (direcciones opuestas)</li>
+                    <li>• Williams %R 1H indeciso (-30/-70) sin dirección clara</li>
+                    <li>• Volumen 15M <50% promedio (falta de participación)</li>
+                </ul>
+            </div>
+        
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <!-- COMPRAS -->
+                <!-- COMPRAS ACTUALIZADO -->
                 <div class="bg-green-900 bg-opacity-20 p-4 rounded-lg border border-green-500">
                     <h5 class="font-semibold text-green-400 mb-3">🟢 SETUP COMPRAS</h5>
                     <div class="space-y-3 text-sm">
@@ -1221,29 +1232,36 @@
                             <ul class="mt-1 space-y-1 text-xs">
                                 <li>• Precio en estructura alcista (mín/máx ascendentes)</li>
                                 <li>• Williams %R saliendo de zona -80 hacia arriba</li>
-                                <li>• MACD con histograma cambiando a verde</li>
+                                <li>• MACD histograma cambiando a verde O en verde</li>
                             </ul>
                         </div>
                         <div>
-                            <h6 class="font-medium text-green-300">PASO 2 - Señal 1H (2 de 3):</h6>
+                            <h6 class="font-medium text-green-300">PASO 2 - Señal 1H (TODAS):</h6>
                             <ul class="mt-1 space-y-1 text-xs">
                                 <li>• Precio rebotando en soporte clave O rompiendo resistencia</li>
-                                <li>• Williams %R entre -90 y -60, moviéndose hacia arriba</li>
-                                <li>• Volumen 1.2x superior al promedio</li>
+                                <li>• Williams %R entre -80 y -60 hacia arriba con volumen</li>
                             </ul>
                         </div>
                         <div>
                             <h6 class="font-medium text-green-300">PASO 3 - Confirmación 15M (2 de 3):</h6>
                             <ul class="mt-1 space-y-1 text-xs">
                                 <li>• Rechazo con mecha larga (4+ pips) + cuerpo pequeño</li>
-                                <li>• Williams %R entre -20 y -40</li>
-                                <li>• Volumen acompañando la subida</li>
+                                <li>• Williams %R entre -60 y -40, moviéndose hacia arriba</li>
+                                <li>• EMA 21 con pendiente alcista O precio rebota en EMA 21</li>
                             </ul>
+                        </div>
+                        <div>
+                            <h6 class="font-medium text-orange-300">TIMING ESPECIAL 5M (<7 pips):</h6>
+                                    <ul class="mt-1 space-y-1 text-xs">
+                                        <li>• Líneas señal e histograma a favor del trade</li>
+                                        <li>• EMA50 cruza debajo de EMA21</li>
+                                        <li>• Entrada: vela 5M rebotando en EMA21</li>
+                                    </ul>
                         </div>
                     </div>
                 </div>
-
-                <!-- VENTAS -->
+        
+                <!-- VENTAS ACTUALIZADO -->
                 <div class="bg-red-900 bg-opacity-20 p-4 rounded-lg border border-red-500">
                     <h5 class="font-semibold text-red-400 mb-3">🔴 SETUP VENTAS</h5>
                     <div class="space-y-3 text-sm">
@@ -1252,30 +1270,38 @@
                             <ul class="mt-1 space-y-1 text-xs">
                                 <li>• Precio en estructura bajista (máx/mín descendentes)</li>
                                 <li>• Williams %R saliendo de zona -20 hacia abajo</li>
-                                <li>• MACD con histograma cambiando a rojo</li>
+                                <li>• MACD histograma cambiando a rojo O en rojo</li>
                             </ul>
                         </div>
                         <div>
-                            <h6 class="font-medium text-red-300">PASO 2 - Señal 1H (2 de 3):</h6>
+                            <h6 class="font-medium text-red-300">PASO 2 - Señal 1H (TODAS):</h6>
                             <ul class="mt-1 space-y-1 text-xs">
                                 <li>• Precio rechazando resistencia clave O rompiendo soporte</li>
-                                <li>• Williams %R entre -20 y -40, moviéndose hacia abajo</li>
-                                <li>• Volumen 1.2x superior al promedio</li>
+                                <li>• Williams %R inferior a -10 o -30, hacia abajo con volumen</li>
                             </ul>
                         </div>
                         <div>
                             <h6 class="font-medium text-red-300">PASO 3 - Confirmación 15M (2 de 3):</h6>
                             <ul class="mt-1 space-y-1 text-xs">
                                 <li>• Rechazo con mecha superior (4+ pips) + cuerpo pequeño</li>
-                                <li>• Williams %R entre -20 y -40</li>
-                                <li>• Volumen acompañando la bajada</li>
+                                <li>• Williams %R entre -60 y -40, moviéndose hacia abajo</li>
+                                <li>• EMA 21 con pendiente bajista O precio rechaza desde EMA 21</li>
                             </ul>
+                        </div>
+                        <div>
+                            <h6 class="font-medium text-orange-300">TIMING ESPECIAL 5M (<7 pips):</h6>
+                                    <ul class="mt-1 space-y-1 text-xs">
+                                        <li>• Líneas señal e histograma a favor del trade</li>
+                                        <li>• EMA50 cruza encima de EMA21</li>
+                                        <li>• Entrada: vela 5M rechazando desde EMA21</li>
+                                    </ul>
                         </div>
                     </div>
                 </div>
             </div>
+        
             <div class="mt-4 bg-blue-900 bg-opacity-20 p-3 rounded-lg border border-blue-400">
-                <p class="text-sm"><strong>ENTRADA:</strong> En la siguiente vela 15M después de confirmación</p>
+                <p class="text-sm"><strong>ENTRADA:</strong> Siguiente vela 15M después de confirmación (o 5M si <7 pips)</p>
             </div>
         </div>
 

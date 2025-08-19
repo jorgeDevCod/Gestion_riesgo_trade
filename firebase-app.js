@@ -45,14 +45,13 @@ let editingTradeId = null;
 // Configuraciones de estrategias
 const strategyConfigs = {
     regulares: {
-        name: "Trades Regulares",
+        name: "Trades Regulares (Mejorada)",
         riskPercent: 2.0,
         stopLoss: 6,
         takeProfit1: 13,
         takeProfit2: 24,
-        winRate: 55,
-        rrRatio: 2.2,
-        timeframes: "4H → 1H → 15M"
+        winRate: 65,  // Actualizado debido a mejor precisión
+        timeframes: "4H → 1H → 15M (→ 5M especial)"
     },
     "ema-macd": {
         name: "EMA + MACD",
@@ -91,12 +90,15 @@ const setupChecklists = {
     regulares: [
         "📊 4H: Estructura alcista/bajista (mínimos/máximos en dirección correcta)",
         "📈 4H: Williams %R saliendo de extremos (-80↗ compra, -20↘ venta)",
-        "🟢 4H: MACD histograma cambiando color (verde↗, rojo↘)",
-        "🎯 1H: Precio en nivel clave (soporte/resistencia ±3 pips)",
-        "📊 1H: Volumen >1.2x promedio en vela de señal",
-        "✅ 15M: Confirmación con mecha larga >4 pips + cuerpo pequeño",
-        "📈 15M: Williams %R en zona -20 a -40 (zona objetivo)",
-        "📊 15M: Volumen acompaña movimiento direccional"
+        "🟢 4H: MACD histograma cambiando a verde/rojo O ya en verde/rojo",
+        "🎯 1H: Precio en nivel clave (soporte rebote O resistencia ruptura ±3 pips)",
+        "📈 1H: Williams %R rango correcto (-80/-60 compra, <-10/-30 venta)",
+        "📊 1H: Williams %R CON volumen direccional confirmando",
+        "✅ 15M: Mecha larga >4 pips + cuerpo pequeño (rechazo/rebote)",
+        "📈 15M: Williams %R en zona objetivo (-60/-40) moviéndose correctamente",
+        "📊 15M: EMA 21 pendiente correcta O precio rebota/rechaza en EMA 21",
+        "⚡ 5M: MACD líneas e histograma favor del trade (si usar timing 5M)",
+        "🔄 5M: EMA50 vs EMA21 posición correcta + entrada en rebote/rechazo EMA21"
     ],
     "ema-macd": [
         "📊 4H: MACD sin divergencia bajista + histograma creciendo 2+ velas",
@@ -1092,9 +1094,9 @@ function updateScoreDisplay() {
             const scoreHTML = `
                 <div id="setupScore" class="mt-6 p-4 bg-gray-800 rounded-lg border border-gray-700">
                     <div class="text-center mb-4">
-                        <div id="scoreValue" class="text-4xl font-bold text-gray-400 mb-2">0%</div>
-                        <div class="w-full bg-gray-700 rounded-full h-4 mb-2">
-                            <div id="scoreBar" class="h-4 rounded-full bg-gray-600 transition-all duration-500" style="width: 0%"></div>
+                        <div id="scoreValue" class="text-3xl font-bold text-gray-400 mb-2">0%</div>
+                        <div class="w-full bg-gray-700 rounded-full h-2 mb-2">
+                            <div id="scoreBar" class="h-2 rounded-full bg-gray-600 transition-all duration-500" style="width: 0%"></div>
                         </div>
                         <div id="setupFeedback" class="text-sm text-gray-400 hidden"></div>
                     </div>
