@@ -65,14 +65,14 @@ const strategyConfigs = {
         timeframes: "4H → 1H → 15M → 5M"
     },
     "contra-tendencia": {
-        name: "Contra-Tendencia",
+        name: "Contra-Tendencia Flexible", // Nombre actualizado
         riskPercent: 2.5,
         stopLoss: 6,
         takeProfit1: 15,
-        takeProfit2: 28,
+        takeProfit2: 28, // TP2 extendible +10 con ruptura EMA
         winRate: 48,
         rrRatio: 2.8,
-        timeframes: "4H → 1H → 15M → 5M"
+        timeframes: "4H → 1H → 15M → 5M" // Actualizado para reflejar todos los TF
     },
     extremos: {
         name: "Trades Extremos",
@@ -111,16 +111,30 @@ const setupChecklists = {
         "✅ 5M: Vela rebota en EMA con histograma confirmando"
     ],
     "contra-tendencia": [
-        "📊 4H: Tendencia fuerte 3+ días consecutivos",
-        "📈 4H: Williams %R en extremos 4+ velas (-95/-85 o -15/-5)",
-        "📏 4H: Precio alejado 30+ pips de EMA 21",
-        "🔄 4H: Divergencia clara MACD visible",
-        "🎯 Precio llegando a soporte/resistencia extrema ±3 pips",
-        "📈 15M: Williams %R divergencia clara confirmada",
-        "🕯️ 15M: Vela rechazo: mecha 6-7+ pips + cuerpo direccional",
-        "📊 15M: Volumen rechazo 1.8x promedio",
-        "✅ 5M: 2+ velas consecutivas cuerpos 4+ pips",
-        "🎯 5M: Cierre 50%+ rango vela rechazo"
+        // CONTEXTO 4H SIMPLIFICADO - Solo lo esencial
+        "📊 4H: Tendencia clara 24H+ (EMA 21 vs EMA 50 correcta)",
+        "🎯 4H: Precio en zona crítica S/R fuerte identificada",
+
+        // FILTROS 1H - Los más importantes
+        "🔄 1H: MACD divergencia confirmada O línea señal aplanándose/girando",
+        "🕯️ 1H: Mechas rechazo 3+ pips en soporte O 4+ pips en resistencia",
+
+        // PRE-SETUP 15M - Factores clave (3 de 4 requerido)
+        "📈 15M: Williams %R extremos (<-75 compra, >-25 venta) por 2+ velas",
+        "🎯 15M: Nivel crítico retestado 2+ veces (volumen direccional correcto)",
+        "🕯️ 15M: Patrón vela válido (martillo/doji/mecha >50% cuerpo)",
+        "🟢 15M: MACD líneas cambiando dirección O divergencia confirmada",
+
+        // TRIGGER 5M - Entrada definitiva (2 de 3 requerido)
+        "📈 5M: Williams girando desde extremo (<-80→>-70 O >-20→<-30)",
+        "🔥 5M: Volumen explosivo >1.3x promedio últimas 10 velas",
+        "✅ 5M: MACD líneas e histograma en dirección del trade",
+
+        // SEÑALES DE REFUERZO ADICIONAL (opcional pero valiosas)
+        "💪 15M: Williams también girando en misma dirección",
+        "🚀 5M: Ruptura EMA 21 con volumen (extender TP2 +10 pips)",
+        "⚡ 1H: MACD cruce confirmado (incrementar posición 50%)",
+        "🎯 15M: Divergencia Williams en retesteo vs precio más extremo"
     ],
     extremos: [
         "🎯 Precio en zona crítica histórica ±5 pips",
