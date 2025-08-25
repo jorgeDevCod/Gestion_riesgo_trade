@@ -45,7 +45,7 @@ let editingTradeId = null;
 // Configuraciones de estrategias
 const strategyConfigs = {
     regulares: {
-        name: "Trades Regulares (Mejorada)",
+        name: "Trades Regulares",
         riskPercent: 2.0,
         stopLoss: 6,
         takeProfit1: 13,
@@ -1165,10 +1165,6 @@ function updateDynamicSetupScore() {
             btn.className = "flex-1 bg-green-600 hover:bg-green-500 px-4 py-3 rounded-lg font-medium transition-all duration-200 hover:scale-[1.02] shadow-lg";
             btn.innerHTML = `
                 <span class="flex items-center justify-center space-x-2">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                              d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                    </svg>
                     <span>✅ Ejecutar ${config?.name || 'Trade'} (${score}%)</span>
                 </span>
             `;
@@ -1202,8 +1198,11 @@ function updateDynamicSetupScore() {
         } else if ( score >= 50 ) {
             feedbackText = `⚡ Setup débil para ${config?.name || 'esta estrategia'} - Esperar más confluencias`;
             feedbackClass = "text-orange-400";
+        } else if ( score === 0 ) {
+            feedbackText = `❌ ${config?.name || 'Setup'} - Solo ingresar si cumple + 70% de señales`;
+            feedbackClass = "text-red-400 font-medium";
         } else {
-            feedbackText = `❌ ${config?.name || 'Setup'} insuficiente - No cumple criterios mínimos`;
+            feedbackText = `❌ ${config?.name || 'Setup'}: insuficiente. No cumple criterios mínimos`;
             feedbackClass = "text-red-400 font-medium";
         }
 
