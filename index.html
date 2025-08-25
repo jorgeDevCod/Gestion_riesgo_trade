@@ -126,9 +126,9 @@
     <nav class="bg-trading-card border-b border-gray-700">
         <div class="container mx-auto">
             <div class="flex space-x-0 overflow-x-auto">
-                <button class="tab-btn px-3 sm:px-6 py-2 sm:py-3 font-medium border-b-2 border-gold text-gold whitespace-nowrap text-xs sm:text-base" data-tab="dashboard">Dashboard</button>
+                <button class="tab-btn px-3 sm:px-6 py-2 sm:py-3 font-medium border-b-2 border-transparent hover:text-gold whitespace-nowrap text-xs sm:text-base" data-tab="dashboard">Dashboard</button>
                 <button class="tab-btn px-3 sm:px-6 py-2 sm:py-3 font-medium border-b-2 border-transparent hover:text-gold whitespace-nowrap text-xs sm:text-base" data-tab="capital">Capital & Riesgo</button>
-                <button class="tab-btn px-3 sm:px-6 py-2 sm:py-3 font-medium border-b-2 border-transparent hover:text-gold whitespace-nowrap text-xs sm:text-base" data-tab="signals">Señales y setup</button>
+                <button class="tab-btn px-3 sm:px-6 py-2 sm:py-3 font-medium border-b-2 border-gold text-gold whitespace-nowrap text-xs sm:text-base" data-tab="signals">Señales y setup</button>
                 <button class="tab-btn px-3 sm:px-6 py-2 sm:py-3 font-medium border-b-2 border-transparent hover:text-gold whitespace-nowrap text-xs sm:text-base" data-tab="trades">Registro Trades</button>
                 <button class="tab-btn px-3 sm:px-6 py-2 sm:py-3 font-medium border-b-2 border-transparent hover:text-gold whitespace-nowrap text-xs sm:text-base" data-tab="trade-management">Gestión Trades</button>
                 <button class="tab-btn px-3 sm:px-6 py-2 sm:py-3 font-medium border-b-2 border-transparent hover:text-gold whitespace-nowrap text-xs sm:text-base" data-tab="discipline">Disciplina</button>
@@ -139,7 +139,7 @@
     <!-- Main Content -->
     <main class="container mx-auto p-2 sm:p-4">
         <!-- Dashboard Tab -->
-        <div id="dashboard" class="tab-content">
+        <div id="dashboard" class="tab-content hidden">
             <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-2 sm:gap-4 mb-4 sm:mb-8">
                 <!-- Capital Actual -->
                 <div class="bg-trading-card p-3 sm:p-4 rounded-lg border border-gray-700">
@@ -444,7 +444,7 @@
         </div>
 
         <!-- Check y estrategias Tab -->
-        <section id="signals" class="tab-content hidden p-6">
+        <section id="signals" class="tab-content p-6">
             <!-- PRIMERA FILA: Setup Checker + Strategy Cards (Compra/Venta) -->
             <div class="grid grid-cols-1 lg:grid-cols-[42%_58%] gap-6 mb-6">
                 <div class="lg:col-span-1">
