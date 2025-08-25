@@ -1202,7 +1202,7 @@ function updateDynamicSetupScore() {
             feedbackText = `❌ ${config?.name || 'Setup'} - Solo ingresar si cumple + 70% de señales`;
             feedbackClass = "text-red-400 font-medium";
         } else {
-            feedbackText = `❌ ${config?.name || 'Setup'}: insuficiente. No cumple criterios mínimos`;
+            feedbackText = `❌ insuficiente( Continuar buscando señales). No entrar con menos de 70%`;
             feedbackClass = "text-red-400 font-medium";
         }
 
