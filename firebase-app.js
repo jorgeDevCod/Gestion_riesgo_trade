@@ -88,65 +88,66 @@ const strategyConfigs = {
 // Setup checklists para cada estrategia
 const setupChecklists = {
     regulares: [
-        "📊 4H: Estructura alcista/bajista (mínimos/máximos en dirección correcta)",
-        "📈 4H: Williams %R saliendo de extremos (-80↗ compra, -20↘ venta)",
-        "🟢 4H: MACD histograma cambiando a verde/rojo O ya en verde/rojo",
-        "🎯 1H: Precio en nivel clave (soporte rebote O resistencia ruptura ±3 pips)",
-        "📈 1H: Williams %R rango correcto (-80/-60 compra, <-10/-30 venta)",
-        "📊 1H: Williams %R CON volumen direccional confirmando",
-        "✅ 15M: Mecha larga >4 pips + cuerpo pequeño (rechazo/rebote)",
-        "📈 15M: Williams %R en zona objetivo (-60/-40) moviéndose correctamente",
-        "📊 15M: EMA 21 pendiente correcta O precio rebota/rechaza en EMA 21",
-        "⚡ 5M: MACD líneas e histograma favor del trade (si usar timing 5M)",
-        "🔄 5M: EMA50 vs EMA21 posición correcta + entrada en rebote/rechazo EMA21"
+        "4H: Estructura alcista/bajista (mínimos/máximos en dirección correcta)",
+        "4H: Williams %R saliendo de extremos (-80↗ compra, -20↘ venta)",
+        "4H: MACD histograma cambiando a verde/rojo O ya en verde/rojo",
+        "H1: Precio en nivel clave (soporte rebote O resistencia ruptura ±3 pips)",
+        "H1: Williams %R rango correcto (-80/-60 compra, <-10/-30 venta)",
+        "H1: Williams %R CON volumen direccional confirmando",
+        "15M: Mecha larga >4 pips + cuerpo pequeño (rechazo/rebote)",
+        "15M: Williams %R en zona objetivo (-60/-40) moviéndose a favor",
+        "5M: compras si EMA21 > EMA50; Ventas si EMA21 < EMA50",
+        "5M: Precio rebota/rechaza en EMA 21",
+        "5M: MACD líneas e histograma favor del trade",
+        
     ],
     "ema-macd": [
-        "📊 4H: MACD sin divergencia bajista + histograma creciendo 2+ velas",
-        "🎯 4H: Precio supera +2 resistencias/soportes clave",
-        "📍 4H: En zona soporte técnico o retesteo de nivel roto",
-        "🔄 1H: EMA 21 cruza EMA 50 con separación >3 pips",
-        "📈 1H: MACD líneas por cruzar hacia dirección del trade",
-        "🎯 1H: Precio rebota/rompe en zona soporte/resistencia",
-        "📊 1H: Precio encima/debajo EMA 21 por 3+ velas",
-        "🟢 15M: Histograma MACD creciendo/decreciendo 2+ velas",
-        "📈 15M: Precio encima/debajo ambas EMAs por 2+ velas",
-        "✅ 5M: Vela rebota en EMA con histograma confirmando"
+        "4H: MACD sin divergencia bajista + histograma creciendo 2+ velas",
+        "4H: Precio supera +2 resistencias/soportes clave",
+        "4H: En zona soporte técnico o retesteo de nivel roto",
+        "H1: EMA 21 cruza EMA 50 con separación >3 pips",
+        "H1: MACD líneas por cruzar hacia dirección del trade",
+        "H1: Precio rebota/rompe en zona soporte/resistencia",
+        "H1: Precio encima/debajo EMA 21 por 3+ velas",
+        "15M: Histograma MACD creciendo/decreciendo 2+ velas",
+        "15M: Precio encima/debajo ambas EMAs por 2+ velas",
+        "5M: Vela rebota en EMA con histograma confirmando"
     ],
     "contra-tendencia": [
         // CONTEXTO 4H SIMPLIFICADO - Solo lo esencial
-        "📊 4H: Tendencia clara 24H+ (EMA 21 vs EMA 50 correcta)",
-        "🎯 4H: Precio en zona crítica S/R fuerte identificada",
+        "4H: Tendencia clara 24H+ (EMA 21 vs EMA 50 correcta)",
+        "4H: Precio en zona crítica S/R fuerte identificada",
 
         // FILTROS 1H - Los más importantes
-        "🔄 1H: MACD divergencia confirmada O línea señal aplanándose/girando",
-        "🕯️ 1H: Mechas rechazo 3+ pips en soporte O 4+ pips en resistencia",
+        "H1: MACD divergencia confirmada O línea señal aplanándose/girando",
+        "H1: Mechas rechazo 3+ pips en soporte O 4+ pips en resistencia",
 
         // PRE-SETUP 15M - Factores clave (3 de 4 requerido)
-        "📈 15M: Williams %R extremos (<-75 compra, >-25 venta) por 2+ velas",
-        "🎯 15M: Nivel crítico retestado 2+ veces (volumen direccional correcto)",
-        "🕯️ 15M: Patrón vela válido (martillo/doji/mecha >50% cuerpo)",
-        "🟢 15M: MACD líneas cambiando dirección O divergencia confirmada",
+        "15M: Williams %R extremos (<-75 compra, >-25 venta) por 2+ velas",
+        "15M: Nivel crítico retestado 2+ veces (volumen direccional correcto)",
+        "15M: Patrón vela válido (martillo/doji/mecha >50% cuerpo)",
+        "15M: MACD líneas cambiando dirección O divergencia confirmada",
 
         // TRIGGER 5M - Entrada definitiva (2 de 3 requerido)
-        "📈 5M: Williams girando desde extremo (<-80→>-70 O >-20→<-30)",
-        "🔥 5M: Volumen explosivo >1.3x promedio últimas 10 velas",
-        "✅ 5M: MACD líneas e histograma en dirección del trade",
+        "5M: Williams girando desde extremo (<-80→>-70 O >-20→<-30)",
+        "5M: Volumen explosivo >1.3x promedio últimas 10 velas",
+        "5M: MACD líneas e histograma en dirección del trade",
 
         // SEÑALES DE REFUERZO ADICIONAL (opcional pero valiosas)
-        "💪 15M: Williams también girando en misma dirección",
-        "🚀 5M: Ruptura EMA 21 con volumen (extender TP2 +10 pips)",
-        "⚡ 1H: MACD cruce confirmado (incrementar posición 50%)",
-        "🎯 15M: Divergencia Williams en retesteo vs precio más extremo"
+        "15M: Williams también girando en misma dirección",
+        "5M: Ruptura EMA 21 con volumen (extender TP2 +10 pips)",
+        "1H: MACD cruce confirmado (incrementar posición 50%)",
+        "15M: Divergencia Williams en retesteo vs precio más extremo"
     ],
     extremos: [
-        "🎯 Precio en zona crítica histórica ±5 pips",
-        "📈 4H: Williams %R extremo (-95/-85 o -15/-5)",
-        "🕯️ 4H: Mecha institucional 8+ pips tras movimiento 35+ pips",
-        "📊 Volumen explosivo: 4H (2x) + 1H (1.8x) promedio",
-        "🔄 EMA: Precio superando/cayendo EMA 21/50 con fuerza",
-        "📈 MACD: Triple divergencia (4H, 1H, 15M)",
-        "✅ 15M: Rebote/rechazo confirmado en EMA o nivel",
-        "🎯 Mínimo 7 factores de confluencia cumplidos"
+        "Precio en zona crítica histórica ±5 pips",
+        "4H: Williams %R extremo (-95/-85 o -15/-5)",
+        "4H: Mecha institucional 8+ pips tras movimiento 35+ pips",
+        "Volumen explosivo: 4H (2x) + 1H (1.8x) promedio",
+        "EMA: Precio superando/cayendo EMA 21/50 con fuerza",
+        "MACD: Triple divergencia (4H, 1H, 15M)",
+        "15M: Rebote/rechazo confirmado en EMA o nivel",
+        "Mínimo 7 factores de confluencia cumplidos"
     ]
 };
 
