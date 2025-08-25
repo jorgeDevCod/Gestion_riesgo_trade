@@ -97,9 +97,8 @@ const setupChecklists = {
         "15M: Mecha larga >4 pips + cuerpo pequeño (rechazo/rebote)",
         "15M: Williams %R en zona objetivo (-60/-40) moviéndose a favor",
         "5M: compras si EMA21 > EMA50; Ventas si EMA21 < EMA50",
-        "5M: Precio rebota/rechaza en EMA 21",
         "5M: MACD líneas e histograma favor del trade",
-        
+        "Entrada 15M o 5M: Precio rebota/rechaza o rompe EMA 21 o zona marcada"
     ],
     "ema-macd": [
         "4H: MACD sin divergencia bajista + histograma creciendo 2+ velas",
