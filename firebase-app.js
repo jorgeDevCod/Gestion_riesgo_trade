@@ -50,8 +50,9 @@ const strategyConfigs = {
         stopLoss: 6,
         takeProfit1: 13,
         takeProfit2: 24,
-        winRate: 65,  // Actualizado debido a mejor precisión
-        timeframes: "4H → 1H → 15M (→ 5M especial)"
+        winRate: 65,
+        rrRatio: 2.2,
+        timeframes: "4H → 1H → 15M (→ 5M para ratio > 6 pips)"
     },
     "ema-macd": {
         name: "EMA + MACD",
@@ -916,11 +917,11 @@ function updateQuickStrategyInfo( strategy ) {
     const effectiveCapital = calculateEffectiveCapital();
     const optimalContracts = calculateOptimalContractsWithEffectiveCapital( strategy );
 
-    // Actualizar elementos de información rápida
+    // Valores con fallbacks para evitar "undefined"
     const elements = {
-        'strategyWinRateQuick': `${config.winRate}%`,
-        'strategyRRQuick': `${config.rrRatio}:1`,
-        'strategyRiskQuick': `${config.riskPercent}%`,
+        'strategyWinRateQuick': `${config.winRate || 0}%`,
+        'strategyRRQuick': `${config.rrRatio || 2.0}:1`, // ✅ Fallback agregado
+        'strategyRiskQuick': `${config.riskPercent || 2.0}%`,
         'optimalContractsQuick': optimalContracts.toString(),
         'strategyTimeframesQuick': config.timeframes || "Multiple TF"
     };
