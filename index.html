@@ -127,10 +127,10 @@
         <div class="container mx-auto">
             <div class="flex space-x-0 overflow-x-auto">
                 <button class="tab-btn px-3 sm:px-6 py-2 sm:py-3 font-medium border-b-2 border-transparent hover:text-gold whitespace-nowrap text-xs sm:text-base" data-tab="dashboard">Dashboard</button>
-                <button class="tab-btn px-3 sm:px-6 py-2 sm:py-3 font-medium border-b-2 border-transparent hover:text-gold whitespace-nowrap text-xs sm:text-base" data-tab="capital">Capital & Riesgo</button>
                 <button class="tab-btn px-3 sm:px-6 py-2 sm:py-3 font-medium border-b-2 border-gold text-gold whitespace-nowrap text-xs sm:text-base" data-tab="signals">Señales y setup</button>
                 <button class="tab-btn px-3 sm:px-6 py-2 sm:py-3 font-medium border-b-2 border-transparent hover:text-gold whitespace-nowrap text-xs sm:text-base" data-tab="trades">Registro Trades</button>
                 <button class="tab-btn px-3 sm:px-6 py-2 sm:py-3 font-medium border-b-2 border-transparent hover:text-gold whitespace-nowrap text-xs sm:text-base" data-tab="trade-management">Gestión Trades</button>
+                <button class="tab-btn px-3 sm:px-6 py-2 sm:py-3 font-medium border-b-2 border-transparent hover:text-gold whitespace-nowrap text-xs sm:text-base" data-tab="capital">Capital & Riesgo</button>
                 <button class="tab-btn px-3 sm:px-6 py-2 sm:py-3 font-medium border-b-2 border-transparent hover:text-gold whitespace-nowrap text-xs sm:text-base" data-tab="discipline">Disciplina</button>
             </div>
         </div>
@@ -681,7 +681,7 @@
         <!-- Disciplina Tab -->
         <div id="discipline" class="tab-content hidden">
             <!-- Reglas Inquebrantables -->
-            <div class="bg-trading-card p-6 rounded-lg border border-gray-700 mt-6">
+            <div class="bg-trading-card p-6 mb-8 rounded-lg border border-gray-700 mt-6">
                 <h3 class="text-xl font-semibold text-loss mb-4">🚨 Reglas Inquebrantables</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
@@ -690,6 +690,14 @@
                             <li class="flex items-start">
                                 <span class="text-loss mr-2">❌</span>
                                 <span>Exceder 5% de riesgo diario total</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-loss mr-2">❌</span>
+                                <span>Operar en zonas medias sin confirmacion</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-loss mr-2">❌</span>
+                                <span>Ingresar abajo en ventas o arriba en compras</span>
                             </li>
                             <li class="flex items-start">
                                 <span class="text-loss mr-2">❌</span>
@@ -718,6 +726,14 @@
                             </li>
                             <li class="flex items-start">
                                 <span class="text-profit mr-2">✅</span>
+                                <span>Comprar lo más cerca a validacion de soporte</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-profit mr-2">✅</span>
+                                <span>Vender lo más arriba posible post validacion</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-profit mr-2">✅</span>
                                 <span>Mantener disciplina emocional constante</span>
                             </li>
                             <li class="flex items-start">
@@ -728,7 +744,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <!-- Control de Disciplina -->
                 <div class="bg-trading-card p-6 rounded-lg border border-gray-700">
