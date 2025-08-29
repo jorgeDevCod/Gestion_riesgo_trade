@@ -682,24 +682,55 @@
         <div id="discipline" class="tab-content hidden">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-
-                <!-- Registro de Observaciones -->
-                <div class="bg-trading-card p-6 rounded-lg border border-gray-700">
-                    <h3 class="text-xl font-semibold text-gold mb-4">Observaciones Post-Trade</h3>
-                    <div class="space-y-4">
+                <!-- Reglas Inquebrantables -->
+                <div class="bg-trading-card p-6 rounded-lg border border-gray-700 mt-6">
+                    <h3 class="text-xl font-semibold text-loss mb-4">🚨 Reglas Inquebrantables</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label class="block text-sm font-medium mb-2">Nueva Observación</label>
-                            <textarea id="observationInput" class="w-full p-3 bg-gray-800 border border-gray-600 rounded-lg text-white h-24" placeholder="Describe qué funcionó, qué no funcionó, y mejoras para el próximo trade..."></textarea>
+                            <h4 class="font-semibold text-loss mb-3">NUNCA:</h4>
+                            <ul class="space-y-2 text-sm">
+                                <li class="flex items-start">
+                                    <span class="text-loss mr-2">❌</span>
+                                    <span>Exceder 5% de riesgo diario total</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-loss mr-2">❌</span>
+                                    <span>Mover stop loss hacia mayor riesgo</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-loss mr-2">❌</span>
+                                    <span>Operar sin confirmación mínima requerida</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-loss mr-2">❌</span>
+                                    <span>Operar por emociones tras pérdidas</span>
+                                </li>
+                            </ul>
                         </div>
-                        <button id="addObservationBtn" class="w-full bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg font-medium">
-                            📝 Agregar Observación
-                        </button>
-                        <div id="observationsList" class="space-y-3 max-h-64 overflow-y-auto">
-                            <!-- Observaciones serán insertadas aquí -->
+                        <div>
+                            <h4 class="font-semibold text-profit mb-3">SIEMPRE:</h4>
+                            <ul class="space-y-2 text-sm">
+                                <li class="flex items-start">
+                                    <span class="text-profit mr-2">✅</span>
+                                    <span>Respetar protocolo de pérdidas consecutivas</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-profit mr-2">✅</span>
+                                    <span>Configurar SL y TP antes de ejecutar</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-profit mr-2">✅</span>
+                                    <span>Mantener disciplina emocional constante</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-profit mr-2">✅</span>
+                                    <span>Focus en consistencia sobre ganancias grandes</span>
+                                </li>
+                            </ul>
                         </div>
                     </div>
                 </div>
-
+                
                 <!-- Control de Disciplina -->
                 <div class="bg-trading-card p-6 rounded-lg border border-gray-700">
                     <h3 class="text-xl font-semibold text-gold mb-4">Control de Disciplina</h3>
@@ -741,57 +772,21 @@
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Reglas Inquebrantables -->
-            <div class="bg-trading-card p-6 rounded-lg border border-gray-700 mt-6">
-                <h3 class="text-xl font-semibold text-loss mb-4">🚨 Reglas Inquebrantables</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <h4 class="font-semibold text-loss mb-3">NUNCA:</h4>
-                        <ul class="space-y-2 text-sm">
-                            <li class="flex items-start">
-                                <span class="text-loss mr-2">❌</span>
-                                <span>Exceder 5% de riesgo diario total</span>
-                            </li>
-                            <li class="flex items-start">
-                                <span class="text-loss mr-2">❌</span>
-                                <span>Operar sin confirmación mínima requerida</span>
-                            </li>
-                            <li class="flex items-start">
-                                <span class="text-loss mr-2">❌</span>
-                                <span>Mover stop loss hacia mayor riesgo</span>
-                            </li>
-                            <li class="flex items-start">
-                                <span class="text-loss mr-2">❌</span>
-                                <span>Operar por emociones tras pérdidas</span>
-                            </li>
-                        </ul>
-                    </div>
-                    <div>
-                        <h4 class="font-semibold text-profit mb-3">SIEMPRE:</h4>
-                        <ul class="space-y-2 text-sm">
-                            <li class="flex items-start">
-                                <span class="text-profit mr-2">✅</span>
-                                <span>Respetar protocolo de pérdidas consecutivas</span>
-                            </li>
-                            <li class="flex items-start">
-                                <span class="text-profit mr-2">✅</span>
-                                <span>Validar con volumen entrada</span>
-                            </li>
-                            <li class="flex items-start">
-                                <span class="text-profit mr-2">✅</span>
-                                <span>Configurar SL y TP antes de ejecutar</span>
-                            </li>
-                            <li class="flex items-start">
-                                <span class="text-profit mr-2">✅</span>
-                                <span>Mantener disciplina emocional constante</span>
-                            </li>
-                            <li class="flex items-start">
-                                <span class="text-profit mr-2">✅</span>
-                                <span>Focus en consistencia sobre ganancias grandes</span>
-                            </li>
-                        </ul>
+                <!-- Registro de Observaciones -->
+                <div class="bg-trading-card p-6 rounded-lg border border-gray-700">
+                    <h3 class="text-xl font-semibold text-gold mb-4">Observaciones Post-Trade</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Nueva Observación</label>
+                            <textarea id="observationInput" class="w-full p-3 bg-gray-800 border border-gray-600 rounded-lg text-white h-24" placeholder="Describe qué funcionó, qué no funcionó, y mejoras para el próximo trade..."></textarea>
+                        </div>
+                        <button id="addObservationBtn" class="w-full bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg font-medium">
+                            📝 Agregar Observación
+                        </button>
+                        <div id="observationsList" class="space-y-3 max-h-64 overflow-y-auto">
+                            <!-- Observaciones serán insertadas aquí -->
+                        </div>
                     </div>
                 </div>
             </div>
@@ -900,204 +895,90 @@
 
     </main>
 
-    <!-- Modal para Nuevo Trade Mejorado -->
+    <!-- Modal para Nuevo Trade -->
     <div id="tradeModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-        <div class="bg-trading-card p-6 rounded-lg border border-gray-700 w-full max-w-4xl mx-4 max-h-[90vh] overflow-y-auto">
-            <h3 class="text-xl font-semibold text-gold mb-4">Configuración de Trade</h3>
-
-            <!-- Pestañas del formulario -->
-            <div class="border-b border-gray-700 mb-6">
-                <nav class="flex space-x-8">
-                    <button type="button" id="basicConfigTab" onclick="showTradeTab('basic')" class="trade-tab active py-2 px-1 border-b-2 border-gold text-gold font-medium">
-                        Configuración Básica
-                    </button>
-                    <button type="button" id="advancedConfigTab" onclick="showTradeTab('advanced')" class="trade-tab py-2 px-1 border-b-2 border-transparent text-gray-400 hover:text-gold font-medium">
-                        Take Profits Adicionales
-                    </button>
-                    <button type="button" id="managementTab" onclick="showTradeTab('management')" class="trade-tab py-2 px-1 border-b-2 border-transparent text-gray-400 hover:text-gold font-medium">
-                        Gestión y Cierre
-                    </button>
-                </nav>
-            </div>
-
-            <form id="enhancedTradeForm">
-                <!-- TAB 1: CONFIGURACIÓN BÁSICA -->
-                <div id="basicConfig" class="trade-tab-content">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                        <div>
-                            <label class="block text-sm font-medium mb-2">Fecha</label>
-                            <input type="date" id="tradeDate" class="w-full p-2 bg-gray-800 border border-gray-600 rounded-lg text-white" required>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium mb-2">Estrategia</label>
-                            <select id="tradeStrategy" class="w-full p-2 bg-gray-800 border border-gray-600 rounded-lg text-white" required>
-                                <option value="regulares">Trades Regulares</option>
-                                <option value="ema-macd">EMA + MACD</option>
-                                <option value="contra-tendencia">Contra-Tendencia</option>
-                                <option value="extremos">Trades Extremos</option>
-                            </select>
-                        </div>
+        <div class="bg-trading-card p-6 rounded-lg border border-gray-700 w-full max-w-lg mx-4">
+            <h3 class="text-xl font-semibold text-gold mb-4">Nuevo Trade</h3>
+            <form id="tradeForm" class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Fecha</label>
+                        <input type="date" id="tradeDate" class="w-full p-2 bg-gray-800 border border-gray-600 rounded-lg text-white" required>
                     </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                        <div>
-                            <label class="block text-sm font-medium mb-2">Dirección</label>
-                            <select id="tradeDirection" class="w-full p-2 bg-gray-800 border border-gray-600 rounded-lg text-white" required onchange="validatePriceLogic()">
-                                <option value="buy">Compra</option>
-                                <option value="sell">Venta</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium mb-2">Contratos Totales</label>
-                            <input type="number" id="totalContracts" class="w-full p-2 bg-gray-800 border border-gray-600 rounded-lg text-white" min="1" required onchange="updateContractValidation()">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium mb-2">Precio de Entrada</label>
-                            <input type="number" id="entryPrice" step="0.01" class="w-full p-2 bg-gray-800 border border-gray-600 rounded-lg text-white" required onchange="validatePriceLogic()">
-                        </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Estrategia</label>
+                        <select id="tradeStrategy" class="w-full p-2 bg-gray-800 border border-gray-600 rounded-lg text-white" required>
+                            <option value="regulares">Trades Regulares</option>
+                            <option value="ema-macd">EMA + MACD</option>
+                            <option value="contra-tendencia">Contra-Tendencia</option>
+                            <option value="extremos">Trades Extremos</option>
+                        </select>
                     </div>
-
-                    <!-- Setup Obligatorio -->
-                    <div class="bg-gray-800/50 p-4 rounded-lg border border-blue-500/30 mb-4">
-                        <h4 class="font-semibold text-blue-400 mb-3">Setup Obligatorio</h4>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium mb-2">Stop Loss</label>
-                                <input type="number" id="stopLoss" step="0.01" class="w-full p-2 bg-gray-700 border border-gray-600 rounded-lg text-white" required onchange="validatePriceLogic()">
-                                <p class="text-xs text-gray-400 mt-1">Precio absoluto de SL</p>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium mb-2">Take Profit Principal</label>
-                                <input type="number" id="primaryTP" step="0.01" class="w-full p-2 bg-gray-700 border border-gray-600 rounded-lg text-white" required onchange="validatePriceLogic()">
-                                <p class="text-xs text-gray-400 mt-1">TP obligatorio</p>
-                            </div>
-                        </div>
-                        <div class="mt-3">
-                            <label class="block text-sm font-medium mb-2">Contratos para TP Principal</label>
-                            <input type="number" id="primaryTPContracts" class="w-full p-2 bg-gray-700 border border-gray-600 rounded-lg text-white" min="1" onchange="updateContractValidation()">
-                            <p class="text-xs text-gray-400 mt-1">Por defecto: todos los contratos</p>
-                        </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Dirección</label>
+                        <select id="tradeDirection" class="w-full p-2 bg-gray-800 border border-gray-600 rounded-lg text-white" required>
+                            <option value="buy">Compra</option>
+                            <option value="sell">Venta</option>
+                        </select>
                     </div>
-
-                    <!-- Cálculos Automáticos -->
-                    <div id="tradeCalculations" class="bg-gray-800/30 p-4 rounded-lg mb-4">
-                        <h4 class="font-semibold text-green-400 mb-2">Cálculos Automáticos</h4>
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                            <div>
-                                <span class="text-gray-400">Pips SL:</span>
-                                <span id="slPips" class="text-white font-medium">-</span>
-                            </div>
-                            <div>
-                                <span class="text-gray-400">Pips TP:</span>
-                                <span id="tpPips" class="text-white font-medium">-</span>
-                            </div>
-                            <div>
-                                <span class="text-gray-400">R:R Ratio:</span>
-                                <span id="rrRatio" class="text-white font-medium">-</span>
-                            </div>
-                            <div>
-                                <span class="text-gray-400">Riesgo Max:</span>
-                                <span id="maxRisk" class="text-white font-medium">-</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium mb-2">Comentarios Iniciales</label>
-                        <textarea id="tradeComments" class="w-full p-2 bg-gray-800 border border-gray-600 rounded-lg text-white h-20" placeholder="Setup, confluencias, plan de gestión..."></textarea>
-                    </div>
-
-                    <div class="flex space-x-4">
-                        <button type="button" onclick="saveBasicTradeConfig()" class="flex-1 bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded-lg font-medium">
-                            Guardar Configuración Básica
-                        </button>
-                        <button type="button" onclick="hideModal('tradeModal')" class="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded-lg font-medium">
-                            Cancelar
-                        </button>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Contratos</label>
+                        <input type="number" id="tradeContracts" class="w-full p-2 bg-gray-800 border border-gray-600 rounded-lg text-white" min="1" required>
                     </div>
                 </div>
 
-                <!-- TAB 2: TAKE PROFITS ADICIONALES -->
-                <div id="advancedConfig" class="trade-tab-content hidden">
-                    <div class="mb-4">
-                        <div class="flex justify-between items-center mb-4">
-                            <h4 class="font-semibold text-yellow-400">Take Profits Adicionales</h4>
-                            <button type="button" onclick="addAdditionalTP()" class="bg-green-600 hover:bg-green-500 px-3 py-1 rounded text-sm">
-                                + Agregar TP
-                            </button>
+                <!-- Sección de precios -->
+                <div class="bg-gray-800 p-4 rounded-lg border border-blue-500">
+                    <h4 class="font-semibold text-blue-400 mb-3">📊 Cálculo Automático P&L</h4>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Precio Entrada</label>
+                            <input type="number" id="entryPrice" class="w-full p-2 bg-gray-700 border border-gray-600 rounded-lg text-white" step="0.01" placeholder="2450.50">
                         </div>
-
-                        <div id="additionalTPsList" class="space-y-3">
-                            <!-- TPs adicionales serán insertados aquí -->
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Precio Salida</label>
+                            <input type="number" id="exitPrice" class="w-full p-2 bg-gray-700 border border-gray-600 rounded-lg text-white" step="0.01" placeholder="2465.30">
                         </div>
-
-                        <div id="contractsValidation" class="mt-4 p-3 bg-gray-800/50 rounded-lg">
-                            <div class="flex justify-between text-sm">
-                                <span>Contratos asignados:</span>
-                                <span id="assignedContracts">0</span>
-                            </div>
-                            <div class="flex justify-between text-sm">
-                                <span>Contratos totales:</span>
-                                <span id="totalContractsDisplay">0</span>
-                            </div>
-                            <div class="flex justify-between text-sm font-medium">
-                                <span>Contratos libres:</span>
-                                <span id="freeContracts" class="text-green-400">0</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="flex space-x-4">
-                        <button type="button" onclick="saveAdvancedConfig()" class="flex-1 bg-yellow-600 hover:bg-yellow-500 px-4 py-2 rounded-lg font-medium">
-                            Guardar TPs Adicionales
-                        </button>
-                        <button type="button" onclick="showTradeTab('basic')" class="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded-lg font-medium">
-                            Volver
-                        </button>
                     </div>
                 </div>
 
-                <!-- TAB 3: GESTIÓN Y CIERRE -->
-                <div id="managementConfig" class="trade-tab-content hidden">
-                    <div class="mb-4">
-                        <h4 class="font-semibold text-red-400 mb-3">Estado del Trade</h4>
-
-                        <div class="mb-4">
-                            <label class="block text-sm font-medium mb-2">Estado Actual</label>
-                            <select id="tradeStatus" class="w-full p-2 bg-gray-800 border border-gray-600 rounded-lg text-white" onchange="updateStatusDisplay()">
-                                <option value="configured">Configurado</option>
-                                <option value="active">Activo</option>
-                                <option value="partial">Parcialmente Cerrado</option>
-                                <option value="closed">Cerrado</option>
-                            </select>
-                        </div>
-
-                        <!-- Lista de TPs para gestión -->
-                        <div id="tpManagementList" class="space-y-3 mb-4">
-                            <!-- Lista de TPs para marcar como ejecutados -->
-                        </div>
-
-                        <!-- Cierre Manual -->
-                        <div class="bg-red-900/20 p-4 rounded-lg border border-red-500/30">
-                            <h5 class="font-medium text-red-400 mb-2">Cierre Manual</h5>
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                                <input type="number" id="manualClosePrice" step="0.01" placeholder="Precio de cierre" class="p-2 bg-gray-700 border border-gray-600 rounded text-white">
-                                <input type="number" id="manualCloseContracts" placeholder="Contratos a cerrar" class="p-2 bg-gray-700 border border-gray-600 rounded text-white">
-                                <button type="button" onclick="executeManualClose()" class="bg-red-600 hover:bg-red-500 px-3 py-2 rounded text-sm">
-                                    Cerrar Manualmente
-                                </button>
-                            </div>
-                        </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Stop Loss (pips)</label>
+                        <input type="number" id="tradeSL" class="w-full p-2 bg-gray-800 border border-gray-600 rounded-lg text-white" min="1" step="0.1" required>
                     </div>
-
-                    <div class="flex space-x-4">
-                        <button type="button" onclick="finalizeTradeRecord()" class="flex-1 bg-green-600 hover:bg-green-500 px-4 py-2 rounded-lg font-medium">
-                            Finalizar y Guardar Trade
-                        </button>
-                        <button type="button" onclick="showTradeTab('advanced')" class="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded-lg font-medium">
-                            Volver
-                        </button>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Take Profit (pips)</label>
+                        <input type="number" id="tradeTP" class="w-full p-2 bg-gray-800 border border-gray-600 rounded-lg text-white" min="1" step="0.1" required>
                     </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Resultado</label>
+                        <select id="tradeResult" class="w-full p-2 bg-gray-800 border border-gray-600 rounded-lg text-white" required>
+                            <option value="win">Ganador</option>
+                            <option value="loss">Perdedor</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">P&L ($)</label>
+                        <input type="number" id="tradePnL" class="w-full p-2 bg-gray-800 border border-gray-600 rounded-lg text-white" step="0.01" required>
+                        <p class="text-xs text-gray-400 mt-1">Se calcula automáticamente con los precios</p>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Comentarios</label>
+                    <textarea id="tradeComments" class="w-full p-2 bg-gray-800 border border-gray-600 rounded-lg text-white h-20" placeholder="Observaciones del trade..."></textarea>
+                </div>
+                <div class="flex space-x-4">
+                    <button type="submit" class="flex-1 bg-profit hover:bg-green-600 px-4 py-2 rounded-lg font-medium">
+                        Guardar Trade
+                    </button>
+                    <button type="button" id="cancelTradeBtn" class="flex-1 bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded-lg font-medium">
+                        Cancelar
+                    </button>
                 </div>
             </form>
         </div>
