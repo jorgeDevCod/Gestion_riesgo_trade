@@ -32,6 +32,21 @@
             }
         }
     </script>
+
+    <style>
+        /* Si necesitas ajustes específicos */
+        @media (max-width: 640px) {
+            #confluencePanel {
+                width: calc(100vw - 2rem);
+                right: 1rem;
+            }
+        }
+
+        /* Animación mejorada para el botón */
+        #confluenceToggle:hover {
+            transform: scale(1.05);
+        }
+    </style>
 </head>
 
 <body class="bg-trading-bg text-white min-h-screen">
@@ -1267,12 +1282,12 @@
                             </ul>
                         </div>
                         <div>
-                            <h6 class="font-medium text-orange-300">TIMING ESPECIAL 5M (<7 pips):</h6>
-                                    <ul class="mt-1 space-y-1 text-xs">
-                                        <li>• Líneas señal e histograma a favor del trade</li>
-                                        <li>• EMA50 cruza debajo de EMA21</li>
-                                        <li>• Entrada: vela 5M rebotando en EMA21</li>
-                                    </ul>
+                            <h6 class="font-medium text-orange-300">TIMING ESPECIAL 5M (7 pips): </h6>
+                            <ul class="mt-1 space-y-1 text-xs">
+                                <li>• Líneas señal e histograma a favor del trade</li>
+                                <li>• EMA50 cruza debajo de EMA21</li>
+                                <li>• Entrada: vela 5M rebotando en EMA21</li>
+                            </ul>
                         </div>
                     </div>
                 </div>
@@ -1628,7 +1643,85 @@
         </div>
     </div>
 
+    <!-- Botón flotante para activar panel -->
+    <button id="confluenceToggle" class="fixed top-16 right-4 z-50 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg transition-all duration-200 hover:scale-105">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+        </svg>
+    </button>
+
+    <!-- Panel de confluencia (inicialmente oculto) -->
+    <div id="confluencePanel" class="fixed top-4 right-4 z-40 w-96 bg-gray-900 text-white rounded-lg shadow-2xl p-6 transform translate-x-full transition-transform duration-300 max-h-screen overflow-y-auto border border-gray-700">
+
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-bold">Análisis de Confluencia</h3>
+            <button id="confluenceClose" class="text-gray-400 hover:text-white">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Reglas de eficiencia (colapsible) -->
+        <div class="border-t border-gray-700 pt-4 mt-4">
+            <button id="toggleRules" class="w-full text-left text-sm font-medium mb-2 flex justify-between items-center hover:bg-gray-800 p-2 rounded">
+                <span>📋 Reglas de Eficiencia</span>
+                <svg id="rulesArrow" class="w-4 h-4 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+            </button>
+            <div id="rulesContent" class="hidden text-xs space-y-2">
+                <!-- Las reglas se generan dinámicamente con JavaScript -->
+            </div>
+        </div>
+        <!-- Patrones de Velas + Volumen (colapsible) -->
+        <div class="border-t border-gray-700 pt-4">
+            <button id="toggleReference" class="w-full text-left text-sm font-medium mb-2 flex justify-between items-center hover:bg-gray-800 p-2 rounded">
+                <span>📊 Patrones de Velas + Volumen</span>
+                <svg id="referenceArrow" class="w-4 h-4 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+            </button>
+            <div id="referenceTable" class="hidden text-xs space-y-3 max-h-64 overflow-y-auto">
+                <!-- Los patrones se generan dinámicamente con JavaScript -->
+            </div>
+        </div>
+
+        <!-- Checklist de factores -->
+        <div class="mb-6">
+            <h4 class="text-md font-semibold mb-3">Factores de Confluencia</h4>
+            <div id="confluenceChecklist" class="space-y-2">
+                <!-- Se genera dinámicamente con JavaScript -->
+            </div>
+        </div>
+
+        <!-- Indicador de probabilidad -->
+        <div class="mb-6">
+            <div class="flex justify-between items-center mb-2">
+                <span class="text-sm">Probabilidad de éxito</span>
+                <span id="probabilityText" class="text-lg font-bold">0%</span>
+            </div>
+            <div class="w-full bg-gray-700 rounded-full h-3">
+                <div id="probabilityBar" class="h-3 rounded-full transition-all duration-500 bg-red-500" style="width: 0%"></div>
+            </div>
+            <div id="recommendation" class="text-center mt-2 text-sm font-medium text-red-400">NO OPERAR</div>
+        </div>
+
+        <!-- Botones de acción -->
+        <div class="flex space-x-2 mb-4">
+            <button id="resetFactors" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 rounded transition-colors">
+                Reset
+            </button>
+            <button id="saveAnalysis" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded transition-colors">
+                Guardar
+            </button>
+        </div>
+    </div>
+
 </body>
+
 <script src="firebase-app.js"></script>
+<script src="confluence.js"></script>
 
 </html>
