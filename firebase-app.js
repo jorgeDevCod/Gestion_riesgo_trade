@@ -94,10 +94,10 @@ const setupChecklists = {
         "4H: MACD histograma cambiando a verde/rojo O ya en verde/rojo",
         "H1: Precio en nivel clave (soporte rebote O resistencia ruptura ±3 pips)",
         "H1: Williams %R rango correcto (-80/-60 compra, <-10/-30 venta)",
-        "H1: Williams %R CON volumen direccional confirmando",
+        "H1: MACD: Muestra confluencia de direccion con 4h y 15m",
         "15M: Mecha larga >4 pips + cuerpo pequeño (rechazo/rebote)",
         "15M: Williams %R en zona objetivo (-60/-40) moviéndose a favor",
-        "Entrada 15M o 5M: Tras validacion por patron y confluencia"
+        "Entrada 15M o 5M: Tras validacion por patron + Volumen"
     ],
     "ema-macd": [
         "4H: MACD sin divergencia bajista + histograma creciendo 2+ velas",
@@ -130,12 +130,6 @@ const setupChecklists = {
         "5M: Williams girando desde extremo (<-80→>-70 O >-20→<-30)",
         "5M: Volumen explosivo >1.3x promedio últimas 10 velas",
         "5M: MACD líneas e histograma en dirección del trade",
-
-        // SEÑALES DE REFUERZO ADICIONAL (opcional pero valiosas)
-        "15M: Williams también girando en misma dirección",
-        "5M: Ruptura EMA 21 con volumen (extender TP2 +10 pips)",
-        "1H: MACD cruce confirmado (incrementar posición 50%)",
-        "15M: Divergencia Williams en retesteo vs precio más extremo"
     ],
     extremos: [
         "Precio en zona crítica histórica ±5 pips",
@@ -144,8 +138,7 @@ const setupChecklists = {
         "Volumen explosivo: 4H (2x) + 1H (1.8x) promedio",
         "EMA: Precio superando/cayendo EMA 21/50 con fuerza",
         "MACD: Triple divergencia (4H, 1H, 15M)",
-        "15M: Rebote/rechazo confirmado en EMA o nivel",
-        "Mínimo 7 factores de confluencia cumplidos"
+        "15M: Rebote/rechazo confirmado en EMA o nivel"
     ]
 };
 
