@@ -52,7 +52,7 @@ const strategyConfigs = {
         takeProfit2: 24,
         winRate: 65,
         rrRatio: 2.2,
-        timeframes: "4H → 1H → 15M (→ 5M para ratio > 6 pips)"
+        timeframes: "4H → 15M → 3M"
     },
     "ema-macd": {
         name: "EMA + MACD",
@@ -65,7 +65,7 @@ const strategyConfigs = {
         timeframes: "4H → 1H → 15M → 5M"
     },
     "contra-tendencia": {
-        name: "Contra-Tendencia Flexible", // Nombre actualizado
+        name: "Contra-Tendencia Flexible", 
         riskPercent: 2.5,
         stopLoss: 6,
         takeProfit1: 15,
@@ -89,16 +89,26 @@ const strategyConfigs = {
 // Setup checklists para cada estrategia
 const setupChecklists = {
     regulares: [
-        "4H: Estructura alcista/bajista (mínimos/máximos en dirección correcta)",
-        "4H: Williams %R saliendo de extremos (-80↗ compra, -20↘ venta)",
-        "4H: MACD histograma cambiando a verde/rojo O ya en verde/rojo",
-        "H1: Precio en nivel clave (soporte rebote O resistencia ruptura ±3 pips)",
-        "H1: Williams %R rango correcto (-80/-60 compra, <-10/-30 venta)",
-        "H1: MACD: Muestra confluencia de direccion con 4h y 15m",
-        "15M: Mecha larga >4 pips + cuerpo pequeño (rechazo/rebote)",
-        "15M: Williams %R en zona objetivo (-60/-40) moviéndose a favor",
-        "Entrada 15M o 5M: Tras validacion por patron + Volumen"
+        // PASO 1 - Contexto 4H (3 de 4 requerido)
+        "4H: Estructura alcista/bajista + MACD a favor sin divergencia",
+        "4H: Williams %R saliendo extremos (-80/-60↗ O -50↗ compra | -20/-40↘ O -50↘ venta)",
+        "4H: EMA 21 > EMA 50 O precio retestea EMA 21 como soporte/resistencia",
+        // PASO 2 - Setup 15M (3 de 4 requerido)  
+        "15M: Williams %R entre -80/-60 subiendo O -20/-30 bajando",
+        "15M: MACD línea por curzar o cruzando señal al alza/baja",
+        "15M: Precio rebotando O rompiendo S/R + patrón con volumen",
+        // PASO 3 - Confirmación 3M (2 de 3 requerido)
+        "3M: Williams %R girando desde -70 hacia -50+ O desde -30 hacia -50-",
+        "3M: MACD histograma verde/rojo creciente 2+ velas consecutivas",
+        "3M: Precio rebota EMA 21 O rompe estructura con volumen 1.2x",
+
+        // CONFLUENCIAS ALTA PROBABILIDAD (opcional pero recomendable)
+        "✨ Triple alineación: Williams %R 4H, 15M y 3M misma dirección",
+        "✨ MACD sincronizado: Histogramas 15M y 3M cambiando simultáneamente",
+        "✨ Nivel técnico: Setup en zona S/R clave",
     ],
+
+    // Mantener las otras estrategias existentes...
     "ema-macd": [
         "4H: MACD sin divergencia bajista + histograma creciendo 2+ velas",
         "4H: Precio supera +2 resistencias/soportes clave",
@@ -111,26 +121,21 @@ const setupChecklists = {
         "15M: Precio encima/debajo ambas EMAs por 2+ velas",
         "5M: Vela rebota en EMA con histograma confirmando"
     ],
+
     "contra-tendencia": [
-        // CONTEXTO 4H SIMPLIFICADO - Solo lo esencial
         "4H: Tendencia clara 24H+ (EMA 21 vs EMA 50 correcta)",
         "4H: Precio en zona crítica S/R fuerte identificada",
-
-        // FILTROS 1H - Los más importantes
         "H1: MACD divergencia confirmada O línea señal aplanándose/girando",
         "H1: Mechas rechazo 3+ pips en soporte O 4+ pips en resistencia",
-
-        // PRE-SETUP 15M - Factores clave (3 de 4 requerido)
         "15M: Williams %R extremos (<-75 compra, >-25 venta) por 2+ velas",
         "15M: Nivel crítico retestado 2+ veces (volumen direccional correcto)",
         "15M: Patrón vela válido (martillo/doji/mecha >50% cuerpo)",
         "15M: MACD líneas cambiando dirección O divergencia confirmada",
-
-        // TRIGGER 5M - Entrada definitiva (2 de 3 requerido)
         "5M: Williams girando desde extremo (<-80→>-70 O >-20→<-30)",
         "5M: Volumen explosivo >1.3x promedio últimas 10 velas",
-        "5M: MACD líneas e histograma en dirección del trade",
+        "5M: MACD líneas e histograma en dirección del trade"
     ],
+
     extremos: [
         "Precio en zona crítica histórica ±5 pips",
         "4H: Williams %R extremo (-95/-85 o -15/-5)",
