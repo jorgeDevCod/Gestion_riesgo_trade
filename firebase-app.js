@@ -65,7 +65,7 @@ const strategyConfigs = {
         timeframes: "4H → 1H → 15M → 5M"
     },
     "contra-tendencia": {
-        name: "Contra-Tendencia Flexible", 
+        name: "Contra-Tendencia Flexible",
         riskPercent: 2.5,
         stopLoss: 6,
         takeProfit1: 15,
@@ -92,19 +92,18 @@ const setupChecklists = {
         // PASO 1 - Contexto 4H (3 de 4 requerido)
         "4H: Estructura alcista/bajista + MACD a favor sin divergencia",
         "4H: Williams %R saliendo extremos (-80/-60↗ O -50↗ compra | -20/-40↘ O -50↘ venta)",
-        "4H: EMA 21 > EMA 50 O precio retestea EMA 21 como soporte/resistencia",
-        // PASO 2 - Setup 15M (3 de 4 requerido)  
+        "4H/1h: EMA 21 > EMA 50 O precio retestea EMA 21 como soporte/resistencia",
+        "✨ Refuerzo(1h): Mecha larga en S/R ≥ 5 pips en ultima vela",
+        // PASO 2 - Validacion 15M (3 de 4 requerido)  
         "15M: Williams %R entre -80/-60 subiendo O -20/-30 bajando",
-        "15M: MACD línea por curzar o cruzando señal al alza/baja",
-        "15M: Precio rebotando O rompiendo S/R + patrón con volumen",
+        "15M: MACD línea por cruzar o cruzando al alza/baja en zona testeada",
+        "15M: Precio rebota/rompe S/R + patrón con volumen",
+        "✨ Refuerzo(15m): Vela con volumen valida cruce EMA 21/50",
         // PASO 3 - Confirmación 3M (2 de 3 requerido)
-        "3M: Williams %R girando desde -70 hacia -50+ O desde -30 hacia -50-",
-        "3M: MACD histograma verde/rojo creciente 2+ velas consecutivas",
+        "3M: Williams %R girando desde -70 hacia -50+ O desde -30 hacia -50",
+        "3M: MACD: Cruce de líneas + histograma creciente en dirección del trade",
         "3M: Precio rebota EMA 21 O rompe estructura con volumen 1.2x",
-
-        // CONFLUENCIAS ALTA PROBABILIDAD (opcional pero recomendable)
-        "✨ Triple alineación: Williams %R 4H, 15M y 3M misma dirección",
-        "✨ MACD sincronizado: Histogramas 15M y 3M cambiando simultáneamente",
+        "✨ Refuerzo(3m): Precio rebota/rompe linea de tendencia",
     ],
 
     // Mantener las otras estrategias existentes...
@@ -1189,7 +1188,7 @@ function updateDynamicSetupScore() {
             feedbackText = `✅ ${config?.name || 'Setup'} sólido - Alta probabilidad R:R ${config?.rrRatio || '2.2'}:1`;
             feedbackClass = "text-green-400 font-semibold";
         } else if ( score >= 70 ) {
-            feedbackText = `⚠️ ${config?.name || 'Setup'} aceptable - Proceder con SL ${config?.stopLoss || '6'} pips`;
+            feedbackText = `⚠️ ${config?.name || 'Setup'} aceptable - Proceder maximo con SL ${config?.stopLoss || '5'} pips`;
             feedbackClass = "text-yellow-400 font-medium";
         } else if ( score >= 50 ) {
             feedbackText = `⚡ Setup débil para ${config?.name || 'esta estrategia'} - Esperar más confluencias`;
