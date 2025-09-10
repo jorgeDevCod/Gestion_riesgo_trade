@@ -105,7 +105,6 @@ const setupChecklists = {
         // CONFLUENCIAS ALTA PROBABILIDAD (opcional pero recomendable)
         "✨ Triple alineación: Williams %R 4H, 15M y 3M misma dirección",
         "✨ MACD sincronizado: Histogramas 15M y 3M cambiando simultáneamente",
-        "✨ Nivel técnico: Setup en zona S/R clave",
     ],
 
     // Mantener las otras estrategias existentes...
