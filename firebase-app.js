@@ -90,7 +90,8 @@ const strategyConfigs = {
 const setupChecklists = {
     regulares: [
         // PASO 1 - Contexto 4H (3 de 4 requerido)
-        "4H: Estructura alcista/bajista + MACD a favor sin divergencia",
+        "Estructura + MACD sin divergencia(operar a favor) | con divergencia(operar contra)",
+        "4H: E. Bajista + MACD sin divergencia (Venta) | con divergencia (Compra)",
         "4H: Williams %R saliendo extremos (-80/-60↗ O -50↗ compra | -20/-40↘ O -50↘ venta)",
         "4H/1h: EMA 21 > EMA 50 Compras | EMA 21 < EMA50 ventas",
         "✨Refuerzo(1h): Mecha larga en S/R ≥ 5 pips en ultima vela",
@@ -102,8 +103,7 @@ const setupChecklists = {
         // PASO 3 - Confirmación 3M (2 de 3 requerido)
         "3M: Williams %R girando desde -70 hacia -50+ O desde -30 hacia -50",
         "3M: MACD: Cruce de líneas + histograma creciente en dirección del trade",
-        "3M: Precio rebota EMA 21/50 O rompe estructura con volumen 1.2x",
-        "✨Refuerzo(3m): Precio rebota/rompe linea de tendencia",
+        "3M: Precio rebota EMA 21/50 O rompe estructura o linea de tendencia con volumen 1.2x",
     ],
 
     // Mantener las otras estrategias existentes...
