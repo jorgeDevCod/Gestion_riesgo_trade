@@ -1011,7 +1011,7 @@ function renderDynamicChecklist( strategy ) {
                 </div>
             </div>
             
-            <div class="space-y-2 max-h-72 overflow-y-auto pr-2">
+            <div class="space-y-2 max-h-96 overflow-y-auto pr-2">
                 ${checklist.map( ( item, index ) => `
                     <div class="flex items-start space-x-3 p-2 bg-gray-800/50 rounded-lg hover:bg-gray-800 transition-colors group">
                         <input type="checkbox" 
@@ -1143,7 +1143,7 @@ function updateDynamicSetupScore() {
             scoreClass = "text-4xl font-bold text-yellow-400 mb-2";
         } else {
             barClass = "h-4 rounded-full bg-red-500 transition-all duration-500";
-            scoreClass = "text-4xl font-bold text-red-400 mb-2";
+            scoreClass = "text-3xl font-bold text-red-400 mb-2";
         }
 
         scoreBar.className = barClass;
@@ -1157,14 +1157,14 @@ function updateDynamicSetupScore() {
         btn.disabled = !isEnabled;
 
         if ( isEnabled ) {
-            btn.className = "flex-1 bg-green-600 hover:bg-green-500 px-4 py-3 rounded-lg font-medium transition-all duration-200 hover:scale-[1.02] shadow-lg";
+            btn.className = "flex-1 bg-green-600 hover:bg-green-500 px-2 py-2 rounded-lg font-medium transition-all duration-200 hover:scale-[1.02] shadow-lg";
             btn.innerHTML = `
                 <span class="flex items-center justify-center space-x-2">
                     <span>✅ Ejecutar ${config?.name || 'Trade'} (${score}%)</span>
                 </span>
             `;
         } else {
-            btn.className = "flex-1 bg-gray-600 px-4 py-3 rounded-lg font-medium cursor-not-allowed opacity-75";
+            btn.className = "flex-1 bg-gray-600 px-3 py-2 rounded-lg font-medium cursor-not-allowed opacity-75";
             btn.innerHTML = `
                 <span class="flex items-center justify-center space-x-2">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

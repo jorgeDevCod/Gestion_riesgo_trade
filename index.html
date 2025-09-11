@@ -499,14 +499,14 @@
                         </div>
 
                         <!-- Contenido dinámico del setup checker (checklist) -->
-                        <div id="setupCheckerContent" aria-live="polite" class="mb-6 flex-1">
+                        <div id="setupCheckerContent" aria-live="polite" class="mb-2 flex-1">
                             <!-- El checklist se generará dinámicamente aquí -->
                         </div>
 
                         <!-- Score y botones -->
                         <footer id="setupScore" class="mt-auto">
                             <div class="text-center mb-4">
-                                <div id="scoreValue" class="text-4xl font-bold text-gray-400 mb-2" aria-live="polite">0%</div>
+                                <div id="scoreValue" class="text-3xl font-bold text-gray-400 mb-2" aria-live="polite">0%</div>
                                 <div class="w-full bg-gray-700 rounded-full h-4 mb-2" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
                                     <div id="scoreBar" class="h-4 rounded-full bg-gray-600 transition-all duration-500" style="width: 0%"></div>
                                 </div>
@@ -523,7 +523,7 @@
                                         <span>Necesario 70%+ (0%)</span>
                                     </span>
                                 </button>
-                                <button id="discardSetupBtn" class="flex-1 bg-loss hover:bg-red-600 px-4 py-3 rounded-lg font-medium transition-all duration-200">
+                                <button id="discardSetupBtn" class="flex-1 bg-loss hover:bg-red-600 px-2 py-1 rounded-lg font-medium transition-all duration-200">
                                     <span class="flex items-center justify-center space-x-2">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -1242,7 +1242,7 @@
         <!-- Template Trades Regulares ACTUALIZADO -->
         <div id="template-regulares" class="strategy-template">
             <h4 class="text-lg font-semibold text-blue-400 mb-4">📈 ESTRATEGIA 1: Trades Regulares (PRINCIPAL) - V4.2</h4>
-        
+
             <!-- FILTROS PREVENTIVOS - ACTUALIZADO -->
             <div class="mb-4 bg-red-900 bg-opacity-30 p-3 rounded-lg border border-red-500">
                 <h5 class="font-semibold text-red-400 mb-2 text-sm">🚫 INVALIDACIÓN INMEDIATA:</h5>
@@ -1253,7 +1253,7 @@
                     <li>• Stop Loss alcanzado (sin excepciones ni modificaciones)</li>
                 </ul>
             </div>
-        
+
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <!-- COMPRAS ACTUALIZADO -->
                 <div class="bg-green-900 bg-opacity-20 p-4 rounded-lg border border-green-500">
@@ -1287,7 +1287,7 @@
                         </div>
                     </div>
                 </div>
-        
+
                 <!-- VENTAS ACTUALIZADO -->
                 <div class="bg-red-900 bg-opacity-20 p-4 rounded-lg border border-red-500">
                     <h5 class="font-semibold text-red-400 mb-3">🔴 SETUP VENTAS</h5>
@@ -1321,7 +1321,7 @@
                     </div>
                 </div>
             </div>
-        
+
             <!-- CONFLUENCIAS DE ALTA PROBABILIDAD -->
             <div class="mt-4 bg-purple-900 bg-opacity-20 p-3 rounded-lg border border-purple-400">
                 <h5 class="font-semibold text-purple-400 mb-2">⚡ CONFLUENCIAS DE ALTA PROBABILIDAD:</h5>
@@ -1333,7 +1333,7 @@
                     <li>• <strong>Divergencia positiva:</strong> Williams %R vs precio en dirección opuesta</li>
                 </ul>
             </div>
-        
+
             <div class="mt-4 bg-blue-900 bg-opacity-20 p-3 rounded-lg border border-blue-400">
                 <p class="text-sm"><strong>ENTRADA:</strong> Vela 3M completa después de confirmación + validación de break/rebote en 15M.</p>
             </div>
