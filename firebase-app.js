@@ -91,8 +91,8 @@ const setupChecklists = {
     regulares: [
         // PASO 1 - Contexto 4H (3 de 4 requerido)
         "4H Estructura + MACD sin divergencia(operar a favor) | con divergencia(operar contra)",    
-        "4H: Williams %R saliendo extremos (-80/-60↗ O -50↗ compra | -20/-40↘ O -50↘ venta)",
         "4H/1h: EMA 21 > EMA 50 Compras | EMA 21 < EMA50 ventas",
+        "4H/1h: Williams %R saliendo extremos (-80/-60↗ O -50↗ compra | -20/-40↘ O -50↘ venta)",
         "✨Refuerzo(1h): Mecha larga en S/R ≥ 5 pips en ultima vela",
         // PASO 2 - Validacion 15M (3 de 4 requerido)
         "15M: Williams %R subiendo de -80/-60 (compras) | bajando de -20/-30 (ventas)",
