@@ -2369,3 +2369,4 @@ window.updateSupportPrice = updateSupportPrice;
 window.updateSupportNote = updateSupportNote;
 window.removeResistance = removeResistance;
 window.removeSupport = removeSupport;
+

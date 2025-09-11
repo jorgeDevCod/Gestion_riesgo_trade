@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestor de Trading y Dashboard – Control Operativo Total</title>
+    <link rel="stylesheet" href="patrones.css">
     <script src="https://cdn.tailwindcss.com"></script>
 
     <head>
@@ -147,6 +148,8 @@
                 <button class="tab-btn px-3 sm:px-6 py-2 sm:py-3 font-medium border-b-2 border-transparent hover:text-gold whitespace-nowrap text-xs sm:text-base" data-tab="capital">Capital & Riesgo</button>
                 <button class="tab-btn px-3 sm:px-6 py-2 sm:py-3 font-medium border-b-2 border-transparent hover:text-gold whitespace-nowrap text-xs sm:text-base" data-tab="trade-management">Gestión Trades</button>
                 <button class="tab-btn px-3 sm:px-6 py-2 sm:py-3 font-medium border-b-2 border-transparent hover:text-gold whitespace-nowrap text-xs sm:text-base" data-tab="discipline">Disciplina</button>
+                <button class="tab-btn px-3 sm:px-6 py-2 sm:py-3 font-medium border-b-2 border-transparent hover:text-gold whitespace-nowrap text-xs sm:text-base" data-tab="patterns">Patrones Velas</button>
+
             </div>
         </div>
     </nav>
@@ -154,7 +157,7 @@
     <!-- Main Content -->
     <main class="container mx-auto p-2 sm:p-4">
         <!-- Dashboard Tab -->
-        <div id="dashboard" class="tab-content hidden">
+        <section id="dashboard" class="tab-content hidden">
             <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-2 sm:gap-4 mb-4 sm:mb-8">
                 <!-- Capital Actual -->
                 <div class="bg-trading-card p-3 sm:p-4 rounded-lg border border-gray-700">
@@ -287,10 +290,10 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </section>
 
         <!-- Capital & Riesgo Tab -->
-        <div id="capital" class="tab-content hidden">
+        <section id="capital" class="tab-content hidden">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <!-- Configuración de Capital -->
                 <div class="bg-trading-card p-6 rounded-lg border border-gray-700">
@@ -400,10 +403,10 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </section>
 
         <!-- Registro de Trades Tab -->
-        <div id="trades" class="tab-content hidden">
+        <section id="trades" class="tab-content hidden">
             <div class="bg-trading-card p-6 rounded-lg border border-gray-700">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                     <h3 class="text-xl font-semibold text-gold">Registro de Trades</h3>
@@ -456,7 +459,7 @@
                     </table>
                 </div>
             </div>
-        </div>
+        </section>
 
         <!-- Check y estrategias Tab -->
         <section id="signals" class="tab-content p-6">
@@ -693,8 +696,109 @@
             </div>
         </section>
 
+        <!-- Gestión Trades Tab -->
+        <section id="trade-management" class="tab-content hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <!-- Protocolo de Monitoreo -->
+                <div class="bg-trading-card p-6 rounded-lg border border-gray-700">
+                    <h3 class="text-xl font-semibold text-gold mb-4">📊 Protocolo de Monitoreo</h3>
+                    <div class="space-y-4">
+                        <div class="bg-slate-800 bg-opacity-60 p-4 rounded-lg border border-slate-600">
+                            <h4 class="font-semibold text-slate-300 mb-2">Primeros 15 Minutos</h4>
+                            <ul class="text-sm space-y-1">
+                                <li>• Verificar que precio se mueve en dirección esperada</li>
+                                <li>• Si va contra: permitir hasta SL sin modificaciones</li>
+                                <li>• Si va a favor: mantener configuración original</li>
+                            </ul>
+                        </div>
+                        <div class="bg-gray-800 bg-opacity-70 p-4 rounded-lg border border-gray-600">
+                            <h4 class="font-semibold text-green-400 mb-2">Al Alcanzar TP1 (60% posición)</h4>
+                            <ul class="text-sm space-y-1">
+                                <li>• Cerrar automáticamente 60% de contratos</li>
+                                <li>• Mover SL a breakeven + 2 pips en posición restante</li>
+                                <li>• Activar trail stop de 8 pips para TP2</li>
+                            </ul>
+                        </div>
+                        <div class="bg-zinc-800 bg-opacity-60 p-4 rounded-lg border border-zinc-600">
+                            <h4 class="font-semibold text-orange-400 mb-2">Salidas Tempranas</h4>
+                            <ul class="text-sm space-y-1">
+                                <li>• Williams %R volviendo 80% hacia extremo original</li>
+                                <li>• MACD mostrando divergencia fuerte contra posición</li>
+                                <li>• Volumen decayendo significativamente por 3+ velas</li>
+                                <li>• Aparición de noticias críticas inesperadas</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Control Semanal -->
+                <div class="bg-trading-card p-6 rounded-lg border border-gray-700">
+                    <h3 class="text-xl font-semibold text-gold mb-4">📈 Control Semanal</h3>
+                    <div class="space-y-4">
+                        <div class="bg-gray-800 p-4 rounded-lg">
+                            <h4 class="font-semibold text-gold mb-3">Métricas a Monitorear</h4>
+                            <div class="space-y-3 text-sm">
+                                <div class="flex justify-between">
+                                    <span>Win Rate por Estrategia:</span>
+                                    <span class="text-blue-400">Comparar vs objetivo</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Ganancia Promedio:</span>
+                                    <span class="text-green-400">Mantener > $150/trade</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Drawdown Máximo:</span>
+                                    <span class="text-red-400">No exceder 15% semanal</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Trades por Día:</span>
+                                    <span class="text-yellow-400">Promedio 3-4, máx 5</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button id="weeklyAnalysisBtn" class="w-full bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg font-medium">
+                            📊 Generar Análisis Semanal
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Análisis Post-Trade -->
+            <div class="bg-trading-card p-6 rounded-lg border border-gray-700">
+                <h3 class="text-xl font-semibold text-gold mb-4">🔍 Análisis Post-Trade</h3>
+                <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                    <div class="bg-gray-800 p-4 rounded-lg text-center">
+                        <h5 class="font-semibold text-blue-400 mb-2">Setup Ejecutado</h5>
+                        <p class="text-xs">¿Cumplió todos los criterios?</p>
+                    </div>
+                    <div class="bg-gray-800 p-4 rounded-lg text-center">
+                        <h5 class="font-semibold text-green-400 mb-2">Timing</h5>
+                        <p class="text-xs">¿Fue en horario óptimo?</p>
+                    </div>
+                    <div class="bg-gray-800 p-4 rounded-lg text-center">
+                        <h5 class="font-semibold text-yellow-400 mb-2">Gestión</h5>
+                        <p class="text-xs">¿Respetó SL y TP?</p>
+                    </div>
+                    <div class="bg-gray-800 p-4 rounded-lg text-center">
+                        <h5 class="font-semibold text-purple-400 mb-2">Contexto</h5>
+                        <p class="text-xs">¿Mercado como esperado?</p>
+                    </div>
+                    <div class="bg-gray-800 p-4 rounded-lg text-center">
+                        <h5 class="font-semibold text-orange-400 mb-2">Mejoras</h5>
+                        <p class="text-xs">¿Qué optimizar?</p>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <textarea id="postTradeAnalysis" class="w-full p-3 bg-gray-800 border border-gray-600 rounded-lg text-white h-24" placeholder="Análisis detallado del trade: setup, timing, gestión, contexto y mejoras..."></textarea>
+                    <button id="savePostTradeBtn" class="mt-2 bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg font-medium">
+                        💾 Guardar Análisis
+                    </button>
+                </div>
+            </div>
+        </section>
+
         <!-- Disciplina Tab -->
-        <div id="discipline" class="tab-content hidden">
+        <section id="discipline" class="tab-content hidden">
             <!-- Reglas Inquebrantables -->
             <div class="bg-trading-card p-6 mb-8 rounded-lg border border-gray-700 mt-6">
                 <h3 class="text-xl font-semibold text-loss mb-4">🚨 Reglas Inquebrantables</h3>
@@ -820,108 +924,90 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <!-- Gestión Trades Tab -->
-        <div id="trade-management" class="tab-content hidden">
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                <!-- Protocolo de Monitoreo -->
-                <div class="bg-trading-card p-6 rounded-lg border border-gray-700">
-                    <h3 class="text-xl font-semibold text-gold mb-4">📊 Protocolo de Monitoreo</h3>
-                    <div class="space-y-4">
-                        <div class="bg-slate-800 bg-opacity-60 p-4 rounded-lg border border-slate-600">
-                            <h4 class="font-semibold text-slate-300 mb-2">Primeros 15 Minutos</h4>
-                            <ul class="text-sm space-y-1">
-                                <li>• Verificar que precio se mueve en dirección esperada</li>
-                                <li>• Si va contra: permitir hasta SL sin modificaciones</li>
-                                <li>• Si va a favor: mantener configuración original</li>
-                            </ul>
+        <!-- Patrones Tab -->
+        <sectiion id="patterns" class="tab-content hidden">
+            <div class="bg-trading-dark border-b border-slate-700">
+                <div class="max-w-7xl mx-auto px-4 py-6">
+                    <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+                        <div>
+                            <h1 class="text-3xl font-bold text-yellow-400 flex items-center gap-3 mb-2">
+                                📊 Patrones de Velas Japonesas
+                            </h1>
+                            <p class="text-slate-400 text-base">
+                                Sistema avanzado de reconocimiento y análisis de patrones para trading profesional
+                            </p>
                         </div>
-                        <div class="bg-gray-800 bg-opacity-70 p-4 rounded-lg border border-gray-600">
-                            <h4 class="font-semibold text-green-400 mb-2">Al Alcanzar TP1 (60% posición)</h4>
-                            <ul class="text-sm space-y-1">
-                                <li>• Cerrar automáticamente 60% de contratos</li>
-                                <li>• Mover SL a breakeven + 2 pips en posición restante</li>
-                                <li>• Activar trail stop de 8 pips para TP2</li>
-                            </ul>
-                        </div>
-                        <div class="bg-zinc-800 bg-opacity-60 p-4 rounded-lg border border-zinc-600">
-                            <h4 class="font-semibold text-orange-400 mb-2">Salidas Tempranas</h4>
-                            <ul class="text-sm space-y-1">
-                                <li>• Williams %R volviendo 80% hacia extremo original</li>
-                                <li>• MACD mostrando divergencia fuerte contra posición</li>
-                                <li>• Volumen decayendo significativamente por 3+ velas</li>
-                                <li>• Aparición de noticias críticas inesperadas</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- Control Semanal -->
-                <div class="bg-trading-card p-6 rounded-lg border border-gray-700">
-                    <h3 class="text-xl font-semibold text-gold mb-4">📈 Control Semanal</h3>
-                    <div class="space-y-4">
-                        <div class="bg-gray-800 p-4 rounded-lg">
-                            <h4 class="font-semibold text-gold mb-3">Métricas a Monitorear</h4>
-                            <div class="space-y-3 text-sm">
-                                <div class="flex justify-between">
-                                    <span>Win Rate por Estrategia:</span>
-                                    <span class="text-blue-400">Comparar vs objetivo</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span>Ganancia Promedio:</span>
-                                    <span class="text-green-400">Mantener > $150/trade</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span>Drawdown Máximo:</span>
-                                    <span class="text-red-400">No exceder 15% semanal</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span>Trades por Día:</span>
-                                    <span class="text-yellow-400">Promedio 3-4, máx 5</span>
-                                </div>
+                        <!-- Métricas de rendimiento -->
+                        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 w-full lg:w-auto">
+                            <div class="stats-card rounded-lg p-3 text-center">
+                                <div class="text-2xl font-bold text-green-400" id="totalPatterns">12</div>
+                                <div class="text-xs text-slate-400">Patrones</div>
+                            </div>
+                            <div class="stats-card rounded-lg p-3 text-center">
+                                <div class="text-2xl font-bold text-blue-400" id="avgReliability">78%</div>
+                                <div class="text-xs text-slate-400">Confiabilidad</div>
+                            </div>
+                            <div class="stats-card rounded-lg p-3 text-center">
+                                <div class="text-2xl font-bold text-purple-400" id="reversalCount">8</div>
+                                <div class="text-xs text-slate-400">Reversión</div>
+                            </div>
+                            <div class="stats-card rounded-lg p-3 text-center">
+                                <div class="text-2xl font-bold text-cyan-400" id="continuationCount">4</div>
+                                <div class="text-xs text-slate-400">Continuación</div>
                             </div>
                         </div>
-                        <button id="weeklyAnalysisBtn" class="w-full bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg font-medium">
-                            📊 Generar Análisis Semanal
-                        </button>
                     </div>
                 </div>
             </div>
 
-            <!-- Análisis Post-Trade -->
-            <div class="bg-trading-card p-6 rounded-lg border border-gray-700">
-                <h3 class="text-xl font-semibold text-gold mb-4">🔍 Análisis Post-Trade</h3>
-                <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
-                    <div class="bg-gray-800 p-4 rounded-lg text-center">
-                        <h5 class="font-semibold text-blue-400 mb-2">Setup Ejecutado</h5>
-                        <p class="text-xs">¿Cumplió todos los criterios?</p>
-                    </div>
-                    <div class="bg-gray-800 p-4 rounded-lg text-center">
-                        <h5 class="font-semibold text-green-400 mb-2">Timing</h5>
-                        <p class="text-xs">¿Fue en horario óptimo?</p>
-                    </div>
-                    <div class="bg-gray-800 p-4 rounded-lg text-center">
-                        <h5 class="font-semibold text-yellow-400 mb-2">Gestión</h5>
-                        <p class="text-xs">¿Respetó SL y TP?</p>
-                    </div>
-                    <div class="bg-gray-800 p-4 rounded-lg text-center">
-                        <h5 class="font-semibold text-purple-400 mb-2">Contexto</h5>
-                        <p class="text-xs">¿Mercado como esperado?</p>
-                    </div>
-                    <div class="bg-gray-800 p-4 rounded-lg text-center">
-                        <h5 class="font-semibold text-orange-400 mb-2">Mejoras</h5>
-                        <p class="text-xs">¿Qué optimizar?</p>
+            <div class="max-w-7xl mx-auto px-4 py-8">
+                <!-- Filtros y Búsqueda -->
+                <div class="bg-card-dark rounded-xl p-6 mb-8">
+                    <div class="flex flex-col lg:flex-row gap-6">
+                        <!-- Categorías -->
+                        <div class="flex-1">
+                            <h3 class="text-lg font-semibold mb-4 text-slate-200">Categorías</h3>
+                            <div class="flex flex-wrap gap-2">
+                                <button class="category-button active bg-slate-600 hover:bg-slate-500 px-4 py-2 rounded-lg font-medium text-sm" data-category="all">
+                                    Todos
+                                </button>
+                                <button class="category-button bg-slate-600 hover:bg-slate-500 px-4 py-2 rounded-lg font-medium text-sm" data-category="bullish">
+                                    🟢 Alcistas
+                                </button>
+                                <button class="category-button bg-slate-600 hover:bg-slate-500 px-4 py-2 rounded-lg font-medium text-sm" data-category="bearish">
+                                    🔴 Bajistas
+                                </button>
+                                <button class="category-button bg-slate-600 hover:bg-slate-500 px-4 py-2 rounded-lg font-medium text-sm" data-category="reversal">
+                                    🔄 Reversión
+                                </button>
+                                <button class="category-button bg-slate-600 hover:bg-slate-500 px-4 py-2 rounded-lg font-medium text-sm" data-category="continuation">
+                                    ➡️ Continuación
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Búsqueda -->
+                        <div class="lg:w-80">
+                            <h3 class="text-lg font-semibold mb-4 text-slate-200">Búsqueda</h3>
+                            <div class="relative">
+                                <input type="text" id="searchInput" class="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-2 text-white placeholder-slate-400 focus:ring-2 focus:ring-yellow-400 focus:border-transparent" placeholder="Buscar patrones...">
+                                <svg class="w-5 h-5 text-slate-400 absolute right-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                </svg>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="mt-4">
-                    <textarea id="postTradeAnalysis" class="w-full p-3 bg-gray-800 border border-gray-600 rounded-lg text-white h-24" placeholder="Análisis detallado del trade: setup, timing, gestión, contexto y mejoras..."></textarea>
-                    <button id="savePostTradeBtn" class="mt-2 bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg font-medium">
-                        💾 Guardar Análisis
-                    </button>
+
+                <!-- Grid de Patrones -->
+                <div id="patternsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    <!-- Los patrones se generan dinámicamente -->
                 </div>
             </div>
-        </div>
+        </sectiion>
 
     </main>
 
@@ -1229,6 +1315,29 @@
                     </button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Modal para Patrones-->
+    <div id="patternModal" class="fixed inset-0 modal-backdrop bg-black bg-opacity-70 hidden items-center justify-center z-50 p-4">
+        <div class="bg-slate-800 rounded-xl border border-slate-600 w-full max-w-5xl max-h-[90vh] overflow-y-auto">
+            <div class="p-6">
+                <!-- Header del Modal -->
+                <div class="flex justify-between items-start mb-6">
+                    <div>
+                        <h2 id="modalTitle" class="text-2xl font-bold text-yellow-400 mb-2"></h2>
+                        <div id="modalBadges" class="flex gap-2"></div>
+                    </div>
+                    <button id="closeModal" class="text-slate-400 hover:text-white text-2xl font-bold p-2 hover:bg-slate-700 rounded-lg transition-colors">
+                        ✕
+                    </button>
+                </div>
+
+                <!-- Contenido del Modal -->
+                <div id="modalContent" class="space-y-6">
+                    <!-- Se genera dinámicamente -->
+                </div>
+            </div>
         </div>
     </div>
 
@@ -1727,5 +1836,6 @@
 
 <script src="firebase-app.js"></script>
 <script src="confluence.js"></script>
+<script src="patrones.js"></script>
 
 </html>
