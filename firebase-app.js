@@ -52,7 +52,7 @@ const strategyConfigs = {
         takeProfit2: 24,
         winRate: 65,
         rrRatio: 2.2,
-        timeframes: "4H → 15M → 3M"
+        timeframes: "4H/1h → 15M → 3M"
     },
     "ema-macd": {
         name: "EMA + MACD",
