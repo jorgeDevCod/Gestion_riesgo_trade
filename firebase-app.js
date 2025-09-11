@@ -98,7 +98,7 @@ const setupChecklists = {
         "15M: Williams %R entre -80/-60 subiendo O -20/-30 bajando",
         "15M: MACD línea por cruzar o cruzando al alza/baja en zona testeada",
         "15M: Precio rebota/rompe S/R o ema21/50 + patrón con volumen",
-        "Refuerzo (15M): EMA21 cruza EMA50 en dirección del trade",
+        "Refuerzo✨(15M): EMA21 cruza EMA50 en dirección del trade",
         // PASO 3 - Confirmación 3M (2 de 3 requerido)
         "3M: Williams %R girando desde -70 hacia -50+ O desde -30 hacia -50",
         "3M: MACD: Cruce de líneas + histograma creciente en dirección del trade",
