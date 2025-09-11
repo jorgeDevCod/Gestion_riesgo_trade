@@ -93,17 +93,17 @@ const setupChecklists = {
         "4H: Estructura alcista/bajista + MACD a favor sin divergencia",
         "4H: Williams %R saliendo extremos (-80/-60↗ O -50↗ compra | -20/-40↘ O -50↘ venta)",
         "4H/1h: EMA 21 > EMA 50 O precio retestea EMA 21 como soporte/resistencia",
-        "✨ Refuerzo(1h): Mecha larga en S/R ≥ 5 pips en ultima vela",
+        "✨Refuerzo(1h): Mecha larga en S/R ≥ 5 pips en ultima vela",
         // PASO 2 - Validacion 15M (3 de 4 requerido)  
         "15M: Williams %R entre -80/-60 subiendo O -20/-30 bajando",
         "15M: MACD línea por cruzar o cruzando al alza/baja en zona testeada",
         "15M: Precio rebota/rompe S/R + patrón con volumen",
-        "✨ Refuerzo(15m): Vela con volumen valida cruce EMA 21/50",
+        "✨Refuerzo (15M): Vela con volumen confirma cruce EMA 21/50.",
         // PASO 3 - Confirmación 3M (2 de 3 requerido)
         "3M: Williams %R girando desde -70 hacia -50+ O desde -30 hacia -50",
         "3M: MACD: Cruce de líneas + histograma creciente en dirección del trade",
         "3M: Precio rebota EMA 21 O rompe estructura con volumen 1.2x",
-        "✨ Refuerzo(3m): Precio rebota/rompe linea de tendencia",
+        "✨Refuerzo(3m): Precio rebota/rompe linea de tendencia",
     ],
 
     // Mantener las otras estrategias existentes...
