@@ -101,8 +101,8 @@ const setupChecklists = {
         "✨Refuerzo(15M): EMA21 cruza EMA50 en dirección del trade",
         // PASO 3 - Confirmación 3M (2 de 3 requerido)
         "3M: Williams %R girando desde -70 hacia -50+ O desde -30 hacia -50",
-        "3M: MACD: Cruce de líneas + histograma creciente en dirección del trade",
-        "3M: Precio rebota EMA 21/50 O rompe estructura o linea de tendencia con volumen 1.2x",
+        "3M: Precio rebota EMA 21/50 O rompe estructura y valida S/R con volumen 1.2x",
+        "✨Refuerzo(3M): MACD: Cruce de líneas + histograma creciente",
     ],
 
     // Mantener las otras estrategias existentes...
