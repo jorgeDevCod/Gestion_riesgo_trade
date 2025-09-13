@@ -41,12 +41,16 @@ let criticalLevels = {
     lastUpdate: null,
 };
 let editingTradeId = null;
+let dailyTradesCount = 0;  // Nuevo: Conteo diario trades (max 3)
+let dailyPnL = 0;  // Nuevo: PnL diario para límite pérdida
+let dailyLossLimitExceeded = false;  // Nuevo: Bloqueo si >5% pérdida
 
-// Configuraciones de estrategias
+// Configuraciones de estrategias (eliminado "extremos")
 const strategyConfigs = {
     regulares: {
         name: "Trades Regulares",
-        riskPercent: 2.0,
+        riskMin: 2.5,  // Nuevo: Rango riesgo
+        riskMax: 5.0,
         stopLoss: 6,
         takeProfit1: 13,
         takeProfit2: 24,
@@ -56,7 +60,8 @@ const strategyConfigs = {
     },
     "ema-macd": {
         name: "EMA + MACD",
-        riskPercent: 3.0,
+        riskMin: 3.0,
+        riskMax: 5.0,
         stopLoss: 5,
         takeProfit1: 12,
         takeProfit2: 22,
@@ -66,45 +71,31 @@ const strategyConfigs = {
     },
     "contra-tendencia": {
         name: "Contra-Tendencia Flexible",
-        riskPercent: 2.5,
+        riskMin: 3.0,
+        riskMax: 5.0,
         stopLoss: 6,
         takeProfit1: 15,
-        takeProfit2: 28, // TP2 extendible +10 con ruptura EMA
+        takeProfit2: 28,
         winRate: 48,
         rrRatio: 2.8,
-        timeframes: "4H → 1H → 15M → 5M" // Actualizado para reflejar todos los TF
-    },
-    extremos: {
-        name: "Trades Extremos",
-        riskPercent: 3.0,
-        stopLoss: 5,
-        takeProfit1: 13,
-        takeProfit2: 25,
-        winRate: 65,
-        rrRatio: 2.6,
-        timeframes: "4H → 1H → 15M"
+        timeframes: "4H → 1H → 15M → 5M"
     }
 };
 
-// Setup checklists para cada estrategia
+// Setup checklists para cada estrategia (eliminado "extremos")
 const setupChecklists = {
     regulares: [
-        // PASO 1 - Contexto 4H (3 de 4 requerido)
         "4H Estructura + MACD sin divergencia(operar a favor) | con divergencia(operar contra)",
         "4H/1h: Williams %R saliendo de extremo -80↗ O -50↗ compra | -20↘ O -50↘ venta)",
         "✨Refuerzo(1h): Mecha larga en S/R ≥ 5 pips en ultima vela",
-        // PASO 2 - Validacion 15M (3 de 4 requerido)
         "15M: Williams %R subiendo de -80/-60 (compras) | bajando de -20/-30 (ventas)",
         "15M: Precio rebota/rompe S/R o ema21/50 + patrón con volumen",
         "15M: MACD líneas por cruzar o cruzando en zona retesteada",
         "✨Refuerzo(15M): EMA21 cruza EMA50 en dirección del trade",
-        // PASO 3 - Confirmación 3M (2 de 3 requerido)
         "3M: Williams %R girando de -80/-60↗ O -50↗ compra | -20/-40↘ O -50↘ venta)",
         "3M: Precio rebota EMA 21/50 O rompe estructura con volumen 1.2x",
         "✨Refuerzo(3M): MACD: Cruce de líneas + histograma creciente",
     ],
-
-    // Mantener las otras estrategias existentes...
     "ema-macd": [
         "4H: MACD sin divergencia bajista + histograma creciendo 2+ velas",
         "4H: Precio supera +2 resistencias/soportes clave",
@@ -117,7 +108,6 @@ const setupChecklists = {
         "15M: Precio encima/debajo ambas EMAs por 2+ velas",
         "5M: Vela rebota en EMA con histograma confirmando"
     ],
-
     "contra-tendencia": [
         "4H: Tendencia clara 24H+ (EMA 21 vs EMA 50 correcta)",
         "4H: Precio en zona crítica S/R fuerte identificada",
@@ -130,16 +120,6 @@ const setupChecklists = {
         "5M: Williams girando desde extremo (<-80→>-70 O >-20→<-30)",
         "5M: Volumen explosivo >1.3x promedio últimas 10 velas",
         "5M: MACD líneas e histograma en dirección del trade"
-    ],
-
-    extremos: [
-        "Precio en zona crítica histórica ±5 pips",
-        "4H: Williams %R extremo (-95/-85 o -15/-5)",
-        "4H: Mecha institucional 8+ pips tras movimiento 35+ pips",
-        "Volumen explosivo: 4H (2x) + 1H (1.8x) promedio",
-        "EMA: Precio superando/cayendo EMA 21/50 con fuerza",
-        "MACD: Triple divergencia (4H, 1H, 15M)",
-        "15M: Rebote/rechazo confirmado en EMA o nivel"
     ]
 };
 
@@ -267,30 +247,20 @@ function updateSyncStatus( status, isOnline = true ) {
 }
 
 function signInWithGoogle() {
-    // Configurar opciones adicionales para el popup
-    const authOptions = {
-        prompt: "select_account",
-    };
+    const authOptions = { prompt: "select_account" };
 
-    auth
-        .signInWithPopup( provider, authOptions )
+    auth.signInWithPopup( provider, authOptions )
         .then( ( result ) => {
             hideAuthModal();
-            authModalShownInSession = true;
+            hasShownAuthModal = true;  // Fix: usa variable existente
             updateSyncStatus( "Conectado y sincronizado", true );
         } )
         .catch( ( error ) => {
             console.error( "Error al iniciar sesión:", error );
-
-            // Si falla el popup, intentar con redirect como fallback
-            if (
-                error.code === "auth/popup-blocked" ||
-                error.code === "auth/popup-closed-by-user"
-            ) {
+            if ( error.code === "auth/popup-blocked" || error.code === "auth/popup-closed-by-user" ) {
                 console.log( "Popup bloqueado, intentando redirect..." );
                 auth.signInWithRedirect( provider );
             }
-
             updateSyncStatus( "Error de conexión", false );
         } );
 }
@@ -372,25 +342,17 @@ function saveDataLocally() {
 function loadDataLocally() {
     try {
         trades = JSON.parse( localStorage.getItem( "trading_trades" ) || "[]" );
-        observations = JSON.parse(
-            localStorage.getItem( "trading_observations" ) || "[]"
-        );
-        withdrawals = JSON.parse(
-            localStorage.getItem( "trading_withdrawals" ) || "[]"
-        );
-        capitalAdditions = JSON.parse(
-            localStorage.getItem( "trading_capitalAdditions" ) || "[]"
-        );
-        currentCapital = parseFloat(
-            localStorage.getItem( "trading_currentCapital" ) || "0"
-        );
-        criticalLevels = JSON.parse( localStorage.getItem( 'trading_criticalLevels' ) ||
-            '{"resistances":[],"supports":[],"lastUpdate":null}'
-        );
+        observations = JSON.parse( localStorage.getItem( "trading_observations" ) || "[]" );
+        withdrawals = JSON.parse( localStorage.getItem( "trading_withdrawals" ) || "[]" );
+        capitalAdditions = JSON.parse( localStorage.getItem( "trading_capitalAdditions" ) || "[]" );
+        currentCapital = parseFloat( localStorage.getItem( "trading_currentCapital" ) || "0" );
 
+        // Fix: default object para criticalLevels
+        const levelsStr = localStorage.getItem( "trading_criticalLevels" );
+        criticalLevels = levelsStr ? JSON.parse( levelsStr ) : { resistances: [], supports: [], lastUpdate: null };
     } catch ( error ) {
         console.error( "Error cargando datos locales:", error );
-        resetAllData();
+        resetAllData();  // Reset a defaults
     }
 }
 
@@ -690,57 +652,28 @@ function renderCapitalSection() {
     const inputCapital = document.getElementById( "currentCapitalDisplay" );
 
     // Mostrar el capital base ingresado (sin P&L ni retiros)
-    inputCapital.value = currentCapital.toFixed( 2 );
+    if ( inputCapital ) {  // Añadido check para evitar null errors
+        inputCapital.value = currentCapital.toFixed( 2 );
+    }
 
     // Actualizar el riesgo diario máximo basado en capital efectivo
-    document.getElementById( "maxDailyRisk" ).textContent =
-        `$${( effectiveCapital * 0.05 ).toFixed( 2 )}`;
-
-    // Actualizar calculadora de estrategia
-    updateStrategyCalculator();
-}
-
-function updateStrategyCalculator() {
-    const selectedStrategy =
-        document.getElementById( "strategySelect" )?.value || "regulares";
-    const config = strategyConfigs[ selectedStrategy ];
-
-    if ( config ) {
-        document.getElementById( "strategyWinRate" ).textContent =
-            `${config.winRate}%`;
-        document.getElementById( "strategyRR" ).textContent = `${config.rrRatio}:1`;
-        document.getElementById( "strategyRiskPercent" ).textContent =
-            `${config.riskPercent}%`;
-
-        // Usar capital efectivo para los cálculos
-        const effectiveCapital = calculateEffectiveCapital();
-        const maxRisk = ( effectiveCapital * config.riskPercent ) / 100;
-        const optimalContracts =
-            calculateOptimalContractsWithEffectiveCapital( selectedStrategy );
-
-        document.getElementById( "maxRiskPerTrade" ).textContent =
-            `$${maxRisk.toFixed( 2 )}`;
-        document.getElementById( "optimalContracts" ).textContent = optimalContracts;
-        document.getElementById( "suggestedSL" ).textContent =
-            `${config.stopLoss} pips`;
-        document.getElementById( "takeProfit1" ).textContent =
-            `${config.takeProfit1} pips`;
-        document.getElementById( "takeProfit2" ).textContent =
-            `${config.takeProfit2} pips`;
+    const maxDailyRiskEl = document.getElementById( "maxDailyRisk" );
+    if ( maxDailyRiskEl ) {
+        maxDailyRiskEl.textContent = `$${( effectiveCapital * 0.05 ).toFixed( 2 )}`;
     }
 }
 
 function calculateOptimalContractsWithEffectiveCapital( strategy ) {
-    const config = strategyConfigs[ strategy ];
+    const config = strategyConfigs[ strategy ] || strategyConfigs.regulares;  // Default fallback
     const effectiveCapital = calculateEffectiveCapital();
 
     if ( !config || effectiveCapital <= 0 ) return 0;
 
     const riskAmount = ( effectiveCapital * config.riskPercent ) / 100;
     const stopLossPips = config.stopLoss;
-    const pipValue = 1; // $1 por pip por contrato
+    const pipValue = 1;
 
-    return Math.floor( riskAmount / ( stopLossPips * pipValue ) );
+    return Math.floor( riskAmount / ( stopLossPips * pipValue ) ) || 1;  // Min 1 contrato
 }
 
 function renderTrades() {
@@ -775,13 +708,10 @@ function renderTrades() {
     // Ordenar por fecha descendente
     filteredTrades.sort( ( a, b ) => new Date( b.date ) - new Date( a.date ) );
 
-    tbody.innerHTML = filteredTrades
-        .map( ( trade ) => {
-            const strategyName =
-                strategyConfigs[ trade.strategy ]?.name || trade.strategy;
-            const pnlClass = parseFloat( trade.pnl ) >= 0 ? "text-profit" : "text-loss";
-
-            return `
+    tbody.innerHTML = filteredTrades.map( trade => {
+        const strategyName = strategyConfigs[ trade.strategy ]?.name || trade.strategy;
+        const pnlClass = parseFloat( trade.pnl ) >= 0 ? "text-profit" : "text-loss";
+        return `
             <tr class="border-b border-gray-700 hover:bg-gray-800">
                 <td class="p-3">${new Date( trade.date ).toLocaleDateString()}</td>
                 <td class="p-3">${strategyName}</td>
@@ -819,8 +749,7 @@ function renderTrades() {
 </td>
             </tr>
         `;
-        } )
-        .join( "" );
+    } ).join( "" );
 }
 
 function renderObservations() {
@@ -886,7 +815,7 @@ function renderSetupChecklist() {
     const strategy = strategySelector.value || "regulares";
 
     // Actualizar información rápida de la estrategia
-    updateQuickStrategyInfo( strategy );
+    updateStrategyDisplay( strategy )
 
     // Renderizar checklist
     renderDynamicChecklist( strategy );
@@ -901,24 +830,33 @@ function renderSetupChecklist() {
     restoreSetupState();
 }
 
-// Nueva función para actualizar la información rápida de la estrategia
-function updateQuickStrategyInfo( strategy ) {
+function updateStrategyDisplay( strategy = "regulares" ) {
     const config = strategyConfigs[ strategy ];
     if ( !config ) return;
 
     const effectiveCapital = calculateEffectiveCapital();
     const optimalContracts = calculateOptimalContractsWithEffectiveCapital( strategy );
 
-    // Valores con fallbacks para evitar "undefined"
-    const elements = {
-        'strategyWinRateQuick': `${config.winRate || 0}%`,
-        'strategyRRQuick': `${config.rrRatio || 2.0}:1`, // ✅ Fallback agregado
-        'strategyRiskQuick': `${config.riskPercent || 2.0}%`,
-        'optimalContractsQuick': optimalContracts.toString(),
-        'strategyTimeframesQuick': config.timeframes || "Multiple TF"
+    // Objetos para quick info y calculator (un solo loop)
+    const displayData = {
+        // Quick info
+        strategyWinRateQuick: `${config.winRate}%`,
+        strategyRRQuick: `${config.rrRatio}:1`,
+        strategyRiskQuick: `${config.riskPercent}%`,
+        optimalContractsQuick: optimalContracts.toString(),
+        strategyTimeframesQuick: config.timeframes || "Multiple TF",
+        // Calculator
+        strategyWinRate: `${config.winRate}%`,
+        strategyRR: `${config.rrRatio}:1`,
+        strategyRiskPercent: `${config.riskPercent}%`,
+        maxRiskPerTrade: `$${( effectiveCapital * config.riskPercent / 100 ).toFixed( 2 )}`,
+        optimalContracts: optimalContracts,
+        suggestedSL: `${config.stopLoss} pips`,
+        takeProfit1: `${config.takeProfit1} pips`,
+        takeProfit2: `${config.takeProfit2} pips`
     };
 
-    Object.entries( elements ).forEach( ( [ id, value ] ) => {
+    Object.entries( displayData ).forEach( ( [ id, value ] ) => {
         const element = document.getElementById( id );
         if ( element ) element.textContent = value;
     } );
@@ -1053,22 +991,6 @@ function setupImprovedStrategyListeners() {
         } );
     }
 }
-
-function initializeImprovedSetupListeners() {
-    setupImprovedStrategyListeners();
-    setupButtonListeners(); // Esta función ya existe en tu código
-
-    // Auto-save periódico del estado
-    setInterval( () => {
-        const checkboxes = document.querySelectorAll( 'input[id^="dynamic_check_"]' );
-        if ( checkboxes.length > 0 ) {
-            saveSetupState();
-        }
-    }, 30000 );
-
-    console.log( 'Setup listeners mejorados inicializados correctamente' );
-}
-
 
 // Función para actualizar solo el display del score
 function updateScoreDisplay() {
@@ -1890,19 +1812,19 @@ function setupButtonListeners() {
     } );
 }
 
-// Inicializar todos los listeners de setup
-function initializeSetupListeners() {
-    setupButtonListeners();
+function initializeAllListeners() {
+    setupImprovedStrategyListeners();  // Para change en select
+    setupButtonListeners();  // Para botones execute/reset
 
-    // Auto-save periódico del estado
+    // Auto-save cada 30s
     setInterval( () => {
         const checkboxes = document.querySelectorAll( 'input[id^="dynamic_check_"]' );
         if ( checkboxes.length > 0 ) {
             saveSetupState();
         }
-    }, 30000 ); // Cada 30 segundos
+    }, 30000 );
 
-    console.log( 'Setup listeners inicializados correctamente' );
+    console.log( 'Todos los listeners inicializados' );
 }
 
 // Mostrar modal de autenticación solo bajo condiciones específicas
@@ -1936,54 +1858,6 @@ function hideAuthModalPermanently() {
     hasShownAuthModal = true;
 }
 
-// Nueva función para agregar checklist dinámico
-function addDynamicChecklist( strategy, container ) {
-    const checklist = setupChecklists[ strategy ] || [];
-
-    if ( checklist.length === 0 ) {
-        container.innerHTML += `
-            <div class="bg-yellow-900 bg-opacity-20 p-4 rounded-lg border border-yellow-500 mb-4">
-                <p class="text-yellow-400">⚠️ Checklist no disponible para esta estrategia</p>
-            </div>
-        `;
-        return;
-    }
-
-    const checklistHTML = `
-        <div class="mb-6">
-            <div class="flex justify-between items-center mt-6 mb-4">
-                <h4 class="text-lg font-semibold text-white">✅ Setup Verification</h4>
-                <div class="flex space-x-2">
-                    <button onclick="toggleAllCheckboxes(true)" 
-                            class="text-sm px-5 py-2 bg-green-700 hover:bg-green-600 rounded transition-colors">
-                        Marcar Todo
-                    </button>
-                    <button onclick="toggleAllCheckboxes(false)" 
-                            class="text-sm px-2 py-2 bg-red-700 hover:bg-red-600 rounded transition-colors">
-                        Limpiar
-                    </button>
-                </div>
-            </div>
-            <div class="space-y-3">
-                ${checklist.map( ( item, index ) => `
-                    <div class="flex items-start space-x-3 p-1 bg-gray-800/50 rounded-lg hover:bg-gray-800 transition-colors">
-                        <input type="checkbox" 
-                               id="dynamic_check_${index}" 
-                               class="mt-1 rounded text-gold focus:ring-gold focus:ring-2 h-5 w-5" 
-                               onchange="updateDynamicSetupScore()">
-                        <label for="dynamic_check_${index}" 
-                               class="text-sm flex-1 cursor-pointer hover:text-gold transition-colors leading-relaxed">
-                            ${item}
-                        </label>
-                    </div>
-                `).join( '' )}
-            </div>
-        </div>
-    `;
-
-    container.innerHTML += checklistHTML;
-}
-
 
 // ===== EVENT LISTENERS =====
 document.addEventListener( "DOMContentLoaded", function () {
@@ -1991,6 +1865,7 @@ document.addEventListener( "DOMContentLoaded", function () {
 
     // Cargar datos locales inicialmente
     loadDataLocally();
+    initializeAllListeners();
     renderAllData();
 
     // Inicializar elementos
@@ -2226,8 +2101,6 @@ document.addEventListener( "DOMContentLoaded", function () {
                 ?.addEventListener( "input", calculatePnLFromPrices );
         }
     );
-
-    initializeImprovedSetupListeners();
 
     // ===== DISCIPLINE =====
     document
