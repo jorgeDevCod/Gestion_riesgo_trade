@@ -407,26 +407,36 @@ function addTrade( tradeData ) {
 
     if ( !tradeData.date ) tradeData.date = today;
 
-    let finalTradeData = { ...tradeData, totalContracts: tradeData.contracts };
+    // CORRECCIÓN: Asegurar que totalContracts y contracts se inicialicen correctamente
+    let finalTradeData = {
+        ...tradeData,
+        totalContracts: tradeData.contracts, // Contratos iniciales totales
+        contracts: tradeData.contracts       // Contratos restantes (inicialmente iguales)
+    };
 
     const hasValidOpenPrice = tradeData.openPrice && !isNaN( tradeData.openPrice ) && tradeData.openPrice > 0;
     const hasValidClosePrice = tradeData.closePrice && !isNaN( tradeData.closePrice ) && tradeData.closePrice > 0;
 
     if ( hasValidOpenPrice && hasValidClosePrice ) {
-        const { pnl } = calculateTradeResult(
-            tradeData.openPrice,
-            tradeData.closePrice,
-            tradeData.direction,
-            tradeData.contracts
-        );
-
-        finalTradeData.pnl = pnl;
+        const priceDifference = tradeData.closePrice - tradeData.openPrice;
+        // CORRECCIÓN: Usar tradeData.contracts (todos los contratos) para cierre total inicial
+        const partialPnL = ( tradeData.direction === 'buy' ? 1 : -1 ) * priceDifference * tradeData.contracts;
+        finalTradeData.pnl = partialPnL;
         finalTradeData.closed = true;
         finalTradeData.status = 'Cierre total';
         finalTradeData.closePrice = tradeData.closePrice;
         finalTradeData.tpLevel = 'tp1';
+        finalTradeData.contracts = 0; // Todos cerrados
+        finalTradeData.partials = [ {
+            type: 'Initial Close',
+            price: tradeData.closePrice,
+            contracts: tradeData.contracts, // CORRECTO: todos los contratos iniciales
+            pnl: partialPnL,
+            timestamp: new Date().toISOString(),
+            reason: 'Cierre inicial'
+        } ];
 
-        console.log( `Trade cerrado calculado: P&L=${pnl}` );
+        console.log( `Trade cerrado calculado: P&L=${partialPnL}` );
     } else {
         finalTradeData.pnl = 0;
         finalTradeData.closed = false;
@@ -477,39 +487,34 @@ function editTrade( tradeId, updatedData ) {
     const trade = trades[ tradeIndex ];
     console.log( `Editando trade: ${tradeId.substr( -6 )}` );
 
+    // DETECCIÓN MEJORADA de actualizaciones parciales
+    const isPartialUpdate = updatedData.partials && updatedData.partials.length > 0;
+    const hasExistingPartials = trade.partials && trade.partials.length > 0;
+    const isPnLPreCalculated = updatedData.pnl !== undefined && ( isPartialUpdate || hasExistingPartials );
+
     Object.assign( trade, updatedData );
 
-    const hasValidOpenPrice = trade.openPrice && !isNaN( trade.openPrice ) && trade.openPrice > 0;
-    const hasValidClosePrice = trade.closePrice && !isNaN( trade.closePrice ) && trade.closePrice > 0;
+    // SOLO recalcular P&L automáticamente si NO hay parciales involucrados
+    if ( !isPartialUpdate && !hasExistingPartials && !isPnLPreCalculated ) {
+        const hasValidOpenPrice = trade.openPrice && !isNaN( trade.openPrice ) && trade.openPrice > 0;
+        const hasValidClosePrice = trade.closePrice && !isNaN( trade.closePrice ) && trade.closePrice > 0;
 
-    if ( hasValidOpenPrice && hasValidClosePrice ) {
-        const currentPnL = parseFloat( trade.pnl ) || 0;
-        const { pnl: newPnL } = calculateTradeResult(
-            trade.openPrice,
-            trade.closePrice,
-            trade.direction,
-            trade.contracts
-        );
-        trade.pnl = currentPnL + newPnL;
-        trade.closed = true;
-        trade.status = trade.partials && trade.partials.length > 0 ? 'Cerrado por TP' : ( trade.closeReason === 'manual' ? 'Cierre manual' : 'Cierre total' );
-        if ( trade.partials && trade.partials.some( p => p.type === 'TP1' ) ) {
-            trade.status = 'Cerrado por TP';
+        if ( hasValidOpenPrice && hasValidClosePrice ) {
+            const priceDifference = trade.closePrice - trade.openPrice;
+            const newPnL = ( trade.direction === 'buy' ? 1 : -1 ) * priceDifference * ( trade.totalContracts || trade.contracts );
+            trade.pnl = newPnL;
+            trade.closed = true;
+            trade.status = trade.partials && trade.partials.length > 0 ? 'Cerrado por TP' : ( trade.closeReason === 'manual' ? 'Cierre manual' : 'Cierre total' );
+            trade.tpLevel = trade.tpLevel || 'tp1';
+        } else if ( hasValidOpenPrice && ( !trade.closePrice || trade.closePrice === 0 ) ) {
+            trade.pnl = trade.pnl || 0;
+            trade.closed = false;
+            trade.status = 'Abierto';
+            trade.closePrice = null;
+            trade.tpLevel = '';
         }
-        trade.closePrice = trade.closePrice;
-        trade.tpLevel = trade.tpLevel || 'tp1';
-    } else if ( hasValidOpenPrice && ( !trade.closePrice || trade.closePrice === 0 ) ) {
-        trade.pnl = trade.pnl || 0;
-        trade.closed = false;
-        trade.status = 'Abierto';
-        trade.closePrice = null;
-        trade.tpLevel = '';
     } else {
-        trade.pnl = 0;
-        trade.closed = false;
-        trade.status = 'Borrador';
-        trade.closePrice = null;
-        trade.tpLevel = '';
+        console.log( `Edit trade: Manteniendo P&L pre-calculado: ${trade.pnl}` );
     }
 
     trade.lastModified = new Date().toISOString();
@@ -544,7 +549,10 @@ function renderTrades() {
     tbody.innerHTML = filteredTrades.map( trade => {
         const strategyName = strategyConfigs[ trade.strategy ]?.name || trade.strategy;
         const pnlValue = parseFloat( trade.pnl ) || 0;
-        const pnlClass = pnlValue >= 0 ? "text-profit" : "text-loss";
+
+        // MOSTRAR P&L REAL del trade (no recalcular)
+        const displayedPnL = pnlValue;
+        const pnlClass = displayedPnL >= 0 ? "text-profit" : "text-loss";
 
         const statusDisplay = trade.closed ? trade.status : 'Abierto';
         const statusClass = trade.closed ? ( trade.status === 'Cerrado por TP' ? 'bg-green-800 text-green-200' : trade.status === 'Cierre manual' ? 'bg-orange-800 text-orange-200' : 'bg-gray-800 text-gray-200' ) : 'bg-green-800 text-green-200';
@@ -559,7 +567,7 @@ function renderTrades() {
                         ${trade.direction === 'buy' ? 'Compra' : 'Venta'}
                     </span>
                 </td>
-                <td class="p-2 text-sm font-medium">${trade.totalContracts}</td>
+                <td class="p-2 text-sm font-medium">${trade.totalContracts || trade.contracts}</td>
                 <td class="p-2 text-sm">${trade.openPrice ? `$${trade.openPrice.toFixed( 2 )}` : 'N/A'}</td>
                 <td class="p-2 text-sm">${closePrice}</td>
                 <td class="p-2">
@@ -567,7 +575,7 @@ function renderTrades() {
                         ${statusDisplay} ${trade.tpLevel ? `(${trade.tpLevel})` : ''}
                     </span>
                 </td>
-                <td class="p-2 ${pnlClass} font-bold text-sm">$${pnlValue.toFixed( 2 )}</td>
+                <td class="p-2 ${pnlClass} font-bold text-sm">$${displayedPnL.toFixed( 2 )}</td>
                 <td class="p-2">
                     <span class="cursor-pointer text-blue-400 hover:text-blue-300 text-xs" 
                           onclick="showCommentTooltip(event, '${( trade.comments || '' ).replace( /'/g, "\\'" )}')">
@@ -597,7 +605,7 @@ function renderTrades() {
     if ( filteredTrades.length === 0 ) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="10" class="p-4 text-center text-gray-400">
+                <td colspan="11" class="p-4 text-center text-gray-400">
                     <div class="flex flex-col items-center space-y-1">
                         <div class="text-lg">📊</div>
                         <div>No hay trades que mostrar</div>
@@ -900,6 +908,9 @@ function showTradeDetails( tradeId ) {
     const trade = trades.find( t => t.id === tradeId );
     if ( !trade ) return;
 
+    const displayedPnL = trade.partials && trade.partials.length > 0 && !trade.closed ? ( trade.partials.reduce( ( sum, p ) => sum + ( parseFloat( p.pnl ) || 0 ), 0 ) ) : ( parseFloat( trade.pnl ) || 0 );
+    const pnlClass = displayedPnL >= 0 ? 'text-green-400' : 'text-red-400';
+
     const partialsInfo = trade.partials && trade.partials.length > 0 ? `
         <div class="mt-4">
             <h4 class="text-lg font-semibold text-gold">Detalles de Parciales</h4>
@@ -926,7 +937,7 @@ function showTradeDetails( tradeId ) {
                         <p class="text-sm text-gray-400">Entrada: $${trade.openPrice?.toFixed( 2 ) || 'N/A'}</p>
                         <p class="text-sm text-gray-400">Cierre: ${trade.closePrice ? `$${trade.closePrice.toFixed( 2 )}` : 'Sin cerrar'}</p>
                         <p class="text-sm text-gray-400">Estado: ${trade.status} ${trade.tpLevel ? `(${trade.tpLevel})` : ''}</p>
-                        <p class="text-sm ${parseFloat( trade.pnl ) >= 0 ? 'text-green-400' : 'text-red-400'} font-bold">P&L: $${parseFloat( trade.pnl || 0 ).toFixed( 2 )}</p>
+                        <p class="text-sm ${pnlClass} font-bold">P&L: $${displayedPnL.toFixed( 2 )}</p>
                     </div>
                     ${partialsInfo}
                     <div class="text-sm text-gray-400">
@@ -3009,6 +3020,7 @@ function executePartialTP( tradeId ) {
     let tpAction = document.querySelector( 'input[name="tpAction"]:checked' ).value;
     const newTP2 = parseFloat( document.getElementById( "newTP2" ).value );
 
+    // Validaciones
     if ( isNaN( tp1Price ) || tp1Price <= 0 ) {
         alert( "Por favor ingrese un precio válido para TP1" );
         return;
@@ -3033,10 +3045,23 @@ function executePartialTP( tradeId ) {
         tpAction = 'close';
     }
 
-    const partialResult = calculateTradeResult( trade.openPrice, tp1Price, trade.direction, contractsToClose );
-    const partialPnL = partialResult.pnl;
+    // CÁLCULO CORRECTO DEL P&L PARCIAL
+    const priceDifference = tp1Price - trade.openPrice;
+    const partialPnL = ( trade.direction === 'buy' ? 1 : -1 ) * priceDifference * contractsToClose;
+
+    console.log( `CÁLCULO PARCIAL:
+        - Precio apertura: ${trade.openPrice}
+        - Precio cierre: ${tp1Price}
+        - Diferencia: ${priceDifference}
+        - Contratos a cerrar: ${contractsToClose}
+        - Dirección: ${trade.direction}
+        - P&L parcial: ${partialPnL}
+    `);
+
+    // Obtener P&L existente
     const existingPnL = parseFloat( trade.pnl ) || 0;
 
+    // Crear registro del parcial
     if ( !trade.partials ) trade.partials = [];
 
     const partialType = tpAction === 'close' ? 'Close All' : 'TP1';
@@ -3044,48 +3069,129 @@ function executePartialTP( tradeId ) {
         type: partialType,
         price: tp1Price,
         contracts: contractsToClose,
-        pnl: partialPnL,
+        pnl: partialPnL, // ESTE es el P&L correcto para este parcial
         timestamp: new Date().toISOString(),
         reason: `${partialType === 'Close All' ? 'Cierre total' : 'TP1 parcial'}: ${contractsToClose} contratos @ ${tp1Price}`
     };
-    trade.partials.push( partial );
-    trade.pnl = existingPnL + partialPnL;
-    trade.contracts -= contractsToClose;
-    trade.closePrice = tp1Price;
-    trade.tpLevel = partialType === 'TP1' ? 'tp1' : 'tp2';
 
-    if ( tpAction === "close" || trade.contracts <= 0 ) {
-        trade.closed = true;
-        trade.status = 'Cerrado por TP';
-        trade.contracts = 0;
-    } else {
-        trade.tp = newTP2;
-        trade.closed = false;
-        trade.status = 'Cierre parcial';
+    trade.partials.push( partial );
+
+    // ACTUALIZAR TRADE DIRECTAMENTE - EVITAR CUALQUIER RECÁLCULO
+    const tradeIndex = trades.findIndex( t => t.id === tradeId );
+    if ( tradeIndex === -1 ) return;
+
+    // ACTUALIZACIÓN DIRECTA Y CONTROLADA
+    trades[ tradeIndex ] = {
+        ...trade,
+        pnl: existingPnL + partialPnL, // Sumar SOLO el P&L parcial calculado
+        contracts: trade.contracts - contractsToClose, // Restar contratos cerrados
+        closePrice: tp1Price,
+        tpLevel: partialType === 'TP1' ? 'tp1' : 'tp2',
+        lastModified: new Date().toISOString(),
+        closed: ( tpAction === "close" || ( trade.contracts - contractsToClose ) <= 0 ),
+        status: ( tpAction === "close" || ( trade.contracts - contractsToClose ) <= 0 ) ? 'Cerrado por TP' : 'Cierre parcial',
+        tp: ( tpAction === "close" || ( trade.contracts - contractsToClose ) <= 0 ) ? trade.tp : newTP2,
+        partials: trade.partials,
+        classification: classifyTradeResult( existingPnL + partialPnL ).category
+    };
+
+    // Si cerramos todos los contratos
+    if ( tpAction === "close" || trades[ tradeIndex ].contracts <= 0 ) {
+        trades[ tradeIndex ].contracts = 0;
     }
 
-    const classification = classifyTradeResult( trade.pnl );
-    trade.classification = classification.category;
-    trade.lastModified = new Date().toISOString();
+    console.log( `RESULTADO FINAL:
+        - P&L anterior: ${existingPnL}
+        - P&L parcial: ${partialPnL}
+        - P&L total: ${trades[ tradeIndex ].pnl}
+        - Contratos restantes: ${trades[ tradeIndex ].contracts}
+    `);
 
-    const success = editTrade( tradeId, trade );
+    // Guardar sin llamar a editTrade
+    saveDataLocally();
+    if ( currentUser ) {
+        syncDataToFirebase();
+    }
+
+    // Renderizar solo las partes necesarias
+    renderTrades();
+    renderDashboard();
+
+    closePartialTPModal();
+    updateSyncStatus(
+        `TP parcial ejecutado: ${contractsToClose} contratos @ $${tp1Price.toFixed( 2 )} | P&L parcial: $${partialPnL.toFixed( 2 )} | P&L total: $${trades[ tradeIndex ].pnl.toFixed( 2 )}`,
+        true
+    );
+    refreshClosureManagement();
+
+    if ( trades[ tradeIndex ].closed ) {
+        const disciplinaryMsg = generateDisciplinaryMessage();
+        if ( disciplinaryMsg ) {
+            setTimeout( () => showDisciplinaryMessage( disciplinaryMsg ), 1000 );
+        }
+    }
+}
+
+// CORRECCIÓN ADICIONAL: executeManualClose - Asegurar cálculo correcto
+function executeManualClose( tradeId ) {
+    const trade = trades.find( t => t.id === tradeId );
+    if ( !trade ) return;
+
+    const closePrice = parseFloat( document.getElementById( "manualClosePrice" ).value );
+    const closeReason = document.getElementById( "closeReason" ).value;
+    const closeNotes = document.getElementById( "closeNotes" ).value;
+
+    if ( isNaN( closePrice ) || closePrice <= 0 ) {
+        alert( "Por favor ingrese un precio de cierre válido" );
+        return;
+    }
+
+    if ( !trade.openPrice || isNaN( trade.openPrice ) ) {
+        alert( "Error: El trade no tiene precio de apertura registrado" );
+        return;
+    }
+
+    // CORRECCIÓN: Usar trade.contracts (restantes) para el cálculo
+    const { pnl, result } = calculateTradeResult( trade.openPrice, closePrice, trade.direction, trade.contracts );
+    const classification = classifyTradeResult( pnl );
+
+    const updateData = {
+        closePrice: closePrice,
+        pnl: ( parseFloat( trade.pnl ) || 0 ) + pnl, // Sumar al P&L existente
+        result: result,
+        closed: true,
+        status: 'Cierre manual',
+        closeReason: closeReason,
+        closeNotes: closeNotes,
+        classification: classification.category,
+        closeTimestamp: new Date().toISOString(),
+        contracts: 0, // Todos los contratos cerrados
+        tpLevel: 'tp1 (manual)'
+    };
+
+    if ( !trade.partials ) trade.partials = [];
+    trade.partials.push( {
+        type: "Manual Close",
+        price: closePrice,
+        contracts: trade.contracts, // CORRECTO: usar contratos restantes
+        pnl: pnl, // P&L solo de los contratos restantes
+        timestamp: new Date().toISOString(),
+        reason: `Cierre manual: ${closeReason} - ${closeNotes || 'Sin notas'}`
+    } );
+
+    const success = editTrade( tradeId, updateData );
 
     if ( success ) {
-        closePartialTPModal();
-        updateSyncStatus(
-            `TP parcial ejecutado: ${contractsToClose} contratos | P&L parcial: $${partialPnL.toFixed( 2 )} | P&L total: $${trade.pnl.toFixed( 2 )}`,
-            true
-        );
+        closeManualCloseModal();
+        updateSyncStatus( `Trade cerrado manualmente: P&L: $${pnl.toFixed( 2 )} | Total: $${updateData.pnl.toFixed( 2 )} | ${classification.category}`, true );
         refreshClosureManagement();
 
-        if ( trade.closed ) {
-            const disciplinaryMsg = generateDisciplinaryMessage();
-            if ( disciplinaryMsg ) {
-                setTimeout( () => showDisciplinaryMessage( disciplinaryMsg ), 1000 );
-            }
+        const disciplinaryMsg = generateDisciplinaryMessage();
+        if ( disciplinaryMsg ) {
+            setTimeout( () => showDisciplinaryMessage( disciplinaryMsg ), 1000 );
         }
     } else {
-        alert( "Error al ejecutar el take profit parcial. Verifique los datos." );
+        alert( "Error al cerrar el trade. Intente nuevamente." );
     }
 }
 
@@ -3689,7 +3795,6 @@ document.addEventListener( "DOMContentLoaded", function () {
         }
     }, 500 );
 } );
-
 
 // ===== fUNCIONES GLOBALES =====
 window.deleteTrade = deleteTrade;
