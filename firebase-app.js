@@ -492,7 +492,10 @@ function editTrade( tradeId, updatedData ) {
         );
         trade.pnl = currentPnL + newPnL;
         trade.closed = true;
-        trade.status = trade.partials && trade.partials.length > 0 ? 'Cierre parcial' : 'Cierre total';
+        trade.status = trade.partials && trade.partials.length > 0 ? 'Cerrado por TP' : ( trade.closeReason === 'manual' ? 'Cierre manual' : 'Cierre total' );
+        if ( trade.partials && trade.partials.some( p => p.type === 'TP1' ) ) {
+            trade.status = 'Cerrado por TP';
+        }
         trade.closePrice = trade.closePrice;
         trade.tpLevel = trade.tpLevel || 'tp1';
     } else if ( hasValidOpenPrice && ( !trade.closePrice || trade.closePrice === 0 ) ) {
@@ -544,17 +547,8 @@ function renderTrades() {
         const pnlClass = pnlValue >= 0 ? "text-profit" : "text-loss";
 
         const statusDisplay = trade.closed ? trade.status : 'Abierto';
-        const statusClass = trade.closed ? ( trade.status === 'Cierre parcial' ? 'bg-blue-800 text-blue-200' : 'bg-gray-800 text-gray-200' ) : 'bg-green-800 text-green-200';
+        const statusClass = trade.closed ? ( trade.status === 'Cerrado por TP' ? 'bg-green-800 text-green-200' : trade.status === 'Cierre manual' ? 'bg-orange-800 text-orange-200' : 'bg-gray-800 text-gray-200' ) : 'bg-green-800 text-green-200';
         const closePrice = trade.closePrice ? `$${trade.closePrice.toFixed( 2 )}` : ( trade.closed ? 'Cerrado' : 'Sin cerrar' );
-
-        const hasPartials = trade.partials && trade.partials.length > 0;
-        const tpColumn = hasPartials ? `
-            <td class="p-2 text-sm">
-                <div class="text-xs">
-                    ${trade.partials.map( p => `${p.type === 'TP1' ? 'TP1' : p.type === 'Close All' ? 'Cierre Total' : 'TP2'}: ${p.contracts} @ $${p.price.toFixed( 2 )}` ).join( '<br>' )}
-                </div>
-            </td>
-        ` : '';
 
         return `
             <tr class="border-b border-gray-700 hover:bg-gray-800 transition-colors">
@@ -580,7 +574,6 @@ function renderTrades() {
                         ${trade.comments && trade.comments.length > 15 ? trade.comments.substring( 0, 15 ) + "..." : ( trade.comments || 'Sin comentarios' )}
                     </span>
                 </td>
-                ${tpColumn}
                 <td class="p-2">
                     <div class="flex gap-1">
                         <button onclick="showEditTradeModal('${trade.id}')" 
@@ -604,7 +597,7 @@ function renderTrades() {
     if ( filteredTrades.length === 0 ) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="${hasPartials ? 10 : 9}" class="p-4 text-center text-gray-400">
+                <td colspan="10" class="p-4 text-center text-gray-400">
                     <div class="flex flex-col items-center space-y-1">
                         <div class="text-lg">📊</div>
                         <div>No hay trades que mostrar</div>
@@ -907,101 +900,44 @@ function showTradeDetails( tradeId ) {
     const trade = trades.find( t => t.id === tradeId );
     if ( !trade ) return;
 
-    const strategyName = strategyConfigs[ trade.strategy ]?.name || trade.strategy;
-    const pnlValue = parseFloat( trade.pnl ) || 0;
-    const pnlClass = pnlValue >= 0 ? "text-green-400" : "text-red-400";
+    const partialsInfo = trade.partials && trade.partials.length > 0 ? `
+        <div class="mt-4">
+            <h4 class="text-lg font-semibold text-gold">Detalles de Parciales</h4>
+            <ul class="list-disc pl-5 text-sm text-gray-300">
+                ${trade.partials.map( p => `<li>${p.type}: ${p.contracts} contratos @ $${p.price.toFixed( 2 )} (P&L: $${p.pnl.toFixed( 2 )})</li>` ).join( '' )}
+            </ul>
+            <p class="text-sm text-gray-400 mt-2">Tamaño total de contratos: ${trade.totalContracts}</p>
+            <p class="text-sm text-gray-400 mt-2">P&L Total de Parciales: $${trade.partials.reduce( ( sum, p ) => sum + ( parseFloat( p.pnl ) || 0 ), 0 ).toFixed( 2 )}</p>
+        </div>
+    ` : '';
 
     const modalHTML = `
         <div id="tradeDetailsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div class="bg-trading-card p-6 rounded-lg border border-gray-700 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
-                <h3 class="text-xl font-semibold text-gold mb-4">📊 Detalles del Trade</h3>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="space-y-3">
-                        <div>
-                            <span class="text-gray-400 text-sm">Fecha:</span>
-                            <div class="text-white font-medium">${new Date( trade.date ).toLocaleDateString()}</div>
-                        </div>
-                        
-                        <div>
-                            <span class="text-gray-400 text-sm">Estrategia:</span>
-                            <div class="text-white font-medium">${strategyName}</div>
-                        </div>
-                        
-                        <div>
-                            <span class="text-gray-400 text-sm">Dirección:</span>
-                            <span class="px-2 py-1 rounded text-xs ${trade.direction === "buy" ? "bg-green-800 text-green-200" : "bg-red-800 text-red-200"}">
-                                ${trade.direction === "buy" ? "Compra" : "Venta"}
-                            </span>
-                        </div>
-                        
-                        <div>
-                            <span class="text-gray-400 text-sm">Contratos:</span>
-                            <div class="text-white font-medium">${trade.contracts}</div>
-                        </div>
+            <div class="bg-trading-card p-6 rounded-lg border border-gray-700 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-semibold text-gold">👁️ Detalles del Trade</h3>
+                    <button onclick="closeTradeDetailsModal()" class="text-gray-400 hover:text-white text-2xl">&times;</button>
+                </div>
+                <div class="space-y-4">
+                    <div class="bg-gray-800 p-3 rounded-lg">
+                        <p class="text-sm text-gray-400">Estrategia: ${strategyConfigs[ trade.strategy ]?.name || trade.strategy}</p>
+                        <p class="text-white">Dirección: ${trade.direction === 'buy' ? 'Compra' : 'Venta'}</p>
+                        <p class="text-sm text-gray-400">Fecha: ${new Date( trade.date ).toLocaleDateString()}</p>
+                        <p class="text-sm text-gray-400">Entrada: $${trade.openPrice?.toFixed( 2 ) || 'N/A'}</p>
+                        <p class="text-sm text-gray-400">Cierre: ${trade.closePrice ? `$${trade.closePrice.toFixed( 2 )}` : 'Sin cerrar'}</p>
+                        <p class="text-sm text-gray-400">Estado: ${trade.status} ${trade.tpLevel ? `(${trade.tpLevel})` : ''}</p>
+                        <p class="text-sm ${parseFloat( trade.pnl ) >= 0 ? 'text-green-400' : 'text-red-400'} font-bold">P&L: $${parseFloat( trade.pnl || 0 ).toFixed( 2 )}</p>
                     </div>
-                    
-                    <div class="space-y-3">
-                        <div>
-                            <span class="text-gray-400 text-sm">Precio Apertura:</span>
-                            <div class="text-white font-medium">$${trade.openPrice?.toFixed( 2 ) || 'N/A'}</div>
-                        </div>
-                        
-                        <div>
-                            <span class="text-gray-400 text-sm">Precio Cierre:</span>
-                            <div class="text-white font-medium">$${trade.closePrice?.toFixed( 2 ) || ( trade.closed ? 'Cerrado' : 'Abierto' )}</div>
-                        </div>
-                        
-                        <div>
-                            <span class="text-gray-400 text-sm">Estado:</span>
-                            <div class="text-white font-medium">${trade.closed ? 'Cerrado' : 'Abierto'}</div>
-                        </div>
-                        
-                        <div>
-                            <span class="text-gray-400 text-sm">P&L:</span>
-                            <div class="${pnlClass} font-bold text-lg">$${pnlValue.toFixed( 2 )}</div>
-                        </div>
+                    ${partialsInfo}
+                    <div class="text-sm text-gray-400">
+                        <p>Comentarios: ${trade.comments || 'Sin comentarios'}</p>
+                        <p>Motivo de cierre: ${trade.closeReason || 'N/A'}</p>
+                        <p>Notas adicionales: ${trade.closeNotes || 'N/A'}</p>
                     </div>
                 </div>
-                
-                <div class="mt-4">
-                    <span class="text-gray-400 text-sm">Stop Loss:</span>
-                    <div class="text-white">${trade.sl} pips</div>
-                </div>
-                
-                <div class="mt-4">
-                    <span class="text-gray-400 text-sm">Take Profit:</span>
-                    <div class="text-white">${trade.tp} pips</div>
-                </div>
-                
-                <div class="mt-4">
-                    <span class="text-gray-400 text-sm">Comentarios:</span>
-                    <div class="text-white bg-gray-800 p-3 rounded-lg mt-1">
-                        ${trade.comments || 'Sin comentarios'}
-                    </div>
-                </div>
-                
-                ${trade.partials && trade.partials.length > 0 ? `
-                    <div class="mt-4">
-                        <span class="text-gray-400 text-sm">Cierres Parciales:</span>
-                        <div class="bg-gray-800 p-3 rounded-lg mt-1">
-                            ${trade.partials.map( partial => `
-                                <div class="flex justify-between items-center py-1">
-                                    <span>${partial.type}: ${partial.contracts} contratos @ $${partial.price}</span>
-                                    <span class="${partial.pnl >= 0 ? 'text-green-400' : 'text-red-400'}">$${partial.pnl.toFixed( 2 )}</span>
-                                </div>
-                            `).join( '' )}
-                        </div>
-                    </div>
-                ` : ''}
-                
-                <div class="flex justify-end mt-6 space-x-3">
-                    <button onclick="showEditTradeModal('${trade.id}'); closeTradeDetailsModal();" 
-                            class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg font-medium">
-                        Editar
-                    </button>
+                <div class="mt-6">
                     <button onclick="closeTradeDetailsModal()" 
-                            class="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded-lg font-medium">
+                            class="w-full bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded-lg font-medium">
                         Cerrar
                     </button>
                 </div>
@@ -1010,6 +946,9 @@ function showTradeDetails( tradeId ) {
     `;
 
     document.body.insertAdjacentHTML( "beforeend", modalHTML );
+    document.getElementById( "tradeDetailsModal" ).addEventListener( "click", function ( e ) {
+        if ( e.target === this ) closeTradeDetailsModal();
+    } );
 }
 
 function closeTradeDetailsModal() {
@@ -3117,7 +3056,7 @@ function executePartialTP( tradeId ) {
 
     if ( tpAction === "close" || trade.contracts <= 0 ) {
         trade.closed = true;
-        trade.status = 'Cierre total';
+        trade.status = 'Cerrado por TP';
         trade.contracts = 0;
     } else {
         trade.tp = newTP2;
@@ -3279,7 +3218,7 @@ function executeManualClose( tradeId ) {
         pnl: ( parseFloat( trade.pnl ) || 0 ) + pnl,
         result: result,
         closed: true,
-        status: 'Cierre total',
+        status: 'Cierre manual',
         closeReason: closeReason,
         closeNotes: closeNotes,
         classification: classification.category,
