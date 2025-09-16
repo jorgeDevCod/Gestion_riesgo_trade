@@ -373,37 +373,31 @@ function resetAllData() {
 }
 
 // CORREGIDA: Función para mostrar gestión de trades activos
-// ===== GESTIÓN DE TRADES ACTIVOS =====
 function addTrade( tradeData ) {
-    // Validación de entrada mejorada
     if ( !tradeData || !tradeData.strategy || !tradeData.direction || !tradeData.contracts ) {
         console.error( "Datos de trade incompletos:", tradeData );
         alert( "❌ Datos de trade incompletos. Verifica strategy, direction y contracts." );
         return false;
     }
 
-    // Validar contratos
     if ( isNaN( tradeData.contracts ) || tradeData.contracts <= 0 ) {
         alert( "❌ Número de contratos debe ser mayor a 0" );
         return false;
     }
 
-    // CORREGIDO: Verificar límites solo para trades CERRADOS
     const today = new Date().toISOString().split( "T" )[ 0 ];
     const todayTrades = trades.filter( t => t.date === today );
     const todayClosedTrades = todayTrades.filter( t => t.closed === true );
 
     console.log( `Hoy: ${todayTrades.length} trades total, ${todayClosedTrades.length} cerrados` );
 
-    // Verificar límite de 3 trades CERRADOS por día
     if ( todayClosedTrades.length >= 3 ) {
         alert( "❌ Límite diario alcanzado: Máximo 3 trades cerrados por día." );
         return false;
     }
 
-    // Verificar límite de pérdida diaria solo si hay trades cerrados hoy
     const effectiveCapital = calculateEffectiveCapital();
-    const maxDailyLoss = effectiveCapital * 0.05; // 5%
+    const maxDailyLoss = effectiveCapital * 0.05;
     const todayPnL = todayClosedTrades.reduce( ( total, t ) => total + ( parseFloat( t.pnl ) || 0 ), 0 );
 
     if ( todayPnL <= -maxDailyLoss ) {
@@ -411,19 +405,15 @@ function addTrade( tradeData ) {
         return false;
     }
 
-    // Asegurar fecha válida
     if ( !tradeData.date ) tradeData.date = today;
 
-    // CORREGIDO: Procesar precios y determinar estado del trade
-    let finalTradeData = { ...tradeData };
+    let finalTradeData = { ...tradeData, totalContracts: tradeData.contracts };
 
-    // Validar precios
     const hasValidOpenPrice = tradeData.openPrice && !isNaN( tradeData.openPrice ) && tradeData.openPrice > 0;
     const hasValidClosePrice = tradeData.closePrice && !isNaN( tradeData.closePrice ) && tradeData.closePrice > 0;
 
     if ( hasValidOpenPrice && hasValidClosePrice ) {
-        // Trade cerrado - calcular P&L
-        const { pnl, result } = calculateTradeResult(
+        const { pnl } = calculateTradeResult(
             tradeData.openPrice,
             tradeData.closePrice,
             tradeData.direction,
@@ -431,23 +421,23 @@ function addTrade( tradeData ) {
         );
 
         finalTradeData.pnl = pnl;
-        finalTradeData.result = result;
         finalTradeData.closed = true;
-        finalTradeData.status = 'Cerrado total';
+        finalTradeData.status = 'Cierre total';
+        finalTradeData.closePrice = tradeData.closePrice;
+        finalTradeData.tpLevel = 'tp1';
 
-        console.log( `Trade cerrado calculado: P&L=${pnl}, Result=${result}` );
+        console.log( `Trade cerrado calculado: P&L=${pnl}` );
     } else {
-        // Trade abierto - valores predeterminados
         finalTradeData.pnl = 0;
-        finalTradeData.result = '';
         finalTradeData.closed = false;
         finalTradeData.status = 'Abierto';
         finalTradeData.closePrice = null;
+        finalTradeData.tpLevel = '';
+        finalTradeData.partials = [];
 
         console.log( "Trade abierto registrado" );
     }
 
-    // Crear trade con ID único y timestamp
     const trade = {
         id: Date.now().toString() + Math.random().toString( 36 ).substr( 2, 9 ),
         timestamp: new Date().toISOString(),
@@ -455,20 +445,16 @@ function addTrade( tradeData ) {
         ...finalTradeData
     };
 
-    // Agregar al array
     trades.push( trade );
     console.log( `Trade agregado: ${trade.id}, Status: ${trade.status}, P&L: ${trade.pnl}` );
 
-    // Guardar y sincronizar
     saveDataLocally();
     if ( currentUser ) {
         syncDataToFirebase();
     }
 
-    // Renderizar todos los datos
     renderAllData();
 
-    // Mostrar mensaje disciplinario si es necesario SOLO para trades cerrados
     if ( trade.closed ) {
         const disciplinaryMsg = generateDisciplinaryMessage();
         if ( disciplinaryMsg ) {
@@ -491,63 +477,145 @@ function editTrade( tradeId, updatedData ) {
     const trade = trades[ tradeIndex ];
     console.log( `Editando trade: ${tradeId.substr( -6 )}` );
 
-    // Actualizar datos básicos
     Object.assign( trade, updatedData );
 
-    // CORREGIDO: Lógica mejorada para determinar estado del trade
     const hasValidOpenPrice = trade.openPrice && !isNaN( trade.openPrice ) && trade.openPrice > 0;
     const hasValidClosePrice = trade.closePrice && !isNaN( trade.closePrice ) && trade.closePrice > 0;
 
     if ( hasValidOpenPrice && hasValidClosePrice ) {
-        // Trade con precios válidos - calcular P&L
-        const { pnl, result } = calculateTradeResult(
+        const currentPnL = parseFloat( trade.pnl ) || 0;
+        const { pnl: newPnL } = calculateTradeResult(
             trade.openPrice,
             trade.closePrice,
             trade.direction,
             trade.contracts
         );
-
-        trade.pnl = pnl;
-        trade.result = result;
+        trade.pnl = currentPnL + newPnL;
         trade.closed = true;
-        trade.status = 'Cerrado total';
-
-        console.log( `Trade cerrado: P&L=${pnl}, Result=${result}` );
+        trade.status = trade.partials && trade.partials.length > 0 ? 'Cierre parcial' : 'Cierre total';
+        trade.closePrice = trade.closePrice;
+        trade.tpLevel = trade.tpLevel || 'tp1';
     } else if ( hasValidOpenPrice && ( !trade.closePrice || trade.closePrice === 0 ) ) {
-        // Trade abierto (tiene precio de entrada pero no de cierre)
-        trade.pnl = trade.pnl || 0; // Mantener P&L existente o 0
-        trade.result = ''; // Sin resultado hasta cerrar
+        trade.pnl = trade.pnl || 0;
         trade.closed = false;
         trade.status = 'Abierto';
         trade.closePrice = null;
-
-        console.log( "Trade marcado como abierto" );
+        trade.tpLevel = '';
     } else {
-        // Trade sin precios válidos - mantener como draft
         trade.pnl = 0;
-        trade.result = '';
         trade.closed = false;
         trade.status = 'Borrador';
-
-        console.log( "Trade en estado borrador" );
+        trade.closePrice = null;
+        trade.tpLevel = '';
     }
 
-    // Actualizar timestamp de modificación
     trade.lastModified = new Date().toISOString();
-
-    // Actualizar el trade en el array
     trades[ tradeIndex ] = trade;
 
-    // Guardar y sincronizar
     saveDataLocally();
-    if ( currentUser ) {
-        syncDataToFirebase();
-    }
-
-    // Renderizar datos actualizados
+    if ( currentUser ) syncDataToFirebase();
     renderAllData();
 
     return true;
+}
+
+function renderTrades() {
+    const tbody = document.getElementById( "tradesTableBody" );
+    if ( !tbody ) return;
+
+    let filteredTrades = [ ...trades ];
+
+    const strategyFilter = document.getElementById( "filterStrategy" )?.value;
+    const dateFilter = document.getElementById( "filterDate" )?.value;
+
+    if ( strategyFilter && strategyFilter !== 'all' ) {
+        filteredTrades = filteredTrades.filter( trade => trade.strategy === strategyFilter );
+    }
+
+    if ( dateFilter ) {
+        filteredTrades = filteredTrades.filter( trade => trade.date === dateFilter );
+    }
+
+    filteredTrades.sort( ( a, b ) => new Date( b.timestamp ) - new Date( a.timestamp ) );
+
+    tbody.innerHTML = filteredTrades.map( trade => {
+        const strategyName = strategyConfigs[ trade.strategy ]?.name || trade.strategy;
+        const pnlValue = parseFloat( trade.pnl ) || 0;
+        const pnlClass = pnlValue >= 0 ? "text-profit" : "text-loss";
+
+        const statusDisplay = trade.closed ? trade.status : 'Abierto';
+        const statusClass = trade.closed ? ( trade.status === 'Cierre parcial' ? 'bg-blue-800 text-blue-200' : 'bg-gray-800 text-gray-200' ) : 'bg-green-800 text-green-200';
+        const closePrice = trade.closePrice ? `$${trade.closePrice.toFixed( 2 )}` : ( trade.closed ? 'Cerrado' : 'Sin cerrar' );
+
+        const hasPartials = trade.partials && trade.partials.length > 0;
+        const tpColumn = hasPartials ? `
+            <td class="p-2 text-sm">
+                <div class="text-xs">
+                    ${trade.partials.map( p => `${p.type === 'TP1' ? 'TP1' : p.type === 'Close All' ? 'Cierre Total' : 'TP2'}: ${p.contracts} @ $${p.price.toFixed( 2 )}` ).join( '<br>' )}
+                </div>
+            </td>
+        ` : '';
+
+        return `
+            <tr class="border-b border-gray-700 hover:bg-gray-800 transition-colors">
+                <td class="p-2 text-sm">${new Date( trade.date ).toLocaleDateString()}</td>
+                <td class="p-2 text-sm font-medium">${strategyName}</td>
+                <td class="p-2">
+                    <span class="px-1 py-0.5 rounded text-xs font-medium ${trade.direction === 'buy' ? 'bg-green-800 text-green-200' : 'bg-red-800 text-red-200'}">
+                        ${trade.direction === 'buy' ? 'Compra' : 'Venta'}
+                    </span>
+                </td>
+                <td class="p-2 text-sm font-medium">${trade.totalContracts}</td>
+                <td class="p-2 text-sm">${trade.openPrice ? `$${trade.openPrice.toFixed( 2 )}` : 'N/A'}</td>
+                <td class="p-2 text-sm">${closePrice}</td>
+                <td class="p-2">
+                    <span class="px-1 py-0.5 rounded text-xs font-medium ${statusClass}">
+                        ${statusDisplay} ${trade.tpLevel ? `(${trade.tpLevel})` : ''}
+                    </span>
+                </td>
+                <td class="p-2 ${pnlClass} font-bold text-sm">$${pnlValue.toFixed( 2 )}</td>
+                <td class="p-2">
+                    <span class="cursor-pointer text-blue-400 hover:text-blue-300 text-xs" 
+                          onclick="showCommentTooltip(event, '${( trade.comments || '' ).replace( /'/g, "\\'" )}')">
+                        ${trade.comments && trade.comments.length > 15 ? trade.comments.substring( 0, 15 ) + "..." : ( trade.comments || 'Sin comentarios' )}
+                    </span>
+                </td>
+                ${tpColumn}
+                <td class="p-2">
+                    <div class="flex gap-1">
+                        <button onclick="showEditTradeModal('${trade.id}')" 
+                                class="text-blue-400 hover:text-blue-300 text-xs px-1 py-0.5 rounded bg-blue-900 bg-opacity-30">
+                            Editar
+                        </button>
+                        <button onclick="deleteTrade('${trade.id}')" 
+                                class="text-red-400 hover:text-red-300 text-xs px-1 py-0.5 rounded bg-red-900 bg-opacity-30">
+                            Eliminar
+                        </button>
+                        <button onclick="showTradeDetails('${trade.id}')" 
+                                class="text-purple-400 hover:text-purple-300 text-xs px-1 py-0.5 rounded bg-purple-900 bg-opacity-30">
+                            Detalles
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    } ).join( "" );
+
+    if ( filteredTrades.length === 0 ) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="${hasPartials ? 10 : 9}" class="p-4 text-center text-gray-400">
+                    <div class="flex flex-col items-center space-y-1">
+                        <div class="text-lg">📊</div>
+                        <div>No hay trades que mostrar</div>
+                        ${strategyFilter || dateFilter ? '<div class="text-sm text-gray-500">Verifica los filtros aplicados</div>' : ''}
+                    </div>
+                </td>
+            </tr>
+        `;
+    }
+
+    console.log( `Tabla renderizada: ${filteredTrades.length} trades de ${trades.length} totales` );
 }
 
 function deleteTrade( tradeId ) {
@@ -558,159 +626,6 @@ function deleteTrade( tradeId ) {
     if ( currentUser ) syncDataToFirebase();
     renderAllData();
     updateRiskIndicators(); // Actualizar indicadores de riesgo
-}
-
-// CORREGIDA: Función para renderizar trades - SIN COLUMNA DE RESULTADO
-// CORREGIDA: Función para renderizar trades
-function renderTrades() {
-    const tbody = document.getElementById( "tradesTableBody" );
-    if ( !tbody ) return;
-
-    let filteredTrades = [ ...trades ];
-
-    // Aplicar filtros existentes
-    const strategyFilter = document.getElementById( "filterStrategy" )?.value;
-    const resultFilter = document.getElementById( "filterResult" )?.value;
-    const dateFilter = document.getElementById( "filterDate" )?.value;
-
-    if ( strategyFilter && strategyFilter !== 'all' ) {
-        filteredTrades = filteredTrades.filter( trade => trade.strategy === strategyFilter );
-    }
-
-    // CORREGIDO: Filtro de resultado mejorado
-    if ( resultFilter && resultFilter !== 'all' ) {
-        if ( resultFilter === 'open' ) {
-            filteredTrades = filteredTrades.filter( trade => !trade.closed || trade.status === 'Abierto' );
-        } else if ( resultFilter === 'win' ) {
-            filteredTrades = filteredTrades.filter( trade => trade.result === 'win' );
-        } else if ( resultFilter === 'loss' ) {
-            filteredTrades = filteredTrades.filter( trade => trade.result === 'loss' );
-        }
-    }
-
-    if ( dateFilter ) {
-        filteredTrades = filteredTrades.filter( trade => trade.date === dateFilter );
-    }
-
-    // Ordenar por fecha y timestamp descendente
-    filteredTrades.sort( ( a, b ) => {
-        const dateCompare = new Date( b.date ) - new Date( a.date );
-        if ( dateCompare === 0 ) {
-            return new Date( b.timestamp ) - new Date( a.timestamp );
-        }
-        return dateCompare;
-    } );
-
-    // Generar filas de la tabla
-    tbody.innerHTML = filteredTrades.map( trade => {
-        const strategyName = strategyConfigs[ trade.strategy ]?.name || trade.strategy;
-        const pnlValue = parseFloat( trade.pnl ) || 0;
-        const pnlClass = pnlValue >= 0 ? "text-profit" : "text-loss";
-
-        // CORREGIDO: Determinar estado de visualización
-        let statusDisplay, statusClass, closePrice;
-
-        if ( trade.closed ) {
-            if ( trade.partials && trade.partials.length > 0 ) {
-                statusDisplay = 'Cierre Parcial';
-                statusClass = 'bg-blue-800 text-blue-200';
-            } else {
-                statusDisplay = 'Cerrado';
-                statusClass = 'bg-gray-800 text-gray-200';
-            }
-            closePrice = trade.closePrice ? `$${trade.closePrice.toFixed( 2 )}` : 'Cerrado';
-        } else {
-            statusDisplay = 'Abierto';
-            statusClass = 'bg-green-800 text-green-200';
-            closePrice = 'Sin cerrar';  // Cambio aquí: texto "Sin cerrar" para trades abiertos
-        }
-
-        let resultDisplay = '';
-        let resultClass = 'text-gray-400';
-
-        if ( trade.closed ) {
-            if ( pnlValue > 0 ) {
-                resultDisplay = 'Positivo';
-                resultClass = 'text-green-400';
-            } else if ( pnlValue < 0 ) {
-                resultDisplay = 'Negativo';
-                resultClass = 'text-red-400';
-            } else {
-                resultDisplay = 'Neutral';
-                resultClass = 'text-gray-400';
-            }
-        } else {
-            resultDisplay = 'Pendiente';
-        }
-
-        return `
-            <tr class="border-b border-gray-700 hover:bg-gray-800 transition-colors">
-                <td class="p-3 text-sm">${new Date( trade.date ).toLocaleDateString()}</td>
-                <td class="p-3 text-sm font-medium">${strategyName}</td>
-                <td class="p-3">
-                    <span class="px-2 py-1 rounded text-xs font-medium ${trade.direction === "buy" ? "bg-green-800 text-green-200" : "bg-red-800 text-red-200"}">
-                        ${trade.direction === "buy" ? "Compra" : "Venta"}
-                    </span>
-                </td>
-                <td class="p-3 text-sm font-medium">${trade.contracts}</td>
-                <td class="p-3 text-sm">${trade.openPrice ? `$${trade.openPrice.toFixed( 2 )}` : 'N/A'}</td>
-                <td class="p-3 text-sm">${closePrice}</td>
-                <td class="p-3">
-                    <span class="px-2 py-1 rounded text-xs font-medium ${statusClass}">
-                        ${statusDisplay}
-                    </span>
-                </td>
-                <td class="p-3">
-                    <span class="text-xs font-medium ${resultClass}">
-                        ${resultDisplay}
-                    </span>
-                </td>
-                <td class="p-3 ${pnlClass} font-bold text-sm">$${pnlValue.toFixed( 2 )}</td>
-                <td class="p-3">
-                    <span class="cursor-pointer text-blue-400 hover:text-blue-300 text-xs" 
-                          onclick="showCommentTooltip(event, '${( trade.comments || '' ).replace( /'/g, "\\'" )}')">
-                        ${trade.comments && trade.comments.length > 15 ?
-                trade.comments.substring( 0, 15 ) + "..." :
-                ( trade.comments || 'Sin comentarios' )}
-                    </span>
-                </td>
-                <td class="p-3">
-                    <div class="flex flex-wrap gap-1">
-                        <button onclick="showEditTradeModal('${trade.id}')" 
-                                class="text-blue-400 hover:text-blue-300 text-xs px-2 py-1 rounded bg-blue-900 bg-opacity-30">
-                            Editar
-                        </button>
-                        <button onclick="deleteTrade('${trade.id}')" 
-                                class="text-red-400 hover:text-red-300 text-xs px-2 py-1 rounded bg-red-900 bg-opacity-30">
-                            Eliminar
-                        </button>
-                        <button onclick="showTradeDetails('${trade.id}')" 
-                                class="text-purple-400 hover:text-purple-300 text-xs px-2 py-1 rounded bg-purple-900 bg-opacity-30">
-                            Detalles
-                        </button>
-                    </div>
-                </td>
-            </tr>
-        `;
-    } ).join( "" );
-
-    // Mostrar mensaje si no hay trades
-    if ( filteredTrades.length === 0 ) {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="11" class="p-8 text-center text-gray-400">
-                    <div class="flex flex-col items-center space-y-2">
-                        <div class="text-lg">📊</div>
-                        <div>No hay trades que mostrar</div>
-                        ${strategyFilter || resultFilter || dateFilter ?
-                '<div class="text-sm text-gray-500">Verifica los filtros aplicados</div>' : ''}
-                    </div>
-                </td>
-            </tr>
-        `;
-    }
-
-    console.log( `Tabla renderizada: ${filteredTrades.length} trades mostrados de ${trades.length} totales` );
 }
 
 // CORREGIDA: Función para actualizar contadores diarios
@@ -987,156 +902,6 @@ function renderCapitalSection() {
         maxDailyRiskEl.textContent = `$${( effectiveCapital * 0.05 ).toFixed( 2 )}`;
 }
 
-function renderTrades() {
-    const tbody = document.getElementById( "tradesTableBody" );
-    if ( !tbody ) return;
-
-    let filteredTrades = [ ...trades ];
-
-    // Aplicar filtros existentes
-    const strategyFilter = document.getElementById( "filterStrategy" )?.value;
-    const resultFilter = document.getElementById( "filterResult" )?.value;
-    const dateFilter = document.getElementById( "filterDate" )?.value;
-
-    if ( strategyFilter && strategyFilter !== 'all' ) {
-        filteredTrades = filteredTrades.filter( trade => trade.strategy === strategyFilter );
-    }
-
-    // CORREGIDO: Filtro de resultado mejorado
-    if ( resultFilter && resultFilter !== 'all' ) {
-        if ( resultFilter === 'open' ) {
-            filteredTrades = filteredTrades.filter( trade => !trade.closed || trade.status === 'Abierto' );
-        } else if ( resultFilter === 'win' ) {
-            filteredTrades = filteredTrades.filter( trade => trade.result === 'win' );
-        } else if ( resultFilter === 'loss' ) {
-            filteredTrades = filteredTrades.filter( trade => trade.result === 'loss' );
-        }
-    }
-
-    if ( dateFilter ) {
-        filteredTrades = filteredTrades.filter( trade => trade.date === dateFilter );
-    }
-
-    // Ordenar por fecha y timestamp descendente
-    filteredTrades.sort( ( a, b ) => {
-        const dateCompare = new Date( b.date ) - new Date( a.date );
-        if ( dateCompare === 0 ) {
-            return new Date( b.timestamp ) - new Date( a.timestamp );
-        }
-        return dateCompare;
-    } );
-
-    // Generar filas de la tabla
-    tbody.innerHTML = filteredTrades.map( trade => {
-        const strategyName = strategyConfigs[ trade.strategy ]?.name || trade.strategy;
-        const pnlValue = parseFloat( trade.pnl ) || 0;
-        const pnlClass = pnlValue >= 0 ? "text-profit" : "text-loss";
-
-        // CORREGIDO: Determinar estado de visualización
-        let statusDisplay, statusClass, closePrice;
-
-        if ( trade.closed ) {
-            if ( trade.partials && trade.partials.length > 0 ) {
-                statusDisplay = 'Cierre Parcial';
-                statusClass = 'bg-blue-800 text-blue-200';
-            } else {
-                statusDisplay = 'Cerrado';
-                statusClass = 'bg-gray-800 text-gray-200';
-            }
-            closePrice = trade.closePrice ? `$${trade.closePrice.toFixed( 2 )}` : 'Cerrado';
-        } else {
-            statusDisplay = 'Abierto';
-            statusClass = 'bg-green-800 text-green-200';
-            closePrice = 'Sin cerrar';  // Cambio: "Sin cerrar" para trades sin precio de cierre
-        }
-
-        let resultDisplay = '';
-        let resultClass = 'text-gray-400';
-
-        if ( trade.closed ) {
-            if ( pnlValue > 0 ) {
-                resultDisplay = 'Positivo';
-                resultClass = 'text-green-400';
-            } else if ( pnlValue < 0 ) {
-                resultDisplay = 'Negativo';
-                resultClass = 'text-red-400';
-            } else {
-                resultDisplay = 'Neutral';
-                resultClass = 'text-gray-400';
-            }
-        } else {
-            resultDisplay = 'Pendiente';
-        }
-
-        return `
-            <tr class="border-b border-gray-700 hover:bg-gray-800 transition-colors">
-                <td class="p-3 text-sm">${new Date( trade.date ).toLocaleDateString()}</td>
-                <td class="p-3 text-sm font-medium">${strategyName}</td>
-                <td class="p-3">
-                    <span class="px-2 py-1 rounded text-xs font-medium ${trade.direction === "buy" ? "bg-green-800 text-green-200" : "bg-red-800 text-red-200"}">
-                        ${trade.direction === "buy" ? "Compra" : "Venta"}
-                    </span>
-                </td>
-                <td class="p-3 text-sm font-medium">${trade.contracts}</td>
-                <td class="p-3 text-sm">${trade.openPrice ? `$${trade.openPrice.toFixed( 2 )}` : 'N/A'}</td>
-                <td class="p-3 text-sm">${closePrice}</td>
-                <td class="p-3">
-                    <span class="px-2 py-1 rounded text-xs font-medium ${statusClass}">
-                        ${statusDisplay}
-                    </span>
-                </td>
-                <td class="p-3">
-                    <span class="text-xs font-medium ${resultClass}">
-                        ${resultDisplay}
-                    </span>
-                </td>
-                <td class="p-3 ${pnlClass} font-bold text-sm">$${pnlValue.toFixed( 2 )}</td>
-                <td class="p-3">
-                    <span class="cursor-pointer text-blue-400 hover:text-blue-300 text-xs" 
-                          onclick="showCommentTooltip(event, '${( trade.comments || '' ).replace( /'/g, "\\'" )}')">
-                        ${trade.comments && trade.comments.length > 15 ?
-                trade.comments.substring( 0, 15 ) + "..." :
-                ( trade.comments || 'Sin comentarios' )}
-                    </span>
-                </td>
-                <td class="p-3">
-                    <div class="flex flex-wrap gap-1">
-                        <button onclick="showEditTradeModal('${trade.id}')" 
-                                class="text-blue-400 hover:text-blue-300 text-xs px-2 py-1 rounded bg-blue-900 bg-opacity-30">
-                            Editar
-                        </button>
-                        <button onclick="deleteTrade('${trade.id}')" 
-                                class="text-red-400 hover:text-red-300 text-xs px-2 py-1 rounded bg-red-900 bg-opacity-30">
-                            Eliminar
-                        </button>
-                        <button onclick="showTradeDetails('${trade.id}')" 
-                                class="text-purple-400 hover:text-purple-300 text-xs px-2 py-1 rounded bg-purple-900 bg-opacity-30">
-                            Detalles
-                        </button>
-                    </div>
-                </td>
-            </tr>
-        `;
-    } ).join( "" );
-
-    // Mostrar mensaje si no hay trades
-    if ( filteredTrades.length === 0 ) {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="11" class="p-8 text-center text-gray-400">
-                    <div class="flex flex-col items-center space-y-2">
-                        <div class="text-lg">📊</div>
-                        <div>No hay trades que mostrar</div>
-                        ${strategyFilter || resultFilter || dateFilter ?
-                '<div class="text-sm text-gray-500">Verifica los filtros aplicados</div>' : ''}
-                    </div>
-                </td>
-            </tr>
-        `;
-    }
-
-    console.log( `Tabla renderizada: ${filteredTrades.length} trades mostrados de ${trades.length} totales` );
-}
 
 function showTradeDetails( tradeId ) {
     const trade = trades.find( t => t.id === tradeId );
@@ -3014,7 +2779,6 @@ function showClosureManagement() {
     yesterday.setDate( yesterday.getDate() - 1 );
     const yesterdayStr = yesterday.toISOString().split( "T" )[ 0 ];
 
-    // Filtro para trades activos: recientes y no cerrados completamente
     const activeTrades = trades.filter( trade => {
         const isRecentDate = trade.date === today || trade.date === yesterdayStr;
         const isNotFullyClosed = !trade.closed || trade.status === 'Abierto' || ( trade.partials && trade.contracts > 0 );
@@ -3027,6 +2791,7 @@ function showClosureManagement() {
         status: t.status,
         closed: t.closed,
         date: t.date,
+        totalContracts: t.totalContracts,
         contracts: t.contracts,
         pnl: t.pnl
     } ) ) );
@@ -3036,70 +2801,65 @@ function showClosureManagement() {
         return;
     }
 
-    // Construir HTML del modal
     const modalHTML = `
         <div id="activeTradesModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div class="bg-trading-card p-6 rounded-lg border border-gray-700 w-full max-w-4xl mx-4 max-h-[90vh] overflow-y-auto">
-                <div class="flex justify-between items-center mb-6">
+                <div class="flex justify-between items-center mb-4">
                     <h3 class="text-xl font-semibold text-gold">⚡ Gestión de Trades Activos (${activeTrades.length})</h3>
                     <button onclick="closeActiveTradesModal()" class="text-gray-400 hover:text-white text-2xl">&times;</button>
                 </div>
                 
-                <div class="space-y-4" id="activeTradesList">
+                <div class="space-y-3" id="activeTradesList">
                     ${activeTrades.map( trade => {
         const strategyName = strategyConfigs[ trade.strategy ]?.name || trade.strategy;
         const currentPnL = parseFloat( trade.pnl ) || 0;
-        const remainingContracts = trade.contracts || 0;  // Asegurar valor numérico
+        const remainingContracts = trade.contracts || 0;
 
         return `
-                            <div class="bg-gray-800 p-4 rounded-lg border border-gray-600" data-trade-id="${trade.id}">
-                                <div class="grid grid-cols-1 lg:grid-cols-5 gap-4 items-center">
+                            <div class="bg-gray-800 p-3 rounded-lg border border-gray-600" data-trade-id="${trade.id}">
+                                <div class="grid grid-cols-1 lg:grid-cols-5 gap-3 items-center">
                                     <div class="lg:col-span-2">
                                         <div class="font-semibold text-white">${strategyName}</div>
                                         <div class="text-sm text-gray-400">
-                                            ${remainingContracts} contratos restantes • 
-                                            <span class="px-2 py-1 rounded text-xs ${trade.direction === "buy" ? "bg-green-800 text-green-200" : "bg-red-800 text-red-200"}">
-                                                ${trade.direction === "buy" ? "Compra" : "Venta"}
+                                            ${trade.totalContracts} contratos totales • ${remainingContracts} restantes • 
+                                            <span class="px-1 py-0.5 rounded text-xs ${trade.direction === 'buy' ? 'bg-green-800 text-green-200' : 'bg-red-800 text-red-200'}">
+                                                ${trade.direction === 'buy' ? 'Compra' : 'Venta'}
                                             </span>
                                         </div>
                                         <div class="text-xs text-gray-500 mt-1">
-                                            Entrada: $${trade.openPrice?.toFixed( 2 ) || 'N/A'} | 
-                                            SL: ${trade.sl || 'N/A'} pips | TP: ${trade.tp || 'N/A'} pips
+                                            Entrada: $${trade.openPrice?.toFixed( 2 ) || 'N/A'} | SL: ${trade.sl || 'N/A'} pips | TP: ${trade.tp || 'N/A'} pips
                                         </div>
                                         <div class="text-xs mt-1">
-                                            <span class="px-2 py-1 rounded bg-green-700 text-xs">
-                                                ${trade.status || 'Abierto'}
+                                            <span class="px-1 py-0.5 rounded bg-green-700 text-xs">
+                                                ${trade.status} ${trade.tpLevel ? `(${trade.tpLevel})` : ''}
                                             </span>
                                         </div>
                                     </div>
-                                    
                                     <div class="text-center">
                                         <div class="text-sm text-gray-400">P&L Actual</div>
                                         <div class="text-lg font-bold ${currentPnL >= 0 ? 'text-green-400' : 'text-red-400'}">
                                             $${currentPnL.toFixed( 2 )}
                                         </div>
                                     </div>
-                                    
                                     <div class="space-y-2">
                                         <button onclick="adjustStopLoss('${trade.id}')" 
-                                                class="w-full bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-sm transition-colors">
+                                                class="w-full bg-blue-600 hover:bg-blue-700 px-2 py-1 rounded text-sm transition-colors">
                                             📈 Ajustar SL
                                         </button>
                                         <button onclick="partialTakeProfit('${trade.id}')" 
-                                                class="w-full bg-green-600 hover:bg-green-700 px-3 py-1 rounded text-sm transition-colors ${remainingContracts <= 0 ? 'opacity-50 cursor-not-allowed' : ''}" 
+                                                class="w-full bg-green-600 hover:bg-green-700 px-2 py-1 rounded text-sm transition-colors ${remainingContracts <= 0 ? 'opacity-50 cursor-not-allowed' : ''}" 
                                                 ${remainingContracts <= 0 ? 'disabled' : ''}>
                                             💰 TP Parcial
                                         </button>
                                     </div>
-                                    
                                     <div class="space-y-2">
                                         <button onclick="manualClose('${trade.id}')" 
-                                                class="w-full bg-orange-600 hover:bg-orange-700 px-3 py-1 rounded text-sm transition-colors ${remainingContracts <= 0 ? 'opacity-50 cursor-not-allowed' : ''}" 
+                                                class="w-full bg-orange-600 hover:bg-orange-700 px-2 py-1 rounded text-sm transition-colors ${remainingContracts <= 0 ? 'opacity-50 cursor-not-allowed' : ''}" 
                                                 ${remainingContracts <= 0 ? 'disabled' : ''}>
                                             🔒 Cerrar Manual
                                         </button>
                                         <button onclick="showTradeDetails('${trade.id}')" 
-                                                class="w-full bg-purple-600 hover:bg-purple-700 px-3 py-1 rounded text-sm transition-colors">
+                                                class="w-full bg-purple-600 hover:bg-purple-700 px-2 py-1 rounded text-sm transition-colors">
                                             👁️ Ver Detalles
                                         </button>
                                     </div>
@@ -3109,12 +2869,12 @@ function showClosureManagement() {
     } ).join( '' )}
                 </div>
                 
-                <div class="flex justify-between items-center mt-6">
+                <div class="flex justify-between items-center mt-4">
                     <div class="text-sm text-gray-400">
                         Total P&L Activo: $${activeTrades.reduce( ( sum, t ) => sum + ( parseFloat( t.pnl ) || 0 ), 0 ).toFixed( 2 )}
                     </div>
                     <button onclick="closeActiveTradesModal()" 
-                            class="bg-gray-600 hover:bg-gray-700 px-6 py-2 rounded-lg font-medium">
+                            class="bg-gray-600 hover:bg-gray-700 px-4 py-1.5 rounded-lg font-medium">
                         Cerrar
                     </button>
                 </div>
@@ -3174,7 +2934,6 @@ function adjustStopLoss( tradeId ) {
     }
 }
 
-
 // Función mejorada para TP Parcial
 function partialTakeProfit( tradeId ) {
     const trade = trades.find( t => t.id === tradeId );
@@ -3204,7 +2963,7 @@ function partialTakeProfit( tradeId ) {
                                value="${Math.floor( trade.contracts / 2 )}"
                                class="w-full p-2 bg-gray-800 border border-gray-600 rounded-lg text-white">
                     </div>
-                    <div class="space-y-2">
+                    <div class="space-y-2" id="tpActionSection">
                         <label class="flex items-center">
                             <input type="radio" name="tpAction" value="tp2" checked 
                                    class="mr-2 text-gold focus:ring-gold">
@@ -3239,7 +2998,6 @@ function partialTakeProfit( tradeId ) {
 
     document.body.insertAdjacentHTML( "beforeend", modalHTML );
 
-    // Listener para radios
     document.querySelectorAll( 'input[name="tpAction"]' ).forEach( radio => {
         radio.addEventListener( "change", function () {
             const executeBtn = document.getElementById( "executePartialBtn" );
@@ -3253,9 +3011,33 @@ function partialTakeProfit( tradeId ) {
         } );
     } );
 
-    // Preview P&L para TP1
-    const tp1Input = document.getElementById( "tp1Price" );
     const contractsCloseInput = document.getElementById( "contractsToClose" );
+    contractsCloseInput.addEventListener( "input", function () {
+        const contractsToClose = parseInt( this.value );
+        const tpActionSection = document.getElementById( "tpActionSection" );
+        const tp2Radio = document.querySelector( 'input[name="tpAction"][value="tp2"]' );
+        const closeRadio = document.querySelector( 'input[name="tpAction"][value="close"]' );
+        const executeBtn = document.getElementById( "executePartialBtn" );
+        const tp2Section = document.getElementById( "tp2Section" );
+
+        if ( contractsToClose === trade.contracts ) {
+            closeRadio.checked = true;
+            tp2Radio.disabled = true;
+            closeRadio.disabled = true;
+            tpActionSection.classList.add( "opacity-50" );
+            executeBtn.textContent = "Cerrar Restantes";
+            if ( tp2Section ) tp2Section.style.display = "none";
+        } else {
+            tp2Radio.disabled = false;
+            closeRadio.disabled = false;
+            tpActionSection.classList.remove( "opacity-50" );
+            executeBtn.textContent = tp2Radio.checked ? "Mantener TP2" : "Cerrar Todo";
+            if ( tp2Section ) tp2Section.style.display = tp2Radio.checked ? "block" : "none";
+        }
+        updateTPPreview();
+    } );
+
+    const tp1Input = document.getElementById( "tp1Price" );
     let previewEl = document.createElement( "div" );
     previewEl.id = "tpPreview";
     previewEl.className = "bg-gray-800 p-3 rounded-lg mt-2 text-center text-sm";
@@ -3279,17 +3061,15 @@ function partialTakeProfit( tradeId ) {
     contractsCloseInput.addEventListener( "input", updateTPPreview );
 }
 
-// Función mejorada para ejecutar TP Parcial con cálculos optimizados
 function executePartialTP( tradeId ) {
     const trade = trades.find( t => t.id === tradeId );
     if ( !trade ) return;
 
     const tp1Price = parseFloat( document.getElementById( "tp1Price" ).value );
     const contractsToClose = parseInt( document.getElementById( "contractsToClose" ).value );
-    const tpAction = document.querySelector( 'input[name="tpAction"]:checked' ).value;
+    let tpAction = document.querySelector( 'input[name="tpAction"]:checked' ).value;
     const newTP2 = parseFloat( document.getElementById( "newTP2" ).value );
 
-    // Validaciones estrictas
     if ( isNaN( tp1Price ) || tp1Price <= 0 ) {
         alert( "Por favor ingrese un precio válido para TP1" );
         return;
@@ -3310,68 +3090,45 @@ function executePartialTP( tradeId ) {
         return;
     }
 
-    // Calcular P&L parcial con verificación
+    if ( contractsToClose === trade.contracts ) {
+        tpAction = 'close';
+    }
+
     const partialResult = calculateTradeResult( trade.openPrice, tp1Price, trade.direction, contractsToClose );
     const partialPnL = partialResult.pnl;
-
-    // Inicializar si necesario
-    if ( !trade.partials ) trade.partials = [];
     const existingPnL = parseFloat( trade.pnl ) || 0;
 
-    // Registrar parcial
+    if ( !trade.partials ) trade.partials = [];
+
+    const partialType = tpAction === 'close' ? 'Close All' : 'TP1';
     const partial = {
-        type: "TP1",
+        type: partialType,
         price: tp1Price,
         contracts: contractsToClose,
         pnl: partialPnL,
         timestamp: new Date().toISOString(),
-        reason: `TP parcial: ${contractsToClose} contratos @ ${tp1Price}`
+        reason: `${partialType === 'Close All' ? 'Cierre total' : 'TP1 parcial'}: ${contractsToClose} contratos @ ${tp1Price}`
     };
-
     trade.partials.push( partial );
     trade.pnl = existingPnL + partialPnL;
     trade.contracts -= contractsToClose;
+    trade.closePrice = tp1Price;
+    trade.tpLevel = partialType === 'TP1' ? 'tp1' : 'tp2';
 
-    // Manejar cierre total si seleccionado o no quedan contratos
     if ( tpAction === "close" || trade.contracts <= 0 ) {
-        if ( trade.contracts > 0 ) {
-            // Cerrar restantes al mismo precio
-            const remainingResult = calculateTradeResult( trade.openPrice, tp1Price, trade.direction, trade.contracts );
-            const remainingPnL = remainingResult.pnl;
-
-            trade.partials.push( {
-                type: "Close All",
-                price: tp1Price,
-                contracts: trade.contracts,
-                pnl: remainingPnL,
-                timestamp: new Date().toISOString(),
-                reason: "Cierre total de contratos restantes al precio de TP1"
-            } );
-
-            trade.pnl += remainingPnL;
-            trade.contracts = 0;
-        }
-
         trade.closed = true;
-        trade.closePrice = tp1Price;
-        trade.status = 'Cerrado total';
-        trade.result = trade.pnl >= 0 ? "win" : "loss";
-        console.log( `Trade cerrado completamente: ID=${tradeId.substr( -6 )}, P&L total=${trade.pnl}, Result=${trade.result}` );
+        trade.status = 'Cierre total';
+        trade.contracts = 0;
     } else {
-        // Mantener parcial
-        trade.tp = newTP2;  // Actualizar TP a TP2
+        trade.tp = newTP2;
         trade.closed = false;
-        trade.status = `Parcial (${trade.contracts} restantes)`;
-        trade.result = '';  // Pendiente hasta cierre completo
-        console.log( `Trade parcial: ID=${tradeId.substr( -6 )}, Contratos restantes=${trade.contracts}, Nuevo TP=${newTP2}` );
+        trade.status = 'Cierre parcial';
     }
 
-    // Clasificación y modificación
     const classification = classifyTradeResult( trade.pnl );
     trade.classification = classification.category;
     trade.lastModified = new Date().toISOString();
 
-    // Guardar cambios
     const success = editTrade( tradeId, trade );
 
     if ( success ) {
@@ -3382,7 +3139,6 @@ function executePartialTP( tradeId ) {
         );
         refreshClosureManagement();
 
-        // Mensaje disciplinario si cerrado
         if ( trade.closed ) {
             const disciplinaryMsg = generateDisciplinaryMessage();
             if ( disciplinaryMsg ) {
@@ -3394,7 +3150,6 @@ function executePartialTP( tradeId ) {
     }
 }
 
-// Función mejorada para cierre manual
 function manualClose( tradeId ) {
     const trade = trades.find( t => t.id === tradeId );
     if ( !trade || trade.contracts <= 0 ) {
@@ -3411,7 +3166,7 @@ function manualClose( tradeId ) {
                     <div class="text-sm text-gray-400">Trade:</div>
                     <div class="text-white font-medium">${strategyConfigs[ trade.strategy ]?.name || trade.strategy}</div>
                     <div class="text-sm text-gray-400 mt-1">
-                        ${trade.contracts} contratos restantes • ${trade.direction === "buy" ? "Compra" : "Venta"}
+                        ${trade.totalContracts} contratos totales • ${trade.contracts} restantes • ${trade.direction === "buy" ? "Compra" : "Venta"}
                     </div>
                     <div class="text-xs text-gray-500 mt-1">
                         Entrada: $${trade.openPrice?.toFixed( 2 ) || 'N/A'}
@@ -3467,7 +3222,6 @@ function manualClose( tradeId ) {
 
     document.body.insertAdjacentHTML( "beforeend", modalHTML );
 
-    // Preview P&L mejorado
     const priceInput = document.getElementById( "manualClosePrice" );
     if ( priceInput ) {
         priceInput.addEventListener( "input", function () {
@@ -3499,7 +3253,6 @@ function manualClose( tradeId ) {
     }
 }
 
-// Función mejorada para ejecutar cierre manual
 function executeManualClose( tradeId ) {
     const trade = trades.find( t => t.id === tradeId );
     if ( !trade ) return;
@@ -3508,36 +3261,33 @@ function executeManualClose( tradeId ) {
     const closeReason = document.getElementById( "closeReason" ).value;
     const closeNotes = document.getElementById( "closeNotes" ).value;
 
-    // Validaciones estrictas
     if ( isNaN( closePrice ) || closePrice <= 0 ) {
         alert( "Por favor ingrese un precio de cierre válido" );
         return;
     }
 
     if ( !trade.openPrice || isNaN( trade.openPrice ) ) {
-        alert( "Error: El trade no tiene precio de apertura válido" );
+        alert( "Error: El trade no tiene precio de apertura registrado" );
         return;
     }
 
-    // Calcular P&L total (siempre cierra todos los contratos restantes)
     const { pnl, result } = calculateTradeResult( trade.openPrice, closePrice, trade.direction, trade.contracts );
     const classification = classifyTradeResult( pnl );
 
-    // Preparar actualización
     const updateData = {
         closePrice: closePrice,
-        pnl: ( parseFloat( trade.pnl ) || 0 ) + pnl,  // Acumular si había parciales previos
+        pnl: ( parseFloat( trade.pnl ) || 0 ) + pnl,
         result: result,
         closed: true,
-        status: 'Cerrado total',
+        status: 'Cierre total',
         closeReason: closeReason,
         closeNotes: closeNotes,
         classification: classification.category,
         closeTimestamp: new Date().toISOString(),
-        contracts: 0  // Asegurar que contratos sea 0
+        contracts: 0,
+        tpLevel: 'tp1 (manual)'
     };
 
-    // Registrar como parcial si había previos, o cierre directo
     if ( !trade.partials ) trade.partials = [];
     trade.partials.push( {
         type: "Manual Close",
@@ -3560,12 +3310,12 @@ function executeManualClose( tradeId ) {
             setTimeout( () => showDisciplinaryMessage( disciplinaryMsg ), 1000 );
         }
     } else {
-        alert( "Error al cerrar el trade. Verifique los datos." );
+        alert( "Error al cerrar el trade. Intente nuevamente." );
     }
 }
 
-function closeActiveTradesModal() {
-    const modal = document.getElementById( "activeTradesModal" );
+function closeManualCloseModal() {
+    const modal = document.getElementById( "manualCloseModal" );
     if ( modal ) modal.remove();
 }
 
@@ -3574,8 +3324,8 @@ function closePartialTPModal() {
     if ( modal ) modal.remove();
 }
 
-function closeManualCloseModal() {
-    const modal = document.getElementById( "manualCloseModal" );
+function closeActiveTradesModal() {
+    const modal = document.getElementById( "activeTradesModal" );
     if ( modal ) modal.remove();
 }
 
