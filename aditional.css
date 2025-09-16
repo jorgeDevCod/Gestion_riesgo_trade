@@ -1,0 +1,92 @@
+/* Indicadores de riesgo mejorados */
+.risk-critical {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
+}
+
+.trading-disabled {
+  filter: grayscale(1);
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+.disciplinary-message {
+  animation: slideInFromTop 0.5s ease-out;
+}
+
+@keyframes slideInFromTop {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.risk-indicator {
+  position: relative;
+  overflow: hidden;
+}
+
+.risk-indicator::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #22c55e 0%, #eab308 50%, #ef4444 100%);
+}
+
+.disciplinary-message {
+  animation: slideInFromTop 0.5s ease-out;
+}
+
+@keyframes slideInFromTop {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.trading-blocked {
+  filter: grayscale(1);
+  pointer-events: none;
+}
+
+.risk-warning {
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
+  border: 2px solid #ef4444;
+}
+
+.pulse-red {
+  animation: pulseRed 2s infinite;
+}
+
+@keyframes pulseRed {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+  }
+}
+
+@media (max-width: 640px) {
+  #confluencePanel {
+    width: calc(100vw - 2rem);
+    right: 1rem;
+  }
+}
+
+/* Animación mejorada para el botón */
+#confluenceToggle:hover {
+  transform: scale(1.05);
+}
