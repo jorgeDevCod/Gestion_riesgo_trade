@@ -29,6 +29,7 @@ let observations = [];
 let withdrawals = [];
 let capitalAdditions = [];
 let currentCapital = 0;
+let currentSelectedStrategy = 'regulares';
 let currentTab = "signals";
 let currentUser = null;
 let isInitializing = true;
@@ -39,38 +40,41 @@ let editingTradeId = null;
 let dailyTradesCount = 0; // Conteo diario de trades (máx 3)
 let dailyPnL = 0; // P&L diario para límite de pérdida
 
-// Strategy configs (corregido riskPercent)
+// Strategy configs
 const strategyConfigs = {
     regulares: {
         name: "Trades Regulares",
-        riskPercent: 2.5,
-        stopLoss: 6,
-        takeProfit1: 13,
-        takeProfit2: 24,
-        winRate: 65,
+        winRate: 55,
         rrRatio: 2.2,
-        timeframes: "4H/1h → 15M → 3M",
+        stopLoss: 6,
+        takeProfit1: 12,
+        takeProfit2: 24,
+        riskPercent: 2.5,
+        minRisk: 2.5,
+        maxRisk: 5.0
     },
     "ema-macd": {
         name: "EMA + MACD",
-        riskPercent: 3.0,
-        stopLoss: 5,
-        takeProfit1: 12,
-        takeProfit2: 22,
         winRate: 62,
-        rrRatio: 2.4,
-        timeframes: "4H → 1H → 15M → 5M",
+        rrRatio: 2.8,
+        stopLoss: 8,
+        takeProfit1: 18,
+        takeProfit2: 32,
+        riskPercent: 3.0,
+        minRisk: 3.0,
+        maxRisk: 5.0
     },
     "contra-tendencia": {
-        name: "Contra-Tendencia Flexible",
-        riskPercent: 3.0,
-        stopLoss: 6,
-        takeProfit1: 15,
-        takeProfit2: 28,
+        name: "Contra-Tendencia",
         winRate: 48,
-        rrRatio: 2.8,
-        timeframes: "4H → 1H → 15M → 5M",
-    },
+        rrRatio: 3.2,
+        stopLoss: 5,
+        takeProfit1: 12,
+        takeProfit2: 20,
+        riskPercent: 2.5,
+        minRisk: 2.0,
+        maxRisk: 3.0
+    }
 };
 
 // Checklists (sin cambios)
@@ -777,7 +781,9 @@ function calculateOptimalContractsWithEffectiveCapital( strategy ) {
     const config = strategyConfigs[ strategy ] || strategyConfigs.regulares;
     const effectiveCapital = calculateEffectiveCapital();
     if ( !config || effectiveCapital <= 0 ) return 1;
-    const riskAmount = ( effectiveCapital * config.riskPercent ) / 100;
+
+    // CAMBIAR esta línea:
+    const riskAmount = ( effectiveCapital * config.riskPercent ) / 100; // Era config.riskPercent, ahora usa el valor correcto
     const stopLossPips = config.stopLoss;
     return Math.floor( riskAmount / stopLossPips ) || 1;
 }
@@ -899,8 +905,11 @@ function renderCapitalSection() {
     if ( inputCapital ) inputCapital.value = currentCapital.toFixed( 2 );
 
     const maxDailyRiskEl = document.getElementById( "maxDailyRisk" );
-    if ( maxDailyRiskEl )
+    if ( maxDailyRiskEl ) {
         maxDailyRiskEl.textContent = `$${( effectiveCapital * 0.05 ).toFixed( 2 )}`;
+    }
+
+    updateStrategyDisplay();
 }
 
 
@@ -1030,7 +1039,7 @@ function renderSetupChecklist() {
     const strategy = strategySelector.value || "regulares";
 
     // Actualizar información rápida de la estrategia
-    updateStrategyDisplay( strategy );
+    updateStrategyDisplay();
 
     // Renderizar checklist
     renderDynamicChecklist( strategy );
@@ -1045,34 +1054,39 @@ function renderSetupChecklist() {
     restoreSetupState();
 }
 
-function updateStrategyDisplay( strategy = "regulares" ) {
-    const config = strategyConfigs[ strategy ];
+function updateStrategyDisplay() {
+    const selectedStrategy = document.getElementById( 'strategySelect' )?.value || 'regulares';
+    const config = strategyConfigs[ selectedStrategy ];
+
     if ( !config ) return;
 
-    const effectiveCapital = calculateEffectiveCapital();
-    const optimalContracts =
-        calculateOptimalContractsWithEffectiveCapital( strategy );
-
-    // Objetos para actualización de elementos
-    const displayData = {
-        // Quick info
-        strategyWinRateQuick: `${config.winRate}%`,
-        strategyRRQuick: `${config.rrRatio}:1`,
-        strategyRiskQuick: `${config.riskPercent}%`, // 🔧 CORREGIDO
-        optimalContractsQuick: optimalContracts.toString(),
-        strategyTimeframesQuick: config.timeframes || "Multiple TF",
-        // Calculator adicional si existe
-        maxRiskPerTrade: `$${( ( effectiveCapital * config.riskPercent ) / 100 ).toFixed( 2 )}`,
-        optimalContracts: optimalContracts,
-        suggestedSL: `${config.stopLoss} pips`,
-        takeProfit1: `${config.takeProfit1} pips`,
-        takeProfit2: `${config.takeProfit2} pips`,
+    // Actualizar información de estrategia
+    const elements = {
+        winRate: document.getElementById( 'strategyWinRate' ),
+        rrRatio: document.getElementById( 'strategyRR' ),
+        riskPercent: document.getElementById( 'strategyRiskPercent' ),
+        maxRiskPerTrade: document.getElementById( 'maxRiskPerTrade' ),
+        optimalContracts: document.getElementById( 'optimalContracts' ),
+        suggestedSL: document.getElementById( 'suggestedSL' ),
+        takeProfit1: document.getElementById( 'takeProfit1' ),
+        takeProfit2: document.getElementById( 'takeProfit2' )
     };
 
-    Object.entries( displayData ).forEach( ( [ id, value ] ) => {
-        const element = document.getElementById( id );
-        if ( element ) element.textContent = value;
-    } );
+    // Actualizar info básica
+    if ( elements.winRate ) elements.winRate.textContent = `${config.winRate}%`;
+    if ( elements.rrRatio ) elements.rrRatio.textContent = `${config.rrRatio}:1`;
+    if ( elements.riskPercent ) elements.riskPercent.textContent = `${config.riskPercent}%`;
+
+    // Calcular y actualizar parámetros
+    const effectiveCapital = calculateEffectiveCapital();
+    const maxRiskPerTrade = effectiveCapital * ( config.riskPercent / 100 );
+    const optimalContracts = calculateOptimalContractsWithEffectiveCapital( selectedStrategy );
+
+    if ( elements.maxRiskPerTrade ) elements.maxRiskPerTrade.textContent = `$${maxRiskPerTrade.toFixed( 2 )}`;
+    if ( elements.optimalContracts ) elements.optimalContracts.textContent = optimalContracts;
+    if ( elements.suggestedSL ) elements.suggestedSL.textContent = `${config.stopLoss} pips`;
+    if ( elements.takeProfit1 ) elements.takeProfit1.textContent = `${config.takeProfit1} pips`;
+    if ( elements.takeProfit2 ) elements.takeProfit2.textContent = `${config.takeProfit2} pips`;
 }
 
 // Nueva función para mostrar el template de estrategia en el lado derecho
@@ -2100,6 +2114,7 @@ function renderAllData() {
         renderObservations();
         renderRecentWithdrawals();
         updateCapitalBreakdown();
+        updateStrategyDisplay();
 
         if ( currentTab === "signals" ) {
             renderSetupChecklist();
@@ -3455,6 +3470,12 @@ document.addEventListener( "DOMContentLoaded", function () {
         const input = document.getElementById( id );
         if ( input ) input.value = today;
     } );
+
+    const strategySelect = document.getElementById( 'strategySelect' );
+    if ( strategySelect ) {
+        strategySelect.addEventListener( 'change', updateStrategyDisplay );
+    }
+    updateStrategyDisplay();
 
     // ===== AUTH EVENT LISTENERS =====
     auth.onAuthStateChanged( function ( user ) {
