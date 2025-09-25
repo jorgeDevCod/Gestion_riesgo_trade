@@ -104,12 +104,13 @@ const setupChecklists = {
     "contra-tendencia": [
         "4H/1D: Tendencia principal establecida 48H+ (EMAs 21/50 separadas)",
         "4H/1D: Precio tocando soporte/resistencia mayor clave",
-        "1H: MACD divergencia O histograma debilitándose (3 velas+)",
-        "15M: Patrón de agotamiento (doji, martillo, mechas largas) en la zona crítica",
-        "15M: Volumen decreciente en empuje + pico en vela de rechazo",
-        "5M: Ruptura EMA21 contra tendencia con vela fuerte de confirmación",
-        "5M: Volumen acompañando ruptura (≥1.5x promedio)",
-        "Ejecución: entrada en ruptura o primer pullback, SL detrás del nivel clave, TP en siguiente soporte/resistencia"
+        "1H: MACD divergencia O Precio rompe uñtimo rango de (min/max)",
+        "Refuerzo(1H): EMA21/EMA50 curveando o cambiando de dirección a favor del trade",
+        "15M: Patrón de agotamiento (doji, martillo, envolvente o mechas) en zona crítica + volumen incremental",
+        "15M: Volumen decreciente en retroceso + vela de rechazo",
+        "5M: Ruptura o rebote en EMA21 contra tendencia con vela fuerte",
+        "5M: Volumen acompañando ruptura o rechzo (≥1.5x promedio)",
+        "Ejecución: entrada en ruptura o rebote confirmado  tras cambio de estructura inmediata"
     ]
 
 };
