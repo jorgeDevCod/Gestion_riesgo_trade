@@ -104,7 +104,7 @@ const setupChecklists = {
     "contra-tendencia": [
         "4H/1D: Tendencia principal establecida 48H+ (EMAs 21/50 separadas)",
         "4H/1D: Precio tocando soporte/resistencia mayor clave",
-        "1H: MACD divergencia O Precio rompe uñtimo rango de (min/max)",
+        "1H: MACD divergencia O Precio rompe ultimo rango de (min/max)",
         "Refuerzo(1H): EMA21/EMA50 curveando o cambiando de dirección a favor del trade",
         "15M: Patrón de agotamiento (doji, martillo, envolvente) en zona crítica",
         "15M: Volumen decreciente en retroceso + vela de rechazo con volumen",
