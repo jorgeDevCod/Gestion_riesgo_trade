@@ -1475,145 +1475,116 @@
             </div>
         </div>
 
-        <!-- Template Contra-Tendencia ACTUALIZADO -->
+        <!-- Template Contra-Tendencia ACTUALIZADO PARA ANTICIPACIÓN -->
         <div id="template-contra-tendencia" class="strategy-template">
-            <h4 class="text-lg font-semibold text-orange-400 mb-4">⚡ ESTRATEGIA 3: Contra Tendencia Flexible</h4>
+            <h4 class="text-lg font-semibold text-cyan-400 mb-4">🎯 ANTICIPACIÓN DE REVERSIÓN INTRADÍA</h4>
 
-            <section class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                <div class="bg-red-900 bg-opacity-30 p-3 mb-3 rounded-lg border border-red-500">
-                    <h5 class="font-semibold text-red-400 mb-2 text-sm">🚨 INVALIDACIÓN INMEDIATA (Ambos setups):</h5>
-                    <ul class="text-xs space-y-1">
-                        <li>• Williams %R 5M regresa 80% hacia extremo original en 2 velas consecutivas</li>
-                        <li>• MACD 4H acelera fuertemente contra posición (histograma expandiéndose)</li>
-                        <li>• Volumen 5M cae por debajo del promedio por 3+ velas post-entrada</li>
-                        <li>• Ruptura nivel crítico 15M con volumen &gt;2x en dirección contraria</li>
-                    </ul>
-                </div>
-
-                <div class="bg-yellow-900 bg-opacity-20 p-3 mb-3 rounded-lg border border-yellow-500">
-                    <h5 class="font-semibold text-yellow-400 mb-2 text-sm">🎯 USAR CUANDO:</h5>
-                    <ul class="text-xs space-y-1">
-                        <li>• Williams %R 15M en extremos: &lt;-75 o &gt;-25 por 2+ velas consecutivas</li>
-                        <li>• MACD 1H: Aplanamiento en línea señal + debilidad en Histograma</li>
-                        <li>• Tendencia clara 4H: precio cerca de nivel técnico crítico S/R</li>
-                        <li>• Mechas largas 15M: en zonas S/R con volumen en retroceso</li>
-                        <li>• Agotamiento visible 4H: precio en extremos de rango establecido</li>
-                    </ul>
-                </div>
-            </section>
+            <!-- INVALIDACIONES CRÍTICAS -->
+            <div class="mb-4 bg-red-900 bg-opacity-40 p-3 rounded-lg border border-red-500">
+                <h5 class="font-semibold text-red-400 mb-2 text-sm">🚨 INVALIDACIÓN INMEDIATA:</h5>
+                <ul class="text-xs space-y-1">
+                    <li>• Tendencia 4H/1D acelerando fuertemente (MACD expandiendo)</li>
+                    <li>• Williams 1H regresa al centro (-50 a -30) sin reversión</li>
+                    <li>• Volumen 5M no explota en reversión (<1.2x promedio)</li>
+                    <li>• Patrón reversión 15M falla en siguiente vela</li>
+                </ul>
+            </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <!-- COMPRAS - Rebote Agotamiento Bajista -->
-                <div class="bg-green-900 bg-opacity-20 p-4 rounded-lg border border-green-500">
-                    <h5 class="font-semibold text-green-400 mb-3">🟢 COMPRAS - Rebote Agotamiento Bajista</h5>
-                    <div class="space-y-3 text-sm">
-                        <div>
-                            <h6 class="font-medium text-green-300">📊 Contexto 4H - Verificación:</h6>
-                            <ul class="mt-1 space-y-1 text-xs">
-                                <li>• Tendencia bajista: EMA 21 debajo EMA 50 por 24H+</li>
-                                <li>• No caída libre: MACD 4H sin divergencia bajista fuerte</li>
-                                <li>• Zona soportes fuerte: mínimo de rango diario establecido</li>
-                            </ul>
-                        </div>
-
-                        <div>
-                            <h6 class="font-medium text-green-300">🔍 Filtros 1H - Validación (TODAS):</h6>
-                            <ul class="mt-1 space-y-1 text-xs">
-                                <li>• MACD: Divergencia alcista O línea señal aplanándose/girando</li>
-                                <li>• Mechas rechazo: 3+ pips por debajo en zona soporte crítico</li>
-                            </ul>
-                        </div>
-
-                        <div>
-                            <h6 class="font-medium text-green-300">⚡ Pre-setup 15M (3 de 4):</h6>
-                            <ul class="mt-1 space-y-1 text-xs">
-                                <li>• Agotamiento extremo: Williams %R &lt;-75 por 2+ velas consecutivas</li>
-                                <li>• Nivel crítico validado: Retesteo 2+ veces (velas verdes &gt; rojas)</li>
-                                <li>• Patrón vela: Martillo, doji estrella o mecha &gt;50% cuerpo</li>
-                                <li>• MACD 15M: Líneas cambiando dirección o divergencia alcista</li>
-                            </ul>
-                        </div>
-
-                        <div>
-                            <h6 class="font-medium text-green-300">🎯 Trigger 5M (2 de 3):</h6>
-                            <ul class="mt-1 space-y-1 text-xs">
-                                <li>• Williams girando: Saliendo de &lt;-80 hacia &gt;-70 en ascenso</li>
-                                <li>• Volumen explosivo: Superior 1.3x promedio últimas 10 velas</li>
-                                <li>• MACD: Líneas señal e Histograma en dirección del trade</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- VENTAS - Rechazo Agotamiento Alcista -->
+                <!-- VENTAS - Anticipar en Precio Caro -->
                 <div class="bg-red-900 bg-opacity-20 p-4 rounded-lg border border-red-500">
-                    <h5 class="font-semibold text-red-400 mb-3">🔴 VENTAS - Rechazo Agotamiento Alcista</h5>
+                    <h5 class="font-semibold text-red-400 mb-3">🔴 VENTAS - Precio Caro (Alcista Principal)</h5>
                     <div class="space-y-3 text-sm">
                         <div>
-                            <h6 class="font-medium text-red-300">📊 Contexto 4H - Verificación:</h6>
+                            <h6 class="font-medium text-red-300">CONTEXTO (4H/1D):</h6>
                             <ul class="mt-1 space-y-1 text-xs">
-                                <li>• Tendencia alcista: EMA 21 encima EMA 50 por 24H+</li>
-                                <li>• No subida libre: MACD 4H sin divergencia alcista fuerte</li>
-                                <li>• Zona resistencias fuerte: máximo de rango diario establecido</li>
+                                <li>• Alcista establecido: EMA21 > EMA50 por 48H+</li>
+                                <li>• Precio cerca resistencia histórica o máximos</li>
+                                <li>• Sin divergencia bajista fuerte en 4H (aún válida)</li>
                             </ul>
                         </div>
-
-                        <div>
-                            <h6 class="font-medium text-red-300">🔍 Filtros 1H - Validación (1 de 2 mín):</h6>
+                        <div class="bg-purple-900 bg-opacity-30 p-2 rounded">
+                            <h6 class="font-medium text-purple-300">SEÑAL 1H (CLAVE):</h6>
                             <ul class="mt-1 space-y-1 text-xs">
-                                <li>• MACD: Divergencia bajista O línea señal aplanándose/girando</li>
-                                <li>• Mechas rechazo: 4+ pips por encima llegando a resistencia</li>
+                                <li>• Williams >-30 por 2+ velas (precio caro)</li>
+                                <li>• MACD divergencia bajista O histograma debilitándose</li>
+                                <li>• Rechazo en resistencia con mechas 5+ pips</li>
                             </ul>
                         </div>
-
                         <div>
-                            <h6 class="font-medium text-red-300">⚡ Pre-setup 15M (3 de 4):</h6>
+                            <h6 class="font-medium text-red-300">ANTICIPACIÓN 15M:</h6>
                             <ul class="mt-1 space-y-1 text-xs">
-                                <li>• Agotamiento extremo: Williams %R &gt;-25 por 2+ velas consecutivas</li>
-                                <li>• Nivel crítico validado: Retesteo 2+ veces (velas rojas &gt; verdes)</li>
-                                <li>• Patrón vela: Martillo invertido, doji estrella &gt;50% cuerpo</li>
-                                <li>• MACD 15M: Líneas cambiando dirección o divergencia bajista</li>
+                                <li>• Divergencia Williams vs precio (picos descendentes)</li>
+                                <li>• Patrón: Doji, martillo invertido, estrella fugaz</li>
+                                <li>• MACD líneas girando bajistas</li>
                             </ul>
                         </div>
-
                         <div>
-                            <h6 class="font-medium text-red-300">🎯 Trigger 5M (2 de 3):</h6>
+                            <h6 class="font-medium text-red-300">TRIGGER 5M:</h6>
                             <ul class="mt-1 space-y-1 text-xs">
-                                <li>• Williams girando: Saliendo de &gt;-20 hacia &lt;-30 en descenso</li>
-                                <li>• Volumen explosivo: Superior 1.3x promedio últimas 10 velas</li>
-                                <li>• MACD: Líneas señal e Histograma en dirección del trade</li>
+                                <li>• Williams girando <-40→<-50 (saliendo sobrecompra)</li>
+                                <li>• Volumen explosivo >1.5x en vela bajista</li>
+                                <li>• Ruptura EMA21 a la baja con confirmación</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- COMPRAS - Anticipar en Precio Barato -->
+                <div class="bg-green-900 bg-opacity-20 p-4 rounded-lg border border-green-500">
+                    <h5 class="font-semibold text-green-400 mb-3">🟢 COMPRAS - Precio Barato (Bajista Principal)</h5>
+                    <div class="space-y-3 text-sm">
+                        <div>
+                            <h6 class="font-medium text-green-300">CONTEXTO (4H/1D):</h6>
+                            <ul class="mt-1 space-y-1 text-xs">
+                                <li>• Bajista establecido: EMA21 < EMA50 por 48H+</li>
+                                <li>• Precio cerca soporte histórico o mínimos</li>
+                                <li>• Sin divergencia alcista fuerte en 4H (aún válida)</li>
+                            </ul>
+                        </div>
+                        <div class="bg-purple-900 bg-opacity-30 p-2 rounded">
+                            <h6 class="font-medium text-purple-300">SEÑAL 1H (CLAVE):</h6>
+                            <ul class="mt-1 space-y-1 text-xs">
+                                <li>• Williams <-70 por 2+ velas (precio barato)</li>
+                                <li>• MACD divergencia alcista O histograma fortaleciendo</li>
+                                <li>• Rebote en soporte con mechas 5+ pips</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h6 class="font-medium text-green-300">ANTICIPACIÓN 15M:</h6>
+                            <ul class="mt-1 space-y-1 text-xs">
+                                <li>• Divergencia Williams vs precio (valles ascendentes)</li>
+                                <li>• Patrón: Martillo, doji, estrella matutina</li>
+                                <li>• MACD líneas girando alcistas</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h6 class="font-medium text-green-300">TRIGGER 5M:</h6>
+                            <ul class="mt-1 space-y-1 text-xs">
+                                <li>• Williams girando >-60→>-50 (saliendo sobreventa)</li>
+                                <li>• Volumen explosivo >1.5x en vela alcista</li>
+                                <li>• Ruptura EMA21 al alza con confirmación</li>
                             </ul>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Señales de Refuerzo -->
-            <div class="mt-4 bg-purple-900 bg-opacity-20 p-3 rounded-lg border border-purple-400">
-                <h5 class="font-semibold text-purple-400 mb-2">🔄 SEÑALES DE REFUERZO ADICIONAL (opcional):</h5>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                    <div>
-                        <h6 class="font-medium text-purple-300">Para COMPRAS:</h6>
-                        <ul class="space-y-1 text-xs">
-                            <li>• Williams 15M girando arriba → +25% contratos</li>
-                            <li>• Ruptura EMA 21 en 5M con volumen → TP2 +10 pips</li>
-                            <li>• MACD 1H cruce alcista → +50% posición</li>
-                            <li>• Divergencia Williams %R 15M (menos sobrevendido)</li>
-                        </ul>
-                    </div>
-                    <div>
-                        <h6 class="font-medium text-red-300">Para VENTAS:</h6>
-                        <ul class="space-y-1 text-xs">
-                            <li>• Williams 15M girando abajo → +25% contratos</li>
-                            <li>• Ruptura EMA 21 en 5M con volumen → TP2 +10 pips</li>
-                            <li>• MACD 1H cruce bajista → +50% posición</li>
-                            <li>• Divergencia Williams %R 15M (menos sobrecomprado)</li>
-                        </ul>
-                    </div>
-                </div>
+            <!-- CONFLUENCIAS CRÍTICAS -->
+            <div class="mt-4 bg-cyan-900 bg-opacity-20 p-3 rounded-lg border border-cyan-400">
+                <h5 class="font-semibold text-cyan-400 mb-2">⚡ CONFLUENCIAS DE ALTA PROBABILIDAD:</h5>
+                <ul class="text-xs space-y-1">
+                    <li>• Triple divergencia: Williams 1H + 15M + MACD 15M</li>
+                    <li>• Zona precio extremo: Resistencia/soporte histórico + Williams extremo</li>
+                    <li>• Volumen confirmatorio: Decreciente en empuje + explosivo en reversión</li>
+                    <li>• Patrón + ruptura EMA: Martillo/doji + ruptura EMA21 en 5M</li>
+                </ul>
             </div>
 
-
+            <div class="mt-4 bg-blue-900 bg-opacity-20 p-3 rounded-lg border border-blue-400">
+                <p class="text-sm"><strong>ENTRADA:</strong> Inmediatamente tras ruptura EMA21 en 5M con volumen >1.5x</p>
+                <p class="text-sm"><strong>GESTIÓN:</strong> SL 6 pips, TP1 10 pips (60%), TP2 17 pips (40%)</p>
+            </div>
         </div>
     </div>
 

@@ -66,14 +66,14 @@ const strategyConfigs = {
     },
     "contra-tendencia": {
         name: "Contra-Tendencia",
-        winRate: 48,
-        rrRatio: 3.2,
-        stopLoss: 5,
-        takeProfit1: 12,
-        takeProfit2: 20,
-        riskPercent: 2.5,
-        minRisk: 2.0,
-        maxRisk: 3.0
+        winRate: 62,
+        rrRatio: 2.8,
+        stopLoss: 6,
+        takeProfit1: 10,
+        takeProfit2: 17,
+        riskPercent: 2.2,
+        minRisk: 1.8,
+        maxRisk: 2.8
     }
 };
 
@@ -103,17 +103,16 @@ const setupChecklists = {
         "5M: Vela rebota en EMA con histograma confirmando",
     ],
     "contra-tendencia": [
-        "4H: Tendencia clara 24H+ (EMA 21 vs EMA 50 correcta)",
-        "4H: Precio en zona crítica S/R fuerte identificada",
-        "H1: MACD divergencia confirmada O línea señal aplanándose/girando",
-        "H1: Mechas rechazo 3+ pips en soporte O 4+ pips en resistencia",
-        "15M: Williams %R extremos (<-75 compra, >-25 venta) por 2+ velas",
-        "15M: Patrón vela válido (martillo/doji/mecha >50% cuerpo)",
-        "15M: MACD líneas cambiando dirección O divergencia confirmada",
-        "5M: Williams girando desde extremo (<-80 >-70 O >-20→<-30)",
-        "5M: Volumen explosivo >1.3x promedio últimas 10 velas",
-        "5M: MACD líneas e histograma en dirección del trade",
-    ],
+        "4H/1D: Tendencia principal establecida 48H+ (EMAs 21/50 separadas)",
+        "4H/1D: Precio tocando soporte/resistencia mayor clave",
+        "1H: MACD divergencia O histograma debilitándose (3 velas+)",
+        "15M: Patrón de agotamiento (doji, martillo, mechas largas) en la zona crítica",
+        "15M: Volumen decreciente en empuje + pico en vela de rechazo",
+        "5M: Ruptura EMA21 contra tendencia con vela fuerte de confirmación",
+        "5M: Volumen acompañando ruptura (≥1.5x promedio)",
+        "Ejecución: entrada en ruptura o primer pullback, SL detrás del nivel clave, TP en siguiente soporte/resistencia"
+    ]
+
 };
 
 // Provider Google
@@ -1790,7 +1789,7 @@ function switchTab( tabName ) {
     if ( tabName === "trade-management" ) {
         updateLevelsLastUpdate();
     }
-    
+
     setTimeout( () => {
         updateStrategyDisplay();
     }, 100 );
