@@ -84,7 +84,7 @@ const setupChecklists = {
         "4H/1h: Williams %R saliendo de extremo -80↗ O -50↗ compra | -20↘ O -50↘ venta)",
         "✨Refuerzo(1h): Mecha larga en S/R ≥ 5 pips en ultima vela",
         "15M: Williams %R subiendo de -80/-60 (compras) | bajando de -20/-30 (ventas)",
-        "15M: Precio rebota/rompe S/R o ema21/50 + patrón con volumen",
+        "15M: Precio rebota/rompe en zona clave + confluencias(patron, volumen o lineas de tendencis) ",
         "15M: MACD líneas por cruzar o cruzando en zona retesteada",
         "✨Refuerzo(15M): EMA21 cruza EMA50 en dirección del trade",
         "3M: Williams %R girando de -80/-60↗ O -50↗ compra | -20/-40↘ O -50↘ venta)",
