@@ -44,7 +44,7 @@ let dailyPnL = 0; // P&L diario para límite de pérdida
 const strategyConfigs = {
     regulares: {
         name: "Trades Regulares",
-        winRate: 55,
+        winRate: 65,
         rrRatio: 2.2,
         stopLoss: 6,
         takeProfit1: 13,
