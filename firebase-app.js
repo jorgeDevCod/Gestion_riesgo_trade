@@ -106,8 +106,8 @@ const setupChecklists = {
         "4H/1D: Precio tocando soporte/resistencia mayor clave",
         "1H: MACD divergencia O Precio rompe uñtimo rango de (min/max)",
         "Refuerzo(1H): EMA21/EMA50 curveando o cambiando de dirección a favor del trade",
-        "15M: Patrón de agotamiento (doji, martillo, envolvente o mechas) en zona crítica + volumen incremental",
-        "15M: Volumen decreciente en retroceso + vela de rechazo",
+        "15M: Patrón de agotamiento (doji, martillo, envolvente) en zona crítica",
+        "15M: Volumen decreciente en retroceso + vela de rechazo con volumen",
         "5M: Ruptura o rebote en EMA21 contra tendencia con vela fuerte",
         "5M: Volumen acompañando ruptura o rechzo (≥1.5x promedio)",
         "Ejecución: entrada en ruptura o rebote confirmado  tras cambio de estructura inmediata"
