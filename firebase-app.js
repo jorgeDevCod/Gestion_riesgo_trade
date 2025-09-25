@@ -86,9 +86,8 @@ const setupChecklists = {
         "15M: Williams %R subiendo de -80/-60 (compras) | bajando de -20/-30 (ventas)",
         "15M: Precio rebota/rompe en zona clave + confluencias(patron, volumen o lineas de tendencis) ",
         "15M: MACD líneas cambian de direccion o cruzan en zona retesteada",
-        "✨Refuerzo(15M): EMA21 cruza EMA50 en dirección del trade",
-        "3M: Williams %R subiendo retestea -50↗ compra | bajando retestea- 50↘ venta) ",
-        "Entrada: Precio rebota EMA 21/50 O rompe estructura con volumen 1.2x",
+        "15M/3M: Williams %R subiendo retestea -50↗ compra | bajando retestea- 50↘ venta) ",
+        "Entrada(3M): Precio rebota EMA 21/50 O rompe estructura con volumen 1.2x",
     ],
     "ema-macd": [
         "4H: MACD sin divergencia bajista + histograma creciendo 2+ velas",
