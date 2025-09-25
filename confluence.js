@@ -1,56 +1,52 @@
 // Configuración de factores de confluencia
 const CONFLUENCE_FACTORS = {
-    // Timeframes
-    timeframe1H4H: {
-        label: "Dirección clara en 1H/4H",
+    // Timeframes mayores
+    trendH1H4: {
+        label: "Tendencia clara en H1/H4 (alcista o bajista definida)",
         category: "timeframe",
         checked: false
     },
-    timeframe15M: {
-        label: "S/R validado en 15M",
+    sr15M: {
+        label: "Soporte/Resistencia validado en 15M",
         category: "timeframe",
         checked: false
     },
-    timeframe5M: {
-        label: "Timing preciso en 5M",
+    entry5M: {
+        label: "Señal de entrada precisa en 5M (ruptura o pullback)",
         category: "timeframe",
         checked: false
     },
 
-    // Indicadores técnicos
-    williamsR: {
-        label: "Williams %R confirma",
+    // Indicadores
+    emaAlignment: {
+        label: "EMA 21/50 alineadas con dirección del trade",
         category: "indicator",
         checked: false
     },
-    macd: {
-        label: "MACD alineado",
-        category: "indicator",
-        checked: false
-    },
-    ema: {
-        label: "EMA 21/50 tendencia",
+    macdSignal: {
+        label: "MACD confirma momentum (cruce o histograma)",
         category: "indicator",
         checked: false
     },
 
-    // Precio y volumen
-    volumeConfirm: {
-        label: "Volumen confirma",
+    // Acción del precio y volumen
+    keyZone: {
+        label: "Precio en zona crítica (S/R, tendencia, patrón)",
         category: "price",
         checked: false
     },
-    candlePattern: {
-        label: "Patrón de vela válido",
+    candleConfirm: {
+        label: "Vela de confirmación fuerte (envolvente, martillo, ruptura)",
         category: "price",
         checked: false
     },
-    srLevel: {
-        label: "En zona S/R clave",
+    volumeBoost: {
+        label: "Volumen respalda la ruptura o el giro",
         category: "price",
         checked: false
     }
 };
+
 
 // Tabla de referencia de patrones (según tu documento original)
 const REFERENCE_PATTERNS = [
