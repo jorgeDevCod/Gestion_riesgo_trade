@@ -93,8 +93,7 @@ const setupChecklists = {
     ],
     "ema-macd": [
         "4H: MACD sin divergencia bajista + histograma creciendo 2+ velas",
-        "4H: Precio supera +2 resistencias/soportes clave",
-        "4H: En zona soporte técnico o retesteo de nivel roto",
+        "4H: Precio supera +2 resistencias/soportes clave y retestea",
         "H1: EMA 21 cruza EMA 50 con separación >3 pips",
         "H1: MACD líneas por cruzar hacia dirección del trade",
         "H1: Precio rebota/rompe en zona soporte/resistencia o EMA21/50",
