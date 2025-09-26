@@ -187,92 +187,231 @@
 
             <!-- Performance por Estrategia -->
             <div class="bg-trading-card p-4 sm:p-6 rounded-lg border border-gray-700 mb-4 sm:mb-6">
-                <h3 class="text-lg sm:text-xl font-semibold text-gold mb-3 sm:mb-4">Performance por Estrategia</h3>
+                <div class="flex items-center justify-between mb-4 sm:mb-6">
+                    <h3 class="text-lg sm:text-xl font-semibold text-gold flex items-center">
+                        <span class="text-2xl mr-2">📊</span>
+                        Performance por Estrategia
+                    </h3>
+                    <div class="text-xs text-gray-400 bg-gray-800 px-2 py-1 rounded">
+                        Actualizado en tiempo real
+                    </div>
+                </div>
+
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                    <div class="strategy-stats" data-strategy="regulares">
-                        <h4 class="font-semibold text-blue-400 text-sm sm:text-base">Trades Regulares</h4>
-                        <div class="flex justify-between mt-2 text-xs sm:text-sm">
-                            <span>Win Rate:</span>
-                            <span class="strategy-winrate">0%</span>
+                    <!-- Estrategia 1: Trades Regulares -->
+                    <div class="strategy-stats bg-gradient-to-br from-blue-900/20 to-blue-800/10 p-4 rounded-lg border border-blue-500/20 hover:border-blue-500/40 transition-all duration-200" data-strategy="regulares">
+                        <div class="flex items-center justify-between mb-3">
+                            <h4 class="font-semibold text-blue-400 text-sm sm:text-base flex items-center">
+                                <span class="text-lg mr-2">📈</span>
+                                Trades Regulares
+                            </h4>
+                            <div class="w-2 h-2 bg-blue-400 rounded-full"></div>
                         </div>
-                        <div class="flex justify-between text-xs sm:text-sm">
-                            <span>P&L:</span>
-                            <span class="strategy-pnl">$0</span>
+
+                        <div class="space-y-2">
+                            <div class="flex justify-between items-center text-xs sm:text-sm">
+                                <span class="text-gray-300">Win Rate:</span>
+                                <span class="strategy-winrate font-bold text-blue-300">0%</span>
+                            </div>
+                            <div class="flex justify-between items-center text-xs sm:text-sm">
+                                <span class="text-gray-300">P&L:</span>
+                                <span class="strategy-pnl font-bold">$0</span>
+                            </div>
+                            <div class="flex justify-between items-center text-xs sm:text-sm">
+                                <span class="text-gray-300">Trades:</span>
+                                <span class="strategy-count font-bold text-gray-200">0</span>
+                            </div>
                         </div>
-                        <div class="flex justify-between text-xs sm:text-sm">
-                            <span>Trades:</span>
-                            <span class="strategy-count">0</span>
+
+                        <div class="mt-3 pt-2 border-t border-blue-500/20">
+                            <div class="text-xs text-gray-400">Estrategia Principal</div>
                         </div>
                     </div>
 
-                    <div class="strategy-stats" data-strategy="estructura-confluencia">
-                        <h4 class="font-semibold text-cyan-400 text-sm sm:text-base">Estructura + Confluencia</h4>
-                        <div class="flex justify-between mt-2 text-xs sm:text-sm">
-                            <span>Win Rate:</span>
-                            <span class="strategy-winrate">0%</span>
+                    <!-- Estrategia 2: Estructura + Confluencia -->
+                    <div class="strategy-stats bg-gradient-to-br from-cyan-900/20 to-cyan-800/10 p-4 rounded-lg border border-cyan-500/20 hover:border-cyan-500/40 transition-all duration-200" data-strategy="estructura-confluencia">
+                        <div class="flex items-center justify-between mb-3">
+                            <h4 class="font-semibold text-cyan-400 text-sm sm:text-base flex items-center">
+                                <span class="text-lg mr-2">🎯</span>
+                                Estructura + Confluencia
+                            </h4>
+                            <div class="w-2 h-2 bg-cyan-400 rounded-full"></div>
                         </div>
-                        <div class="flex justify-between text-xs sm:text-sm">
-                            <span>P&L:</span>
-                            <span class="strategy-pnl">$0</span>
+
+                        <div class="space-y-2">
+                            <div class="flex justify-between items-center text-xs sm:text-sm">
+                                <span class="text-gray-300">Win Rate:</span>
+                                <span class="strategy-winrate font-bold text-cyan-300">0%</span>
+                            </div>
+                            <div class="flex justify-between items-center text-xs sm:text-sm">
+                                <span class="text-gray-300">P&L:</span>
+                                <span class="strategy-pnl font-bold">$0</span>
+                            </div>
+                            <div class="flex justify-between items-center text-xs sm:text-sm">
+                                <span class="text-gray-300">Trades:</span>
+                                <span class="strategy-count font-bold text-gray-200">0</span>
+                            </div>
                         </div>
-                        <div class="flex justify-between text-xs sm:text-sm">
-                            <span>Trades:</span>
-                            <span class="strategy-count">0</span>
+
+                        <div class="mt-3 pt-2 border-t border-cyan-500/20">
+                            <div class="text-xs text-gray-400">Alta Precisión</div>
                         </div>
                     </div>
 
-                    <div class="strategy-stats" data-strategy="ema-macd">
-                        <h4 class="font-semibold text-purple-400 text-sm sm:text-base">EMA + MACD</h4>
-                        <div class="flex justify-between mt-2 text-xs sm:text-sm">
-                            <span>Win Rate:</span>
-                            <span class="strategy-winrate">0%</span>
+                    <!-- Estrategia 3: EMA + MACD -->
+                    <div class="strategy-stats bg-gradient-to-br from-purple-900/20 to-purple-800/10 p-4 rounded-lg border border-purple-500/20 hover:border-purple-500/40 transition-all duration-200" data-strategy="ema-macd">
+                        <div class="flex items-center justify-between mb-3">
+                            <h4 class="font-semibold text-purple-400 text-sm sm:text-base flex items-center">
+                                <span class="text-lg mr-2">📊</span>
+                                EMA + MACD
+                            </h4>
+                            <div class="w-2 h-2 bg-purple-400 rounded-full"></div>
                         </div>
-                        <div class="flex justify-between text-xs sm:text-sm">
-                            <span>P&L:</span>
-                            <span class="strategy-pnl">$0</span>
+
+                        <div class="space-y-2">
+                            <div class="flex justify-between items-center text-xs sm:text-sm">
+                                <span class="text-gray-300">Win Rate:</span>
+                                <span class="strategy-winrate font-bold text-purple-300">0%</span>
+                            </div>
+                            <div class="flex justify-between items-center text-xs sm:text-sm">
+                                <span class="text-gray-300">P&L:</span>
+                                <span class="strategy-pnl font-bold">$0</span>
+                            </div>
+                            <div class="flex justify-between items-center text-xs sm:text-sm">
+                                <span class="text-gray-300">Trades:</span>
+                                <span class="strategy-count font-bold text-gray-200">0</span>
+                            </div>
                         </div>
-                        <div class="flex justify-between text-xs sm:text-sm">
-                            <span>Trades:</span>
-                            <span class="strategy-count">0</span>
+
+                        <div class="mt-3 pt-2 border-t border-purple-500/20">
+                            <div class="text-xs text-gray-400">Tendencia Fuerte</div>
                         </div>
                     </div>
 
-                    <div class="strategy-stats" data-strategy="contra-tendencia">
-                        <h4 class="font-semibold text-orange-400 text-sm sm:text-base">Contra-Tendencia</h4>
-                        <div class="flex justify-between mt-2 text-xs sm:text-sm">
-                            <span>Win Rate:</span>
-                            <span class="strategy-winrate">0%</span>
+                    <!-- Estrategia 4: Contra-Tendencia -->
+                    <div class="strategy-stats bg-gradient-to-br from-orange-900/20 to-orange-800/10 p-4 rounded-lg border border-orange-500/20 hover:border-orange-500/40 transition-all duration-200" data-strategy="contra-tendencia">
+                        <div class="flex items-center justify-between mb-3">
+                            <h4 class="font-semibold text-orange-400 text-sm sm:text-base flex items-center">
+                                <span class="text-lg mr-2">⚡</span>
+                                Contra-Tendencia
+                            </h4>
+                            <div class="w-2 h-2 bg-orange-400 rounded-full"></div>
                         </div>
-                        <div class="flex justify-between text-xs sm:text-sm">
-                            <span>P&L:</span>
-                            <span class="strategy-pnl">$0</span>
+
+                        <div class="space-y-2">
+                            <div class="flex justify-between items-center text-xs sm:text-sm">
+                                <span class="text-gray-300">Win Rate:</span>
+                                <span class="strategy-winrate font-bold text-orange-300">0%</span>
+                            </div>
+                            <div class="flex justify-between items-center text-xs sm:text-sm">
+                                <span class="text-gray-300">P&L:</span>
+                                <span class="strategy-pnl font-bold">$0</span>
+                            </div>
+                            <div class="flex justify-between items-center text-xs sm:text-sm">
+                                <span class="text-gray-300">Trades:</span>
+                                <span class="strategy-count font-bold text-gray-200">0</span>
+                            </div>
                         </div>
-                        <div class="flex justify-between text-xs sm:text-sm">
-                            <span>Trades:</span>
-                            <span class="strategy-count">0</span>
+
+                        <div class="mt-3 pt-2 border-t border-orange-500/20">
+                            <div class="text-xs text-gray-400">Reversión</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Resumen General -->
+                <div class="mt-6 pt-4 border-t border-gray-700">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="text-center">
+                            <div class="text-lg font-bold text-gold" id="totalStrategiesUsed">0</div>
+                            <div class="text-xs text-gray-400">Estrategias Activas</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-lg font-bold text-green-400" id="bestStrategyWR">0%</div>
+                            <div class="text-xs text-gray-400">Mejor Win Rate</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-lg font-bold text-blue-400" id="mostUsedStrategy">-</div>
+                            <div class="text-xs text-gray-400">Más Utilizada</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-lg font-bold" id="strategiesBalance">$0.00</div>
+                            <div class="text-xs text-gray-400">Balance Total</div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Agregar en el dashboard después de las métricas principales -->
+            <!-- Desglose de Capital Mejorado -->
             <div class="bg-trading-card p-4 sm:p-6 rounded-lg border border-gray-700 mb-4 sm:mb-6">
-                <h3 class="text-lg sm:text-xl font-semibold text-gold mb-3 sm:mb-4">Desglose de Capital</h3>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
-                    <div class="bg-gray-800 p-3 rounded-lg">
-                        <h4 class="font-semibold text-blue-400 text-sm">Capital Base</h4>
-                        <p class="text-lg font-bold" id="baseCapital">$0.00</p>
-                        <p class="text-xs text-gray-400">Capital ingresado</p>
+                <div class="flex items-center justify-between mb-4 sm:mb-6">
+                    <h3 class="text-lg sm:text-xl font-semibold text-gold flex items-center">
+                        <span class="text-2xl mr-2">💰</span>
+                        Desglose de Capital
+                    </h3>
+                    <button class="text-xs text-blue-400 hover:text-blue-300 bg-blue-900/20 px-3 py-1 rounded-full border border-blue-500/30 transition-colors" onclick="refreshCapitalBreakdown()">
+                        <span class="mr-1">🔄</span>
+                        Actualizar
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+                    <div class="bg-gradient-to-br from-blue-900/30 to-blue-800/20 p-4 rounded-lg border border-blue-500/20">
+                        <div class="flex items-center justify-between mb-2">
+                            <h4 class="font-semibold text-blue-400 text-sm flex items-center">
+                                <span class="text-lg mr-2">🏦</span>
+                                Capital Base
+                            </h4>
+                            <div class="w-2 h-2 bg-blue-400 rounded-full"></div>
+                        </div>
+                        <p class="text-2xl font-bold text-white mb-1" id="baseCapital">$0.00</p>
+                        <p class="text-xs text-gray-400">Capital inicial ingresado</p>
                     </div>
-                    <div class="bg-gray-800 p-3 rounded-lg">
-                        <h4 class="font-semibold text-profit text-sm">P&L Trading</h4>
-                        <p class="text-lg font-bold" id="tradingPnL">$0.00</p>
-                        <p class="text-xs text-gray-400">Ganancias/Pérdidas</p>
+
+                    <div class="bg-gradient-to-br from-cyan-900/30 to-cyan-800/20 p-4 rounded-lg border border-cyan-500/20">
+                        <div class="flex items-center justify-between mb-2">
+                            <h4 class="font-semibold text-cyan-400 text-sm flex items-center">
+                                <span class="text-lg mr-2">📈</span>
+                                P&L Trading
+                            </h4>
+                            <div class="w-2 h-2 bg-cyan-400 rounded-full"></div>
+                        </div>
+                        <p class="text-2xl font-bold" id="tradingPnL">$0.00</p>
+                        <p class="text-xs text-gray-400">Ganancias/Pérdidas netas</p>
                     </div>
-                    <div class="bg-gray-800 p-3 rounded-lg">
-                        <h4 class="font-semibold text-orange-400 text-sm">Capital Efectivo</h4>
-                        <p class="text-lg font-bold" id="effectiveCapitalDisplay">$0.00</p>
-                        <p class="text-xs text-gray-400">Base + P&L - Retiros</p>
+
+                    <div class="bg-gradient-to-br from-purple-900/30 to-purple-800/20 p-4 rounded-lg border border-purple-500/20">
+                        <div class="flex items-center justify-between mb-2">
+                            <h4 class="font-semibold text-purple-400 text-sm flex items-center">
+                                <span class="text-lg mr-2">💎</span>
+                                Capital Efectivo
+                            </h4>
+                            <div class="w-2 h-2 bg-purple-400 rounded-full"></div>
+                        </div>
+                        <p class="text-2xl font-bold text-white" id="effectiveCapitalDisplay">$0.00</p>
+                        <p class="text-xs text-gray-400">Disponible para trading</p>
+                    </div>
+                </div>
+
+                <!-- Indicadores de Salud del Capital -->
+                <div class="mt-6 pt-4 border-t border-gray-700">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="text-center">
+                            <div class="text-sm font-bold text-blue-400" id="capitalGrowth">+0%</div>
+                            <div class="text-xs text-gray-400">Crecimiento</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-sm font-bold text-cyan-400" id="riskUtilization">0%</div>
+                            <div class="text-xs text-gray-400">Riesgo Utilizado</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-sm font-bold text-purple-400" id="withdrawalRatio">0%</div>
+                            <div class="text-xs text-gray-400">Ratio Retiros</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-sm font-bold text-blue-400" id="profitFactor">0.0</div>
+                            <div class="text-xs text-gray-400">Factor Beneficio</div>
+                        </div>
                     </div>
                 </div>
             </div>
