@@ -91,14 +91,13 @@ const setupChecklists = {
     ],
 
     "ema-macd": [
-        "4H: MACD sin divergencia bajista + histograma creciendo ≥2 velas",
-        "4H: Precio rompe +2 soportes/resistencias clave y retestea",
-        "1H: EMA21 cruza EMA50 con separación >3 pips",
-        "1H: MACD líneas próximas a cruce en dirección del trade",
-        "1H: Precio rebota o rompe zona S/R o EMA21/50",
-        "15M: Histograma MACD creciendo/decreciendo ≥2 velas",
-        "15M: Precio sostenido por encima/debajo de ambas EMAs (≥2 velas)",
-        "5M: Rebote en EMA con histograma confirmando dirección"
+        "4H: MACD sin divergencia bajista + histograma creciendo",
+        "4H: Precio rompe 2 o + soportes/resistencias clave y retestea",
+        "4H/1H: Precio por encima/debajo de ema21/ema50 en direccion del trade",
+        "1H: Precio atracvieza ema21>ema50 con volumen compras | ema21<ema50 ventas",
+        "15M: MACD líneas e histograma por cambiar de direccion y color a favor del trade",
+        "15M: Precio rebota hacia ↗️ en EMA21>EMA50 Compras | Precio rebota hacia ↗↘️ en EMA21<ema50 Ventas",
+        "Entrada Small (5M/3M): Rebote con volumen en EMAS + histograma y lineas confirmando dirección"
     ],
 
     "contra-tendencia": [
