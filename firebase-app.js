@@ -53,6 +53,17 @@ const strategyConfigs = {
         minRisk: 2.5,
         maxRisk: 5.0
     },
+    "estructura-confluencia": {
+        name: "Estructura + Confluencia",
+        winRate: 70,
+        rrRatio: 2.4,
+        stopLoss: 5,
+        takeProfit1: 12,
+        takeProfit2: 18,
+        riskPercent: 2.5,
+        minRisk: 2.0,
+        maxRisk: 4.0
+    },
     "ema-macd": {
         name: "EMA + MACD",
         winRate: 62,
@@ -87,9 +98,17 @@ const setupChecklists = {
         "15M: Rebote o ruptura en zona clave (S/R retesteado o nivel Fibonacci) con patrón + volumen",
         "15M/3M: EMA21>EMA50 + W%R -50↗ (compra) | EMA21<EMA50 + W%R -50↘ (venta)",
         "3M: MACD (líneas/histograma) cruza o gira en dirección del trade en zona clave",
-        "Entrada (5M/3M): Rebote en EMA21 o ruptura/retesteo de consolidación con volumen"
+        "Entrada (5M/3M): Rebote en EMA21 o ruptura/retesteo de consolidación con volumen + confluencia"
     ],
-
+    "estructura-confluencia": [
+        "4H / 1H: Tendencia validada → 2+ máximos o mínimos consecutivos + MACD alineado",
+        "1H / 15M (Refuerzo): Divergencia %K vs precio + mecha ≥5 pips en S/R crítico",
+        "4H / 1H o 1H / 15M: Zona de confluencia (S/R o Fibonacci + estructura confirmada)",
+        "15M: MACD cruzando o por cruzar + histograma en dirección del trade",
+        "Confluencia( 15M y 3M ): Compra: Estocástico cruza ↑20 o rebota ↑50 | Venta: Estocástico cruza ↓80 o rebota ↓50",
+        "3M: MACD histograma cambiando color + Estocástico cruzando y saliendo de zona extrema",
+        "Entrada (5M / 3M): Reacción en zona clave con patrón claro o ruptura + retesteo con volumen"
+    ],
     "ema-macd": [
         "4H: MACD sin divergencia bajista + histograma creciendo",
         "4H: Precio rompe 2 o + soportes/resistencias clave y retestea",

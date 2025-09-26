@@ -204,6 +204,23 @@
                             <span class="strategy-count">0</span>
                         </div>
                     </div>
+
+                    <div class="strategy-stats" data-strategy="estructura-confluencia">
+                        <h4 class="font-semibold text-cyan-400 text-sm sm:text-base">Estructura + Confluencia</h4>
+                        <div class="flex justify-between mt-2 text-xs sm:text-sm">
+                            <span>Win Rate:</span>
+                            <span class="strategy-winrate">0%</span>
+                        </div>
+                        <div class="flex justify-between text-xs sm:text-sm">
+                            <span>P&L:</span>
+                            <span class="strategy-pnl">$0</span>
+                        </div>
+                        <div class="flex justify-between text-xs sm:text-sm">
+                            <span>Trades:</span>
+                            <span class="strategy-count">0</span>
+                        </div>
+                    </div>
+
                     <div class="strategy-stats" data-strategy="ema-macd">
                         <h4 class="font-semibold text-purple-400 text-sm sm:text-base">EMA + MACD</h4>
                         <div class="flex justify-between mt-2 text-xs sm:text-sm">
@@ -219,6 +236,7 @@
                             <span class="strategy-count">0</span>
                         </div>
                     </div>
+
                     <div class="strategy-stats" data-strategy="contra-tendencia">
                         <h4 class="font-semibold text-orange-400 text-sm sm:text-base">Contra-Tendencia</h4>
                         <div class="flex justify-between mt-2 text-xs sm:text-sm">
@@ -316,9 +334,10 @@
                         <div>
                             <label class="block text-sm font-medium mb-2">Seleccionar Estrategia</label>
                             <select id="strategySelect" class="w-full p-3 bg-gray-800 border border-gray-600 rounded-lg text-white">
-                                <option value="regulares">Trades Regulares (1.5-2.5% del capital)</option>
-                                <option value="ema-macd">EMA + MACD (3% del capital)</option>
-                                <option value="contra-tendencia">Contra-Tendencia (2.5% del capital)</option>
+                                <option value="regulares">📈 Estrategia 1: Trades Regulares</option>
+                                <option value="estructura-confluencia">🎯 Estrategia 2: Estructura + Confluencia</option>
+                                <option value="ema-macd">📊 Estrategia 3: EMA + MACD</option>
+                                <option value="contra-tendencia">⚡ Estrategia 4: Contra Tendencia</option>
                             </select>
                         </div>
 
@@ -395,9 +414,11 @@
                     <select id="filterStrategy" class="p-2 bg-gray-800 border border-gray-600 rounded-lg text-white">
                         <option value="">Todas las estrategias</option>
                         <option value="regulares">Trades Regulares</option>
+                        <option value="estructura-confluencia">Estructura + Confluencia</option>
                         <option value="ema-macd">EMA + MACD</option>
                         <option value="contra-tendencia">Contra-Tendencia</option>
                     </select>
+
                     <select id="filterResult" class="p-2 bg-gray-800 border border-gray-600 rounded-lg text-white">
                         <option value="all" selected>Todos</option>
                         <option value="open">Abiertos</option>
@@ -441,14 +462,12 @@
                         <!-- Header con selector de estrategia -->
                         <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                             <h3 class="text-xl font-semibold text-gold">📈 Setup Checker</h3>
-                            <div class="flex items-center gap-2 w-full sm:w-auto">
-                                <label for="signalStrategySelect" class="sr-only">Seleccionar Estrategia</label>
-                                <select id="signalStrategySelect" class="p-3 bg-gray-800 border border-gray-600 rounded-lg text-white min-w-64 text-sm font-medium">
-                                    <option value="regulares">📈 Estrategia 1: Trades Regulares</option>
-                                    <option value="ema-macd">📊 Estrategia 2: EMA + MACD</option>
-                                    <option value="contra-tendencia">⚡ Estrategia 3: Contra Tendencia</option>
-                                </select>
-                            </div>
+                            <select id="signalStrategySelect" class="p-3 bg-gray-800 border border-gray-600 rounded-lg text-white min-w-64 text-sm font-medium">
+                                <option value="regulares">📈 Estrategia 1: Trades Regulares</option>
+                                <option value="estructura-confluencia">🎯 Estrategia 2: Estructura + Confluencia</option>
+                                <option value="ema-macd">📊 Estrategia 3: EMA + MACD</option>
+                                <option value="contra-tendencia">⚡ Estrategia 4: Contra Tendencia</option>
+                            </select>
                         </header>
 
                         <!-- Información rápida de la estrategia -->
@@ -988,6 +1007,7 @@
                         <label class="block text-sm font-medium mb-2">Estrategia</label>
                         <select id="tradeStrategy" class="w-full p-2 bg-gray-800 border border-gray-600 rounded-lg text-white" required>
                             <option value="regulares">Trades Regulares</option>
+                            <option value="estructura-confluencia">Estructura + Confluencia</option>
                             <option value="ema-macd">EMA + MACD</option>
                             <option value="contra-tendencia">Contra-Tendencia</option>
                         </select>
@@ -1070,6 +1090,7 @@
                         <label class="block text-sm font-medium mb-2">Estrategia</label>
                         <select id="editTradeStrategy" class="w-full p-2 bg-gray-800 border border-gray-600 rounded-lg text-white" required>
                             <option value="regulares">Trades Regulares</option>
+                            <option value="estructura-confluencia">Estructura + Confluencia</option>
                             <option value="ema-macd">EMA + MACD</option>
                             <option value="contra-tendencia">Contra-Tendencia</option>
                         </select>
@@ -1303,7 +1324,8 @@
 
     <!-- Templates para Estrategias (ocultos, se usan con JavaScript) -->
     <div id="strategyTemplates" class="hidden">
-        <!-- Template Trades Regulares OPTIMIZADO -->
+
+        <!-- Template Trades Regulares -->
         <div id="template-regulares" class="strategy-template">
             <h4 class="text-lg font-semibold text-blue-400 mb-4">📈 ESTRATEGIA 1: Trades Regulares (PRINCIPAL)</h4>
 
@@ -1401,10 +1423,119 @@
             </div>
         </div>
 
+        <!-- Template Estructura + Confluencia -->
+        <div id="template-estructura-confluencia" class="strategy-template">
+            <h4 class="text-lg font-semibold text-cyan-400 mb-4">🎯 ESTRATEGIA 2: Estructura + Confluencia</h4>
+
+            <!-- INVALIDACIONES CRÍTICAS -->
+            <div class="mb-4 bg-red-900 bg-opacity-30 p-3 rounded-lg border border-red-500">
+                <h5 class="font-semibold text-red-400 mb-2 text-sm">🚫 INVALIDACIÓN INMEDIATA:</h5>
+                <ul class="text-xs space-y-1">
+                    <li>• MACD 4H/1H divergiendo fuertemente contra estructura</li>
+                    <li>• Estructura mayor rota con volumen 2x+ (cambio de contexto)</li>
+                    <li>• Estocástico sin reacción en zonas extremas por 3+ velas</li>
+                    <li>• Zona de confluencia invalidada por ruptura falsa</li>
+                </ul>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <!-- COMPRAS -->
+                <div class="bg-green-900 bg-opacity-20 p-4 rounded-lg border border-green-500">
+                    <h5 class="font-semibold text-green-400 mb-3">🟢 SETUP COMPRAS</h5>
+                    <div class="space-y-3 text-sm">
+                        <div>
+                            <h6 class="font-medium text-green-300">CONTEXTO (4H/1H):</h6>
+                            <ul class="mt-1 space-y-1 text-xs">
+                                <li>• Tendencia: 2+ máximos/mínimos consecutivos ascendentes</li>
+                                <li>• MACD alineado alcista o neutral (sin divergencia bajista)</li>
+                                <li>• Estructura respetando soportes dinámicos</li>
+                            </ul>
+                        </div>
+                        <div class="bg-purple-900 bg-opacity-30 p-2 rounded">
+                            <h6 class="font-medium text-purple-300">CONFLUENCIA (1H/15M):</h6>
+                            <ul class="mt-1 space-y-1 text-xs">
+                                <li>• Zona clave: S/R histórico + Fibonacci confirmado</li>
+                                <li>• Divergencia: %K vs precio (valles ascendentes)</li>
+                                <li>• Mecha ≥5 pips en zona crítica (rechazo validado)</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h6 class="font-medium text-green-300">SEÑAL (15M):</h6>
+                            <ul class="mt-1 space-y-1 text-xs">
+                                <li>• MACD cruzando/por cruzar alcista + histograma verde</li>
+                                <li>• Estocástico: cruza ↑20 o rebota ↑50 con momentum</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h6 class="font-medium text-green-300">ENTRADA (3M/5M):</h6>
+                            <ul class="mt-1 space-y-1 text-xs">
+                                <li>• MACD histograma cambiando a verde</li>
+                                <li>• Estocástico saliendo de zona extrema hacia arriba</li>
+                                <li>• Reacción: patrón claro o ruptura+retesteo con volumen</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- VENTAS -->
+                <div class="bg-red-900 bg-opacity-20 p-4 rounded-lg border border-red-500">
+                    <h5 class="font-semibold text-red-400 mb-3">🔴 SETUP VENTAS</h5>
+                    <div class="space-y-3 text-sm">
+                        <div>
+                            <h6 class="font-medium text-red-300">CONTEXTO (4H/1H):</h6>
+                            <ul class="mt-1 space-y-1 text-xs">
+                                <li>• Tendencia: 2+ máximos/mínimos consecutivos descendentes</li>
+                                <li>• MACD alineado bajista o neutral (sin divergencia alcista)</li>
+                                <li>• Estructura respetando resistencias dinámicas</li>
+                            </ul>
+                        </div>
+                        <div class="bg-purple-900 bg-opacity-30 p-2 rounded">
+                            <h6 class="font-medium text-purple-300">CONFLUENCIA (1H/15M):</h6>
+                            <ul class="mt-1 space-y-1 text-xs">
+                                <li>• Zona clave: R/S histórico + Fibonacci confirmado</li>
+                                <li>• Divergencia: %K vs precio (picos descendentes)</li>
+                                <li>• Mecha ≥5 pips en zona crítica (rechazo validado)</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h6 class="font-medium text-red-300">SEÑAL (15M):</h6>
+                            <ul class="mt-1 space-y-1 text-xs">
+                                <li>• MACD cruzando/por cruzar bajista + histograma rojo</li>
+                                <li>• Estocástico: cruza ↓80 o rebota ↓50 con momentum</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h6 class="font-medium text-red-300">ENTRADA (3M/5M):</h6>
+                            <ul class="mt-1 space-y-1 text-xs">
+                                <li>• MACD histograma cambiando a rojo</li>
+                                <li>• Estocástico saliendo de zona extrema hacia abajo</li>
+                                <li>• Reacción: patrón claro o ruptura+retesteo con volumen</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CONFLUENCIAS CRÍTICAS -->
+            <div class="mt-4 bg-purple-900 bg-opacity-20 p-3 rounded-lg border border-purple-400">
+                <h5 class="font-semibold text-purple-400 mb-2">⚡ CONFLUENCIAS DE ALTA PROBABILIDAD:</h5>
+                <ul class="text-xs space-y-1">
+                    <li>• Triple timeframe: Estructura 4H + Confluencia 15M + Señal 3M</li>
+                    <li>• Zona perfecta: S/R + Fibonacci + divergencia estocástico</li>
+                    <li>• Sincronización: MACD + Estocástico alineados direccionalmente</li>
+                    <li>• Confirmación: Patrón claro + volumen + reacción inmediata</li>
+                </ul>
+            </div>
+
+            <div class="mt-4 bg-blue-900 bg-opacity-20 p-3 rounded-lg border border-blue-400">
+                <p class="text-sm"><strong>ENTRADA:</strong> Reacción inmediata en zona clave con patrón claro o ruptura+retesteo con volumen</p>
+                <p class="text-sm"><strong>GESTIÓN:</strong> SL 5 pips, TP1 14 pips (60%), TP2 25 pips (40%) - R:R 2.8:1</p>
+            </div>
+        </div>
 
         <!-- Template EMA + MACD -->
         <div id="template-ema-macd" class="strategy-template">
-            <h4 class="text-lg font-semibold text-purple-400 mb-4">📊 ESTRATEGIA 2: EMA + MACD + CONFLUENCIA</h4>
+            <h4 class="text-lg font-semibold text-purple-400 mb-4">📊 ESTRATEGIA 3: EMA + MACD + CONFLUENCIA</h4>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <!-- COMPRAS EMA+MACD -->
                 <div class="bg-green-900 bg-opacity-20 p-4 rounded-lg border border-green-500">
@@ -1477,7 +1608,7 @@
 
         <!-- Template Contra-Tendencia ACTUALIZADO PARA ANTICIPACIÓN -->
         <div id="template-contra-tendencia" class="strategy-template">
-            <h4 class="text-lg font-semibold text-cyan-400 mb-4">🎯 ANTICIPACIÓN DE REVERSIÓN INTRADÍA</h4>
+            <h4 class="text-lg font-semibold text-cyan-400 mb-4">🎯 ESTRATEGIA 4: REVERSIÓN INTRADÍA | Contra tendencia</h4>
 
             <!-- INVALIDACIONES CRÍTICAS -->
             <div class="mb-4 bg-red-900 bg-opacity-40 p-3 rounded-lg border border-red-500">
