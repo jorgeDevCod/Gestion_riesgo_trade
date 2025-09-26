@@ -80,37 +80,38 @@ const strategyConfigs = {
 // Checklists (sin cambios)
 const setupChecklists = {
     regulares: [
-        "4H Estructura + MACD sin divergencia(operar a favor) | con divergencia(operar contra)",
-        "4H/1h: Williams %R saliendo de extremo -80↗ O -50↗ compra | -20↘ O -50↘ venta)",
-        "✨Refuerzo(1h/15M): Mecha larga ≥5 pips en zona S/R o línea de tendencia",
-        "15M: Williams %R subiendo de -80/-60 (compras) | bajando de -20/-30 (ventas)",
-        "15M: Precio rebota/rompe en zona clave + confluencias(patron, volumen o lineas de tendencis) ",
-        "15M: MACD líneas cambian de direccion o cruzan en zona retesteada",
-        "15M/3M: Williams %R subiendo retestea -50↗ compra | bajando retestea- 50↘ venta) ",
-        "Entrada(5M/3M): Precio Rebota en S/R o EMA21/50 y retestea con volumen ≥1.2x",
+        "4H: Estructura + MACD sin divergencia (operar a favor) | con divergencia (operar contra)",
+        "4H/1H: Williams %R saliendo de extremo (-80↗ o -50↗ compra | -20↘ o -50↘ venta)",
+        "✨Refuerzo (1H/15M): Mecha larga ≥5 pips en zona S/R o línea de tendencia",
+        "15M: Williams %R subiendo de -80/-60 (compra) | bajando de -20/-30 (venta)",
+        "15M: Rebote o ruptura en zona clave (S/R retesteado o nivel Fibonacci) con patrón + volumen",
+        "15M/3M: EMA21>EMA50 + W%R -50↗ (compra) | EMA21<EMA50 + W%R -50↘ (venta)",
+        "3M: MACD (líneas/histograma) cruza o gira en dirección del trade en zona clave",
+        "Entrada (5M/3M): Rebote en EMA21 o ruptura/retesteo de consolidación con volumen"
     ],
-    "ema-macd": [
-        "4H: MACD sin divergencia bajista + histograma creciendo 2+ velas",
-        "4H: Precio supera +2 resistencias/soportes clave y retestea",
-        "H1: EMA 21 cruza EMA 50 con separación >3 pips",
-        "H1: MACD líneas por cruzar hacia dirección del trade",
-        "H1: Precio rebota/rompe en zona soporte/resistencia o EMA21/50",
-        "15M: Histograma MACD creciendo/decreciendo 2+ velas",
-        "15M: Precio encima/debajo ambas EMAs por 2+ velas",
-        "5M: Vela rebota en EMA con histograma confirmando",
-    ],
-    "contra-tendencia": [
-        "4H/1D: Tendencia principal establecida 48H+ (EMAs 21/50 separadas)",
-        "4H/1D: Precio tocando soporte/resistencia mayor clave",
-        "1H: MACD divergencia O Precio rompe/rebota ultimo rango de (min/max)",
-        "Refuerzo(15M): EMA21/EMA50 curveando o cambiando de dirección a favor del trade",
-        "15M: Patrón de agotamiento (doji, martillo, envolvente) en zona crítica",
-        "15M: Volumen decreciente en retroceso + vela de rechazo con volumen",
-        "5M: Ruptura o rebote en EMA21 contra tendencia con vela fuerte",
-        "5M: Volumen acompañando ruptura o rechzo (≥1.5x promedio)",
-        "Ejecución: entrada en ruptura o rebote confirmado  tras cambio de estructura inmediata"
-    ]
 
+    "ema-macd": [
+        "4H: MACD sin divergencia bajista + histograma creciendo ≥2 velas",
+        "4H: Precio rompe +2 soportes/resistencias clave y retestea",
+        "1H: EMA21 cruza EMA50 con separación >3 pips",
+        "1H: MACD líneas próximas a cruce en dirección del trade",
+        "1H: Precio rebota o rompe zona S/R o EMA21/50",
+        "15M: Histograma MACD creciendo/decreciendo ≥2 velas",
+        "15M: Precio sostenido por encima/debajo de ambas EMAs (≥2 velas)",
+        "5M: Rebote en EMA con histograma confirmando dirección"
+    ],
+
+    "contra-tendencia": [
+        "4H/1D: Tendencia principal establecida ≥48H (EMA21 y EMA50 separadas)",
+        "4H/1D: Precio toca soporte/resistencia mayor clave",
+        "1H: MACD divergente o precio rompe/rebota último rango (min/max)",
+        "Refuerzo (15M): EMA21/EMA50 curvando o cambiando dirección a favor del trade",
+        "15M: Patrón de agotamiento (doji, martillo, envolvente) en zona crítica",
+        "15M: Retroceso con volumen decreciente + vela de rechazo con volumen",
+        "5M: Ruptura o rebote en EMA21 contra tendencia con vela fuerte",
+        "5M: Volumen acompañando ruptura o rechazo (≥1.5x promedio)",
+        "Ejecución: Entrada en ruptura o rebote confirmada tras cambio de estructura inmediata"
+    ]
 };
 
 // Provider Google
