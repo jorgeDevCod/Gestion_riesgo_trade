@@ -132,7 +132,7 @@
                 <button class="tab-btn px-3 sm:px-6 py-2 sm:py-3 font-medium border-b-2 border-transparent hover:text-gold whitespace-nowrap text-xs sm:text-base" data-tab="trade-management">Gestión Trades</button>
                 <button class="tab-btn px-3 sm:px-6 py-2 sm:py-3 font-medium border-b-2 border-transparent hover:text-gold whitespace-nowrap text-xs sm:text-base" data-tab="discipline">Disciplina</button>
                 <button class="tab-btn px-3 sm:px-6 py-2 sm:py-3 font-medium border-b-2 border-transparent hover:text-gold whitespace-nowrap text-xs sm:text-base" data-tab="patterns">Patrones Velas</button>
-
+                <button class="tab-btn px-3 sm:px-6 py-2 sm:py-3 font-medium border-b-2 border-transparent hover:text-gold whitespace-nowrap text-xs sm:text-base" data-tab="trend-patterns">Patrones Tendencia</button>
             </div>
         </div>
     </nav>
@@ -1132,6 +1132,83 @@
             </div>
         </section>
 
+        <!-- Patrones de tendencia Tab-->
+        <section id="trend-patterns" class="tab-content hidden">
+            <div class="bg-trading-dark border-b border-slate-700">
+                <div class="max-w-screen-2xl mx-auto px-4 py-6">
+                    <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+                        <div>
+                            <h1 class="text-3xl font-bold text-yellow-400 flex items-center gap-3 mb-2">
+                                📈 Patrones de Tendencia
+                            </h1>
+                            <p class="text-slate-400 text-base">
+                                Figuras chartistas y patrones de tendencia para trading profesional
+                            </p>
+                        </div>
+
+                        <!-- Métricas de rendimiento -->
+                        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 w-full lg:w-auto">
+                            <div class="stats-card rounded-lg p-3 text-center">
+                                <div class="text-2xl font-bold text-green-400" id="trendTotalPatterns">10</div>
+                                <div class="text-xs text-slate-400">Patrones</div>
+                            </div>
+                            <div class="stats-card rounded-lg p-3 text-center">
+                                <div class="text-2xl font-bold text-blue-400" id="trendAvgReliability">81%</div>
+                                <div class="text-xs text-slate-400">Éxito Promedio</div>
+                            </div>
+                            <div class="stats-card rounded-lg p-3 text-center">
+                                <div class="text-2xl font-bold text-purple-400" id="trendReversalCount">4</div>
+                                <div class="text-xs text-slate-400">Reversión</div>
+                            </div>
+                            <div class="stats-card rounded-lg p-3 text-center">
+                                <div class="text-2xl font-bold text-cyan-400" id="trendContinuationCount">6</div>
+                                <div class="text-xs text-slate-400">Continuación</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="max-w-screen-2xl mx-auto px-4 py-8">
+                <!-- Filtros y Búsqueda -->
+                <div class="bg-card-dark rounded-xl p-6 mb-8">
+                    <div class="flex flex-col lg:flex-row gap-6">
+                        <div class="flex-1">
+                            <h3 class="text-lg font-semibold mb-4 text-slate-200">Categorías</h3>
+                            <div class="flex flex-wrap gap-2">
+                                <button class="trend-category-button active px-4 py-2 rounded-lg font-medium text-sm bg-slate-600 hover:bg-slate-500 transition-all" data-category="all">
+                                    Todos
+                                </button>
+                                <button class="trend-category-button px-4 py-2 rounded-lg font-medium text-sm bg-slate-600 hover:bg-slate-500 transition-all" data-category="reversal">
+                                    🔄 Cambio de Tendencia
+                                </button>
+                                <button class="trend-category-button px-4 py-2 rounded-lg font-medium text-sm bg-slate-600 hover:bg-slate-500 transition-all" data-category="bullish_continuation">
+                                    📈 Continuación Alcista
+                                </button>
+                                <button class="trend-category-button px-4 py-2 rounded-lg font-medium text-sm bg-slate-600 hover:bg-slate-500 transition-all" data-category="bearish_continuation">
+                                    📉 Continuación Bajista
+                                </button>
+                            </div>
+                        </div>
+                        <div class="lg:w-80">
+                            <h3 class="text-lg font-semibold mb-4 text-slate-200">Búsqueda</h3>
+                            <div class="relative">
+                                <input type="text" id="trendSearchInput" class="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-2 text-white placeholder-slate-400 focus:ring-2 focus:ring-yellow-400 focus:border-transparent" placeholder="Buscar patrones...">
+                                <svg class="w-5 h-5 text-slate-400 absolute right-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Grid de Patrones -->
+                <div id="trendPatternsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    <!-- Los patrones se generan dinámicamente -->
+                </div>
+            </div>
+        </section>
+
     </main>
 
     <div id="tradeModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
@@ -1453,6 +1530,22 @@
                 <div id="modalContent" class="space-y-6">
                     <!-- Se genera dinámicamente -->
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Patrones de Tendencia -->
+    <div id="trendPatternModal" class="fixed inset-0 modal-backdrop bg-black bg-opacity-70 hidden items-center justify-center z-50 p-4">
+        <div class="bg-slate-800 rounded-xl border border-slate-600 w-full max-w-5xl max-h-[90vh] overflow-y-auto">
+            <div class="p-6">
+                <div class="flex justify-between items-start mb-6">
+                    <div>
+                        <h2 id="trendModalTitle" class="text-2xl font-bold text-yellow-400 mb-2"></h2>
+                        <div id="trendModalBadges" class="flex gap-2"></div>
+                    </div>
+                    <button id="closeTrendModal" class="text-slate-400 hover:text-white text-2xl font-bold p-2 hover:bg-slate-700 rounded-lg transition-colors">✕</button>
+                </div>
+                <div id="trendModalContent" class="space-y-6"></div>
             </div>
         </div>
     </div>
@@ -1942,5 +2035,6 @@
 <script src="firebase-app.js"></script>
 <script src="confluence.js"></script>
 <script src="patrones.js"></script>
+<script src="tendencia.js"></script>
 
 </html>

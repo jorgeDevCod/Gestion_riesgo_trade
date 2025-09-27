@@ -12,6 +12,7 @@
 
 .disciplinary-message {
   animation: slideInFromTop 0.5s ease-out;
+  -webkit-animation: slideInFromTop 0.5s ease-out;
 }
 
 @keyframes slideInFromTop {
@@ -89,4 +90,111 @@
 /* Animación mejorada para el botón */
 #confluenceToggle:hover {
   transform: scale(1.05);
+}
+
+/* Estilos específicos para patrones de tendencia */
+/* ======================
+   ESTILOS PARA PATRONES DE TENDENCIA ESCALADOS
+   ====================== */
+
+/* Stats cards mejoradas */
+.stats-card {
+  background: #1e293b;
+  border: 1px solid #334155;
+  transition: all 0.3s ease;
+}
+
+.stats-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+  border-color: #475569;
+}
+
+/* Container para cards de patrones */
+.bg-card-dark {
+  background: #1e293b;
+  border: 1px solid #334155;
+  transition: all 0.3s ease;
+}
+
+.pattern-card {
+  background: #1e293b;
+  border: 1px solid #334155;
+  transition: all 0.3s ease;
+  min-height: 420px; /* Aumentado para acomodar gráficos más grandes */
+}
+
+.pattern-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+  border-color: #facc15;
+}
+
+/* Botones de categoría activos */
+.trend-category-button.active {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  color: white;
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+}
+
+.trend-category-button {
+  transition: all 0.2s ease;
+}
+
+.trend-category-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Barra de confiabilidad mejorada */
+.reliability-bar {
+  background: linear-gradient(90deg, #ef4444, #f59e0b, #10b981);
+  transition: width 0.5s ease;
+}
+
+/* SVGs responsivos y mejorados */
+.pattern-card svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Estilos para textos en SVG */
+.pattern-card svg text {
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
+}
+
+/* Backdrop del modal mejorado */
+.modal-backdrop {
+  backdrop-filter: blur(8px);
+}
+
+/* Contenedor del grid responsive */
+#trendPatternsGrid {
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .pattern-card {
+    min-height: 380px;
+  }
+
+  #trendPatternsGrid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .stats-card {
+    min-height: 80px;
+  }
+}
+
+@media (max-width: 640px) {
+  .pattern-card svg {
+    width: 100% !important;
+    max-width: 260px;
+  }
 }
