@@ -1,0 +1,22 @@
+{
+  "name": "Control Trade App",
+  "short_name": "TradeApp",
+  "description": "Gestor de trading y dashboard operativo total con análisis de señales y patrones.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#007BFF",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/image/logoGtd-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/image/logoGtd-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
