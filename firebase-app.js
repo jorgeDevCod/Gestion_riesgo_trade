@@ -157,14 +157,20 @@ function checkIfAppInstalled() {
 
 // Mostrar/ocultar botón de instalación
 function toggleInstallButton() {
-    const installButton = document.getElementById( 'installAppBtn' );
+    const container = document.getElementById( 'installAppContainer' );
 
-    if ( !installButton ) return;
+    if ( !container ) {
+        console.warn( 'Install button container not found' );
+        return;
+    }
 
     if ( isAppInstalled || !deferredPrompt ) {
-        installButton.classList.add( 'hidden' );
+        container.style.display = 'none'; // Forzar con style
+        container.classList.add( 'hidden' );
     } else {
-        installButton.classList.remove( 'hidden' );
+        container.style.display = 'block'; // Forzar visibilidad
+        container.classList.remove( 'hidden' );
+        console.log( 'PWA: Install button shown' );
     }
 }
 
