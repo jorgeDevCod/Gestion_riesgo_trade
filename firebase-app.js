@@ -132,6 +132,158 @@ const setupChecklists = {
     ]
 };
 
+// ===== INSTALACIÓN PWA =====
+let deferredPrompt = null;
+let isAppInstalled = false;
+
+// Detectar si la app ya está instalada
+function checkIfAppInstalled() {
+    // Verificar si se está ejecutando como PWA instalada
+    if ( window.matchMedia( '(display-mode: standalone)' ).matches ||
+        window.navigator.standalone === true ) {
+        isAppInstalled = true;
+        return true;
+    }
+
+    // Verificar cookie de instalación
+    const installedCookie = getCookie( 'pwa_installed' );
+    if ( installedCookie === 'true' ) {
+        isAppInstalled = true;
+        return true;
+    }
+
+    return false;
+}
+
+// Mostrar/ocultar botón de instalación
+function toggleInstallButton() {
+    const installButton = document.getElementById( 'installAppBtn' );
+
+    if ( !installButton ) return;
+
+    if ( isAppInstalled || !deferredPrompt ) {
+        installButton.classList.add( 'hidden' );
+    } else {
+        installButton.classList.remove( 'hidden' );
+    }
+}
+
+// Capturar el evento beforeinstallprompt
+window.addEventListener( 'beforeinstallprompt', ( e ) => {
+    // Prevenir que el navegador muestre su propio prompt
+    e.preventDefault();
+
+    // Guardar el evento para usarlo después
+    deferredPrompt = e;
+
+    // Verificar si ya está instalado
+    if ( !checkIfAppInstalled() ) {
+        toggleInstallButton();
+    }
+
+    console.log( 'PWA: beforeinstallprompt event captured' );
+} );
+
+// Detectar cuando la app es instalada
+window.addEventListener( 'appinstalled', ( e ) => {
+    console.log( 'PWA: App installed successfully' );
+
+    // Marcar como instalado
+    isAppInstalled = true;
+    setCookie( 'pwa_installed', 'true', 365 );
+
+    // Ocultar botón
+    toggleInstallButton();
+
+    // Limpiar prompt diferido
+    deferredPrompt = null;
+
+    // Mostrar notificación de éxito
+    updateSyncStatus( 'Aplicación instalada correctamente', true );
+} );
+
+// Función para instalar la PWA
+async function installPWA() {
+    if ( !deferredPrompt ) {
+        console.warn( 'PWA: No hay prompt de instalación disponible' );
+        alert( 'La instalación no está disponible en este momento' );
+        return;
+    }
+
+    try {
+        // Mostrar el prompt de instalación
+        deferredPrompt.prompt();
+
+        // Esperar la respuesta del usuario
+        const { outcome } = await deferredPrompt.userChoice;
+
+        console.log( `PWA: User choice: ${outcome}` );
+
+        if ( outcome === 'accepted' ) {
+            console.log( 'PWA: User accepted installation' );
+            // El evento appinstalled se encargará del resto
+        } else {
+            console.log( 'PWA: User dismissed installation' );
+            updateSyncStatus( 'Instalación cancelada', false );
+        }
+
+        // Limpiar el prompt diferido
+        deferredPrompt = null;
+
+    } catch ( error ) {
+        console.error( 'PWA: Error during installation:', error );
+        alert( 'Ocurrió un error durante la instalación' );
+    }
+}
+
+// Función para verificar soporte de PWA
+function checkPWASupport() {
+    const supportsPWA = 'serviceWorker' in navigator && 'BeforeInstallPromptEvent' in window;
+
+    if ( !supportsPWA ) {
+        console.warn( 'PWA: Este navegador no soporta instalación PWA' );
+        const installButton = document.getElementById( 'installAppBtn' );
+        if ( installButton ) {
+            installButton.classList.add( 'hidden' );
+        }
+    }
+
+    return supportsPWA;
+}
+
+// Inicializar PWA al cargar el documento
+function initializePWA() {
+    // Verificar soporte
+    checkPWASupport();
+
+    // Verificar si ya está instalado
+    checkIfAppInstalled();
+
+    // Configurar visibilidad inicial del botón
+    toggleInstallButton();
+
+    // Agregar listener al botón de instalación
+    const installButton = document.getElementById( 'installAppBtn' );
+    if ( installButton ) {
+        installButton.addEventListener( 'click', installPWA );
+    }
+
+    console.log( 'PWA: Initialization complete' );
+}
+
+// Agregar al evento DOMContentLoaded existente
+document.addEventListener( 'DOMContentLoaded', function () {
+    // ... código existente ...
+
+    // Inicializar PWA
+    setTimeout( initializePWA, 1000 );
+} );
+
+// Exponer funciones globalmente
+window.installPWA = installPWA;
+window.checkIfAppInstalled = checkIfAppInstalled;
+
+
 // Provider Google
 const provider = new firebase.auth.GoogleAuthProvider();
 provider.addScope( "profile email" );
