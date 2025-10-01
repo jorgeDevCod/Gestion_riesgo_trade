@@ -8,13 +8,14 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        'trading-bg': '#111827',
-        'trading-card': '#1f2937',
-        'gold': '#ca8a04',
+        'trading-bg': '#0f172a',
+        'trading-card': '#1e293b',
+        'gold': '#fbbf24',
         'profit': '#10b981',
-        'loss': '#ef4444'
+        'loss': '#ef4444',
+        'neutral': '#6b7280'
       }
-    },
+    }
   },
   plugins: [],
 }

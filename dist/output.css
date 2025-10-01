@@ -1232,15 +1232,15 @@ video {
 
 .border-gold {
   --tw-border-opacity: 1;
-  border-color: rgb(202 138 4 / var(--tw-border-opacity, 1));
+  border-color: rgb(251 191 36 / var(--tw-border-opacity, 1));
 }
 
 .border-gold\/20 {
-  border-color: rgb(202 138 4 / 0.2);
+  border-color: rgb(251 191 36 / 0.2);
 }
 
 .border-gold\/50 {
-  border-color: rgb(202 138 4 / 0.5);
+  border-color: rgb(251 191 36 / 0.5);
 }
 
 .border-gray-500 {
@@ -1564,12 +1564,12 @@ video {
 
 .bg-trading-bg {
   --tw-bg-opacity: 1;
-  background-color: rgb(17 24 39 / var(--tw-bg-opacity, 1));
+  background-color: rgb(15 23 42 / var(--tw-bg-opacity, 1));
 }
 
 .bg-trading-card {
   --tw-bg-opacity: 1;
-  background-color: rgb(31 41 55 / var(--tw-bg-opacity, 1));
+  background-color: rgb(30 41 59 / var(--tw-bg-opacity, 1));
 }
 
 .bg-yellow-400 {
@@ -2087,7 +2087,7 @@ video {
 
 .text-gold {
   --tw-text-opacity: 1;
-  color: rgb(202 138 4 / var(--tw-text-opacity, 1));
+  color: rgb(251 191 36 / var(--tw-text-opacity, 1));
 }
 
 .text-gray-100 {
@@ -2153,6 +2153,11 @@ video {
 .text-loss {
   --tw-text-opacity: 1;
   color: rgb(239 68 68 / var(--tw-text-opacity, 1));
+}
+
+.text-neutral {
+  --tw-text-opacity: 1;
+  color: rgb(107 114 128 / var(--tw-text-opacity, 1));
 }
 
 .text-orange-100 {
@@ -2455,7 +2460,7 @@ video {
 
 .hover\:text-gold:hover {
   --tw-text-opacity: 1;
-  color: rgb(202 138 4 / var(--tw-text-opacity, 1));
+  color: rgb(251 191 36 / var(--tw-text-opacity, 1));
 }
 
 .hover\:text-gray-300:hover {
@@ -2480,7 +2485,7 @@ video {
 
 .focus\:border-gold:focus {
   --tw-border-opacity: 1;
-  border-color: rgb(202 138 4 / var(--tw-border-opacity, 1));
+  border-color: rgb(251 191 36 / var(--tw-border-opacity, 1));
 }
 
 .focus\:border-transparent:focus {
@@ -2506,7 +2511,7 @@ video {
 
 .focus\:ring-gold:focus {
   --tw-ring-opacity: 1;
-  --tw-ring-color: rgb(202 138 4 / var(--tw-ring-opacity, 1));
+  --tw-ring-color: rgb(251 191 36 / var(--tw-ring-opacity, 1));
 }
 
 .focus\:ring-yellow-400:focus {
