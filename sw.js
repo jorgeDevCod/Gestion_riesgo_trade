@@ -1,4 +1,4 @@
-const CACHE_NAME = 'control-trade-app-v1';
+const CACHE_NAME = 'control-trade-app-v2'; // Cambia versión para forzar actualización
 const urlsToCache = [
     '/',
     '/index.html',
@@ -12,22 +12,26 @@ const urlsToCache = [
     '/tendencia.js',
     'https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js',
     'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js',
-    'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js',
-    'https://cdn.tailwindcss.com'
+    'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js'
 ];
 
-// Instalación del SW: Cachear archivos
 self.addEventListener( 'install', ( event ) => {
     event.waitUntil(
         caches.open( CACHE_NAME )
             .then( ( cache ) => {
-                return cache.addAll( urlsToCache );
+                // Cachear individualmente para manejar errores
+                return Promise.allSettled(
+                    urlsToCache.map( url =>
+                        cache.add( url ).catch( err => {
+                            console.warn( `Failed to cache: ${url}`, err );
+                        } )
+                    )
+                );
             } )
     );
-    self.skipWaiting(); // Activar SW inmediatamente
+    self.skipWaiting();
 } );
 
-// Activación: Limpiar cachés antiguos
 self.addEventListener( 'activate', ( event ) => {
     event.waitUntil(
         caches.keys().then( ( cacheNames ) => {
@@ -40,37 +44,58 @@ self.addEventListener( 'activate', ( event ) => {
             );
         } )
     );
-    self.clients.claim(); // Tomar control inmediato
+    self.clients.claim();
 } );
 
-// Fetch: Servir desde caché primero, fallback a red
 self.addEventListener( 'fetch', ( event ) => {
+    const url = new URL( event.request.url );
+
+    // NO CACHEAR Tailwind CSS ni recursos externos problemáticos
+    const skipCache = [
+        'cdn.tailwindcss.com',
+        'analytics',
+        'tracking'
+    ];
+
+    if ( skipCache.some( domain => url.hostname.includes( domain ) ) ) {
+        // Fetch directo sin cachear
+        event.respondWith( fetch( event.request ) );
+        return;
+    }
+
     event.respondWith(
         caches.match( event.request )
             .then( ( response ) => {
-                // Si está en caché, servirlo
                 if ( response ) {
                     return response;
                 }
-                // Si no, fetch de red y cachear dinámicamente
+
                 return fetch( event.request ).then( ( networkResponse ) => {
-                    // No cachear respuestas no válidas
-                    if ( !networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic' ) {
+                    // Solo cachear respuestas válidas
+                    if ( !networkResponse ||
+                        networkResponse.status !== 200 ||
+                        networkResponse.type === 'error' ||
+                        networkResponse.type === 'opaque' ) {
                         return networkResponse;
                     }
-                    // Clonar y cachear
-                    const responseToCache = networkResponse.clone();
-                    caches.open( CACHE_NAME )
-                        .then( ( cache ) => {
-                            cache.put( event.request, responseToCache );
-                        } );
+
+                    // Solo cachear mismo origen o recursos seguros
+                    if ( url.origin === location.origin ||
+                        url.hostname.includes( 'gstatic.com' ) ) {
+                        const responseToCache = networkResponse.clone();
+                        caches.open( CACHE_NAME )
+                            .then( ( cache ) => {
+                                cache.put( event.request, responseToCache );
+                            } );
+                    }
+
                     return networkResponse;
+                } ).catch( () => {
+                    // Fallback offline
+                    if ( event.request.mode === 'navigate' ) {
+                        return caches.match( '/index.html' );
+                    }
                 } );
-            } ).catch( () => {
-                // Offline fallback: Página básica si es HTML
-                if ( event.request.mode === 'navigate' ) {
-                    return caches.match( '/index.html' );
-                }
             } )
     );
 } );
