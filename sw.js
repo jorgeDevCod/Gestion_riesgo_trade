@@ -1,11 +1,11 @@
-const CACHE_NAME = 'control-trade-app-v2'; // Cambia versión para forzar actualización
+const CACHE_NAME = 'control-trade-app-v3'; // Cambia versión para forzar actualización
 const urlsToCache = [
     '/',
     '/index.html',
     '/patrones.css',
     '/aditional.css',
     '/image/logoGtd-192.png',
-    '/image/logoGtd-512.png',
+    '/image/logoGtd-512r.png',
     '/firebase-app.js',
     '/confluence.js',
     '/patrones.js',
