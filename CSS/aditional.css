@@ -492,3 +492,65 @@ main:active {
   user-select: none;
 }
 
+/* Swipe Navigation - Vista previa profesional */
+main.container {
+  position: relative;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: pan-y pinch-zoom;
+}
+
+.tab-content {
+  position: relative;
+  will-change: transform, opacity;
+}
+
+/* Indicador de dirección de swipe */
+#swipe-direction-indicator {
+  backdrop-filter: blur(10px);
+  animation: swipePulse 1.5s ease-in-out infinite;
+}
+
+@keyframes swipePulse {
+  0%,
+  100% {
+    transform: translateY(-50%) scale(1);
+  }
+  50% {
+    transform: translateY(-50%) scale(1.05);
+  }
+}
+
+/* Efecto de resistencia en los bordes */
+.tab-content.resisting {
+  transform-origin: center;
+}
+
+/* Optimización de rendimiento */
+.tab-content,
+#swipe-direction-indicator {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Prevenir selección durante drag */
+main.container.dragging {
+  cursor: grabbing !important;
+}
+
+main.container.dragging * {
+  cursor: grabbing !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}
+
+/* Suavizar transiciones */
+.tab-content {
+  transition: none;
+}
+
+.tab-content.transitioning {
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
