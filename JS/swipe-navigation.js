@@ -120,7 +120,13 @@ class SwipeNavigation {
             if ( position === 'fixed' ) return true;
 
             // IDs de elementos que deben ser ignorados
-            const fixedIds = [ 'confluenceToggle', 'confluencePanel', 'installAppContainer', 'userSection', 'syncStatus' ];
+            const fixedIds = [
+                'confluenceToggle',      // ⭐ AÑADE ESTO
+                'confluencePanel',
+                'installAppContainer',
+                'userSection',
+                'syncStatus'
+            ];
             if ( fixedIds.includes( el.id ) ) return true;
 
             el = el.parentElement;
