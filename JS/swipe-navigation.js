@@ -1,4 +1,4 @@
-// Swipe Navigation System
+// Swipe Navigation System - Optimizado para no afectar elementos fixed
 class SwipeNavigation {
     constructor( containerSelector, tabsSelector ) {
         this.container = document.querySelector( containerSelector );
@@ -10,27 +10,30 @@ class SwipeNavigation {
         this.startY = 0;
         this.distX = 0;
         this.distY = 0;
-        this.threshold = 50; // Mínimo de pixels para activar swipe
-        this.restraint = 100; // Máximo de desviación vertical
-        this.allowedTime = 500; // Tiempo máximo para considerar swipe
+        this.threshold = 50;
+        this.restraint = 100;
+        this.allowedTime = 500;
         this.startTime = 0;
+        this.isMouseDown = false;
 
         this.init();
     }
 
     init() {
-        // Event listeners para touch (móvil/tablet)
-        this.container.addEventListener( 'touchstart', ( e ) => this.handleTouchStart( e ), { passive: true } );
-        this.container.addEventListener( 'touchmove', ( e ) => this.handleTouchMove( e ), { passive: false } );
-        this.container.addEventListener( 'touchend', ( e ) => this.handleTouchEnd( e ), { passive: true } );
+        // Asegurar que solo afecte al contenido de las tabs
+        const swipeableArea = this.container;
 
-        // Event listeners para mouse (desktop)
-        this.container.addEventListener( 'mousedown', ( e ) => this.handleMouseDown( e ) );
-        this.container.addEventListener( 'mousemove', ( e ) => this.handleMouseMove( e ) );
-        this.container.addEventListener( 'mouseup', ( e ) => this.handleMouseUp( e ) );
-        this.container.addEventListener( 'mouseleave', ( e ) => this.handleMouseUp( e ) );
+        // Touch events
+        swipeableArea.addEventListener( 'touchstart', ( e ) => this.handleTouchStart( e ), { passive: true } );
+        swipeableArea.addEventListener( 'touchmove', ( e ) => this.handleTouchMove( e ), { passive: false } );
+        swipeableArea.addEventListener( 'touchend', ( e ) => this.handleTouchEnd( e ), { passive: true } );
 
-        // Encontrar tab actual
+        // Mouse events
+        swipeableArea.addEventListener( 'mousedown', ( e ) => this.handleMouseDown( e ) );
+        swipeableArea.addEventListener( 'mousemove', ( e ) => this.handleMouseMove( e ) );
+        swipeableArea.addEventListener( 'mouseup', ( e ) => this.handleMouseUp( e ) );
+        swipeableArea.addEventListener( 'mouseleave', ( e ) => this.handleMouseUp( e ) );
+
         this.updateCurrentTab();
     }
 
@@ -42,8 +45,10 @@ class SwipeNavigation {
         } );
     }
 
-    // Touch Events
     handleTouchStart( e ) {
+        // Ignorar si el toque es en un elemento fixed
+        if ( this.isFixedElement( e.target ) ) return;
+
         const touchObj = e.changedTouches[ 0 ];
         this.startX = touchObj.pageX;
         this.startY = touchObj.pageY;
@@ -51,7 +56,8 @@ class SwipeNavigation {
     }
 
     handleTouchMove( e ) {
-        // Prevenir scroll vertical mientras se hace swipe horizontal
+        if ( this.isFixedElement( e.target ) ) return;
+
         const touchObj = e.changedTouches[ 0 ];
         const distX = Math.abs( touchObj.pageX - this.startX );
         const distY = Math.abs( touchObj.pageY - this.startY );
@@ -62,6 +68,8 @@ class SwipeNavigation {
     }
 
     handleTouchEnd( e ) {
+        if ( this.isFixedElement( e.target ) ) return;
+
         const touchObj = e.changedTouches[ 0 ];
         this.distX = touchObj.pageX - this.startX;
         this.distY = touchObj.pageY - this.startY;
@@ -70,8 +78,9 @@ class SwipeNavigation {
         this.processSwipe( elapsedTime );
     }
 
-    // Mouse Events
     handleMouseDown( e ) {
+        if ( this.isFixedElement( e.target ) ) return;
+
         this.isMouseDown = true;
         this.startX = e.pageX;
         this.startY = e.pageY;
@@ -80,12 +89,11 @@ class SwipeNavigation {
     }
 
     handleMouseMove( e ) {
-        if ( !this.isMouseDown ) return;
+        if ( !this.isMouseDown || this.isFixedElement( e.target ) ) return;
 
         this.distX = e.pageX - this.startX;
         this.distY = e.pageY - this.startY;
 
-        // Feedback visual opcional
         if ( Math.abs( this.distX ) > 10 ) {
             e.preventDefault();
         }
@@ -104,8 +112,23 @@ class SwipeNavigation {
         this.distY = 0;
     }
 
+    isFixedElement( element ) {
+        // Verificar si el elemento o sus padres son fixed
+        let el = element;
+        while ( el && el !== document.body ) {
+            const position = window.getComputedStyle( el ).position;
+            if ( position === 'fixed' ) return true;
+
+            // IDs de elementos que deben ser ignorados
+            const fixedIds = [ 'confluenceToggle', 'confluencePanel', 'installAppContainer', 'userSection', 'syncStatus' ];
+            if ( fixedIds.includes( el.id ) ) return true;
+
+            el = el.parentElement;
+        }
+        return false;
+    }
+
     processSwipe( elapsedTime ) {
-        // Validar que sea un swipe válido
         if ( elapsedTime <= this.allowedTime &&
             Math.abs( this.distX ) >= this.threshold &&
             Math.abs( this.distY ) <= this.restraint ) {
@@ -117,7 +140,6 @@ class SwipeNavigation {
 
     navigate( direction ) {
         this.updateCurrentTab();
-
         let newIndex = this.currentTab;
 
         if ( direction === 'left' ) {
@@ -126,7 +148,6 @@ class SwipeNavigation {
             newIndex = Math.max( this.currentTab - 1, 0 );
         }
 
-        // Solo cambiar si hay un tab nuevo
         if ( newIndex !== this.currentTab ) {
             this.switchToTab( newIndex );
         }
@@ -135,21 +156,19 @@ class SwipeNavigation {
     switchToTab( index ) {
         const targetTab = this.tabs[ index ];
         if ( targetTab ) {
-            // Añadir animación de transición
             this.addTransitionEffect( index > this.currentTab ? 'left' : 'right' );
-
-            // Simular click en el tab
             targetTab.click();
             this.currentTab = index;
         }
     }
 
     addTransitionEffect( direction ) {
-        const allSections = document.querySelectorAll( '.tab-content' );
+        // Solo aplicar animación al contenido de la tab, no al contenedor
         const activeSection = document.querySelector( '.tab-content:not(.hidden)' );
 
         if ( activeSection ) {
-            activeSection.style.animation = `slideOut${direction === 'left' ? 'Left' : 'Right'} 0.3s ease-out`;
+            const animationName = direction === 'left' ? 'slideOutLeft' : 'slideOutRight';
+            activeSection.style.animation = `${animationName} 0.3s ease-out`;
 
             setTimeout( () => {
                 activeSection.style.animation = '';
@@ -158,7 +177,7 @@ class SwipeNavigation {
     }
 }
 
-// Inicializar cuando el DOM esté listo
+// Inicializar
 document.addEventListener( 'DOMContentLoaded', () => {
-    const swipeNav = new SwipeNavigation( 'main', '.tab-btn' );
+    new SwipeNavigation( 'main', '.tab-btn' );
 } );

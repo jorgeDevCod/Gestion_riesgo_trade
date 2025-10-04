@@ -5,8 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestor de Trading y Dashboard – Control Operativo Total</title>
-    <link rel="stylesheet" href="patrones.css">
-    <link rel="stylesheet" href="aditional.css">
+    <link rel="stylesheet" href="./CSS/patrones.css">
+    <link rel="stylesheet" href="./CSS/aditional.css">
     <link rel="stylesheet" href="./dist/output.css">
     <link rel="icon" type="image/webp" href="/logoApp.webp">
     <!-- AÑADIR PARA PWA -->
@@ -17,12 +17,12 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <!-- JS APP -->
-    <script src="firebase-app.js"></script>
-    <script src="confluence.js"></script>
-    <script src="patrones.js"></script>
-    <script src="tendencia.js"></script>
-    <script src="sw.js"></script>
-    <script src="swipe-navigation.js"></script>
+    <script src="./JS/firebase-app.js"></script>
+    <script src="./JS/confluence.js"></script>
+    <script src="./JS/patrones.js"></script>
+    <script src="./JS/tendencia.js"></script>
+    <script src="./JS/sw.js"></script>
+    <script src="./JS/swipe-navigation.js"></script>
 
 </head>
 
@@ -61,7 +61,7 @@
     </div>
 
     <!-- User Menu / Google Login -->
-    <div id="userSection" class="fixed top-4 right-4 z-40">
+    <div id="userSection" class="absolute top-4 right-4 z-40">
         <!-- Cuando no está logueado -->
         <div id="guestSection" class="bg-trading-card p-2 sm:p-3 rounded-lg border border-gray-700 flex items-center space-x-2 sm:space-x-3">
             <span class="text-xs sm:text-sm text-gray-300">Modo Invitado</span>

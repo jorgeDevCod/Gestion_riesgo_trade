@@ -491,3 +491,27 @@ main:active {
   -ms-user-select: none;
   user-select: none;
 }
+
+/* Agregar al archivo CSS/aditional.css */
+
+/* Prevenir que los botones flotantes se muevan con swipe */
+#confluenceToggle,
+#installAppContainer {
+  position: fixed !important;
+  z-index: 100 !important;
+  pointer-events: auto !important;
+}
+
+/* Asegurar que el panel de confluencia también se mantenga fijo */
+#confluencePanel {
+  position: fixed !important;
+  z-index: 99 !important;
+}
+
+/* Contenedor principal no debe afectar elementos fixed */
+main {
+  position: relative;
+  z-index: 1;
+}
+
+
