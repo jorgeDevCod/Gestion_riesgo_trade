@@ -540,7 +540,7 @@ const tradingPatterns = {
 // ======================
 // Función para crear SVG de vela mejorado
 // ======================
-function createCandleSVG( candle, width = 30, height = 80 ) {
+function createCandleSVG(candle, width = 35, height = 100) {
     const { open, high, low, close } = candle;
     const isGreen = close > open;
     const bodyColor = isGreen ? '#10b981' : '#ef4444';

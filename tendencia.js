@@ -512,7 +512,7 @@ const trendPatterns = {
 };
 
 // Función completa mejorada para crear SVG de patrones
-function createTrendPatternSVG( patternId, width = 300, height = 150 ) {
+function createTrendPatternSVG( patternId, width = 320, height = 180 ) {
     const patterns = {
         // BANDERAS Y BANDERINES OPTIMIZADOS
         bull_flag: `

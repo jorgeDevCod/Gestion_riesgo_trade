@@ -1,3 +1,47 @@
+:root {
+  --trading-bg: #0a0e1a;
+  --trading-card: #0f1419;
+  --trading-border: #1e2738;
+  --gold: #f59e0b;
+  --profit: #10b981;
+  --loss: #ef4444;
+  --neutral: #6b7280;
+}
+/* Añade al inicio de aditional.css */
+
+:root {
+  --trading-bg: #0a0e1a;
+  --trading-card: #0f1419;
+  --trading-border: #1e2738;
+  --gold: #f59e0b;
+  --profit: #10b981;
+  --loss: #ef4444;
+  --neutral: #6b7280;
+}
+
+/* Reemplaza el fondo negro puro */
+.bg-trading-bg {
+  background: linear-gradient(135deg, #0a0e1a 0%, #111827 100%) !important;
+}
+
+.bg-trading-card {
+  background: linear-gradient(145deg, #0f1419 0%, #1a1f2e 100%) !important;
+  backdrop-filter: blur(10px);
+}
+
+/* Mejora los bordes para menos contraste */
+.border-gray-700 {
+  border-color: #1e2738 !important;
+}
+
+/* Efecto glassmorphism para cards importantes */
+.glass-card {
+  background: rgba(15, 20, 25, 0.8);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
 /* Indicadores de riesgo mejorados */
 .risk-critical {
   border-color: #ef4444 !important;
@@ -108,6 +152,10 @@
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
   border-color: #475569;
+  -webkit-transform: translateY(-2px);
+  -moz-transform: translateY(-2px);
+  -ms-transform: translateY(-2px);
+  -o-transform: translateY(-2px);
 }
 
 /* Container para cards de patrones */
@@ -197,4 +245,249 @@
     width: 100% !important;
     max-width: 260px;
   }
+}
+
+/* Añade a aditional.css */
+
+.dashboard-card {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dashboard-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--gold), var(--profit));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.dashboard-card:hover::before {
+  opacity: 1;
+}
+
+.dashboard-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+/* Iconos animados */
+.stat-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: rgba(245, 158, 11, 0.1);
+  margin-bottom: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.dashboard-card:hover .stat-icon {
+  transform: scale(1.1) rotate(5deg);
+  background: rgba(245, 158, 11, 0.2);
+}
+
+/* Añade a aditional.css */
+
+.tab-btn {
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.tab-btn::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background: var(--gold);
+  transition: all 0.3s ease;
+  transform: translateX(-50%);
+}
+
+.tab-btn:hover::after {
+  width: 100%;
+}
+
+.tab-btn.active {
+  color: var(--gold);
+}
+
+.tab-btn.active::after {
+  width: 100%;
+}
+
+/* Indicador de badge para tabs con contenido importante */
+.tab-badge {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #ef4444;
+  margin-left: 4px;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Añade a aditional.css */
+
+.modal-overlay {
+  backdrop-filter: blur(8px);
+  background: rgba(0, 0, 0, 0.75);
+  animation: fadeIn 0.2s ease;
+}
+
+.modal-content {
+  animation: scaleIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modal-content::-webkit-scrollbar-track {
+  background: #1e293b;
+  border-radius: 4px;
+}
+
+.modal-content::-webkit-scrollbar-thumb {
+  background: #475569;
+  border-radius: 4px;
+}
+
+.modal-content::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Swipe Navigation Styles */
+main {
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+}
+
+main:active {
+  cursor: grabbing;
+}
+
+/* Animaciones de transición entre tabs */
+@keyframes slideOutLeft {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(-50px);
+    opacity: 0;
+  }
+}
+
+@keyframes slideOutRight {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(50px);
+    opacity: 0;
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    transform: translateX(50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(-50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.tab-content {
+  animation: slideInLeft 0.3s ease-out;
+}
+
+/* Indicador visual de swipe (opcional) */
+.swipe-indicator {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(245, 158, 11, 0.9);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: 100;
+}
+
+.swipe-indicator.show {
+  opacity: 1;
+}
+
+/* Prevenir selección de texto durante swipe */
+.no-select {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
