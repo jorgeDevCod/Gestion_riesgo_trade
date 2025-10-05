@@ -1,5 +1,5 @@
 // charts.js - Sistema de gráficas para el dashboard
-// VERSIÓN CORREGIDA - Unificación de nombres de localStorage
+// VERSIÓN CORREGIDA - Sin duplicados ni llamadas incorrectas
 
 // Configuración global de Chart.js
 Chart.defaults.color = '#9CA3AF';
@@ -25,10 +25,7 @@ function initializeCharts() {
 
 function initDailyPnLChart() {
     const ctx = document.getElementById( 'dailyPnLChart' );
-    if ( !ctx ) {
-        console.warn( 'Canvas dailyPnLChart no encontrado' );
-        return;
-    }
+    if ( !ctx ) return;
 
     const data = getDailyPnLData();
 
@@ -53,9 +50,7 @@ function initDailyPnLChart() {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                legend: {
-                    display: false
-                },
+                legend: { display: false },
                 tooltip: {
                     backgroundColor: '#1F2937',
                     titleColor: '#F59E0B',
@@ -74,21 +69,14 @@ function initDailyPnLChart() {
             scales: {
                 y: {
                     beginAtZero: true,
-                    grid: {
-                        color: '#374151',
-                        drawBorder: false
-                    },
+                    grid: { color: '#374151', drawBorder: false },
                     ticks: {
                         callback: function ( value ) {
                             return '$' + value;
                         }
                     }
                 },
-                x: {
-                    grid: {
-                        display: false
-                    }
-                }
+                x: { grid: { display: false } }
             }
         }
     } );
@@ -98,10 +86,7 @@ function initDailyPnLChart() {
 
 function initStrategyWinRateChart() {
     const ctx = document.getElementById( 'strategyWinRateChart' );
-    if ( !ctx ) {
-        console.warn( 'Canvas strategyWinRateChart no encontrado' );
-        return;
-    }
+    if ( !ctx ) return;
 
     const data = getStrategyWinRateData();
 
@@ -115,12 +100,7 @@ function initStrategyWinRateChart() {
             labels: data.labels,
             datasets: [ {
                 data: data.values,
-                backgroundColor: [
-                    '#3B82F6',
-                    '#06B6D4',
-                    '#A855F7',
-                    '#F97316'
-                ],
+                backgroundColor: [ '#3B82F6', '#06B6D4', '#A855F7', '#F97316' ],
                 borderColor: '#1F2937',
                 borderWidth: 2
             } ]
@@ -131,13 +111,7 @@ function initStrategyWinRateChart() {
             plugins: {
                 legend: {
                     position: 'bottom',
-                    labels: {
-                        padding: 15,
-                        usePointStyle: true,
-                        font: {
-                            size: 11
-                        }
-                    }
+                    labels: { padding: 15, usePointStyle: true, font: { size: 11 } }
                 },
                 tooltip: {
                     backgroundColor: '#1F2937',
@@ -161,10 +135,7 @@ function initStrategyWinRateChart() {
 
 function initResultsDistributionChart() {
     const ctx = document.getElementById( 'resultsDistributionChart' );
-    if ( !ctx ) {
-        console.warn( 'Canvas resultsDistributionChart no encontrado' );
-        return;
-    }
+    if ( !ctx ) return;
 
     const data = getResultsDistributionData();
 
@@ -172,14 +143,8 @@ function initResultsDistributionChart() {
         resultsDistributionChart.destroy();
     }
 
-    // Labels y colores según si hay datos o no
-    const labels = data.isEmpty ?
-        [ 'Sin datos aún' ] :
-        [ 'Ganadores', 'Perdedores', 'Breakeven' ];
-
-    const backgroundColor = data.isEmpty ?
-        [ '#6B7280' ] :
-        [ '#10B981', '#EF4444', '#6B7280' ];
+    const labels = data.isEmpty ? [ 'Sin datos aún' ] : [ 'Ganadores', 'Perdedores', 'Breakeven' ];
+    const backgroundColor = data.isEmpty ? [ '#6B7280' ] : [ '#10B981', '#EF4444', '#6B7280' ];
 
     resultsDistributionChart = new Chart( ctx, {
         type: 'pie',
@@ -201,9 +166,7 @@ function initResultsDistributionChart() {
                     labels: {
                         padding: 15,
                         usePointStyle: true,
-                        font: {
-                            size: 11
-                        },
+                        font: { size: 11 },
                         color: data.isEmpty ? '#6B7280' : '#9CA3AF'
                     }
                 },
@@ -234,10 +197,7 @@ function initResultsDistributionChart() {
 
 function initCapitalEvolutionChart() {
     const ctx = document.getElementById( 'capitalEvolutionChart' );
-    if ( !ctx ) {
-        console.warn( 'Canvas capitalEvolutionChart no encontrado' );
-        return;
-    }
+    if ( !ctx ) return;
 
     const data = getCapitalEvolutionData();
 
@@ -268,9 +228,7 @@ function initCapitalEvolutionChart() {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                legend: {
-                    display: false
-                },
+                legend: { display: false },
                 tooltip: {
                     backgroundColor: '#1F2937',
                     titleColor: '#F59E0B',
@@ -289,21 +247,14 @@ function initCapitalEvolutionChart() {
             scales: {
                 y: {
                     beginAtZero: false,
-                    grid: {
-                        color: '#374151',
-                        drawBorder: false
-                    },
+                    grid: { color: '#374151', drawBorder: false },
                     ticks: {
                         callback: function ( value ) {
                             return '$' + value;
                         }
                     }
                 },
-                x: {
-                    grid: {
-                        display: false
-                    }
-                }
+                x: { grid: { display: false } }
             }
         }
     } );
@@ -312,7 +263,6 @@ function initCapitalEvolutionChart() {
 // ==================== FUNCIONES DE DATOS ====================
 
 function getDailyPnLData() {
-    // CORRECCIÓN: Usar 'trading_trades' en lugar de 'trades'
     const trades = JSON.parse( localStorage.getItem( 'trading_trades' ) ) || [];
     const last7Days = getLast7Days();
     const dailyPnL = {};
@@ -342,18 +292,10 @@ function getDailyPnLData() {
                 '#6B7280'
     );
 
-    console.log( 'P&L Diario:', { labels: last7Days, values } );
-
-    return {
-        labels: last7Days,
-        values: values,
-        colors: colors,
-        borderColors: borderColors
-    };
+    return { labels: last7Days, values, colors, borderColors };
 }
 
 function getStrategyWinRateData() {
-    // CORRECCIÓN: Usar 'trading_trades'
     const trades = JSON.parse( localStorage.getItem( 'trading_trades' ) ) || [];
     const strategies = {
         'regulares': { wins: 0, total: 0 },
@@ -385,163 +327,99 @@ function getStrategyWinRateData() {
     } );
 
     if ( labels.length === 0 ) {
-        return {
-            labels: [ 'Sin datos' ],
-            values: [ 100 ]
-        };
+        return { labels: [ 'Sin datos' ], values: [ 100 ] };
     }
-
-    console.log( 'Win Rate por estrategia:', { labels, values } );
 
     return { labels, values };
 }
 
 function getResultsDistributionData() {
-    // Usar 'trading_trades' para consistencia
     const trades = JSON.parse( localStorage.getItem( 'trading_trades' ) ) || [];
     let wins = 0, losses = 0, breakeven = 0;
 
     trades.forEach( trade => {
         if ( trade.closed && trade.pnl !== undefined ) {
             const pnl = parseFloat( trade.pnl ) || 0;
-
-            if ( pnl > 0 ) {
-                wins++;
-            } else if ( pnl < 0 ) {
-                losses++;
-            } else {
-                breakeven++;
-            }
+            if ( pnl > 0 ) wins++;
+            else if ( pnl < 0 ) losses++;
+            else breakeven++;
         }
     } );
 
-    console.log( 'Distribución de resultados:', { wins, losses, breakeven, total: trades.length } );
-
-    // Si no hay datos, retornar valores predeterminados para visualización
     if ( wins === 0 && losses === 0 && breakeven === 0 ) {
-        return {
-            values: [ 0, 0, 1 ], // Mostrar solo breakeven para indicar "sin datos"
-            isEmpty: true
-        };
+        return { values: [ 0, 0, 1 ], isEmpty: true };
     }
 
-    return {
-        values: [ wins, losses, breakeven ],
-        isEmpty: false
-    };
+    return { values: [ wins, losses, breakeven ], isEmpty: false };
 }
 
 function getCapitalEvolutionData() {
-    // CORRECCIÓN: Usar 'trading_trades' y 'trading_currentCapital'
-    const trades = JSON.parse( localStorage.getItem( 'trading_trades' ) ) || [];
-    const currentCapital = parseFloat( localStorage.getItem( 'trading_currentCapital' ) ) || 0;
+    // Combinar todos los movimientos: trades, depósitos y retiros
+    const allEvents = [];
 
-    const sortedTrades = [ ...trades ]
-        .filter( t => t.closed )
-        .sort( ( a, b ) => new Date( a.date ) - new Date( b.date ) );
-
-    const capitalPoints = [];
-    let runningCapital = currentCapital;
-
-    // Calcular capital inicial (restar P&L de todos los trades)
-    const totalPnL = sortedTrades.reduce( ( sum, t ) => sum + ( parseFloat( t.pnl ) || 0 ), 0 );
-    const initialCapital = currentCapital - totalPnL;
-
-    capitalPoints.push( {
-        date: sortedTrades[ 0 ]?.date || formatDateForInput( new Date() ),
-        capital: initialCapital
-    } );
-
-    runningCapital = initialCapital;
-
-    sortedTrades.forEach( trade => {
-        runningCapital += parseFloat( trade.pnl ) || 0;
-        capitalPoints.push( {
-            date: trade.date,
-            capital: runningCapital
+    // Agregar adiciones de capital
+    capitalAdditions.forEach( addition => {
+        allEvents.push( {
+            date: addition.date,
+            type: 'deposit',
+            amount: parseFloat( addition.amount ) || 0,
+            timestamp: addition.timestamp || new Date( addition.date ).toISOString()
         } );
     } );
 
-    const recentPoints = capitalPoints.slice( -30 );
+    // Agregar retiros
+    withdrawals.forEach( withdrawal => {
+        allEvents.push( {
+            date: withdrawal.date,
+            type: 'withdrawal',
+            amount: -( parseFloat( withdrawal.amount ) || 0 ), // Negativo para restar
+            timestamp: withdrawal.timestamp || new Date( withdrawal.date ).toISOString()
+        } );
+    } );
 
-    console.log( 'Evolución de capital:', recentPoints.length, 'puntos' );
+    // Agregar trades cerrados
+    trades.filter( t => t.closed ).forEach( trade => {
+        allEvents.push( {
+            date: trade.date,
+            type: 'trade',
+            amount: parseFloat( trade.pnl ) || 0,
+            timestamp: trade.timestamp || new Date( trade.date ).toISOString()
+        } );
+    } );
+
+    // Ordenar todos los eventos por fecha
+    allEvents.sort( ( a, b ) => new Date( a.timestamp ) - new Date( b.timestamp ) );
+
+    if ( allEvents.length === 0 ) {
+        return { labels: [ formatDateForChart( new Date() ) ], values: [ 0 ] };
+    }
+
+    // Calcular evolución del capital
+    const capitalPoints = [];
+    let runningCapital = 0;
+
+    // Punto inicial
+    capitalPoints.push( {
+        date: allEvents[ 0 ].date,
+        capital: 0
+    } );
+
+    // Procesar cada evento
+    allEvents.forEach( event => {
+        runningCapital += event.amount;
+        capitalPoints.push( {
+            date: event.date,
+            capital: Math.max( 0, runningCapital ) // Nunca negativo
+        } );
+    } );
+
+    // Tomar los últimos 30 puntos
+    const recentPoints = capitalPoints.slice( -30 );
 
     return {
         labels: recentPoints.map( p => formatDateForChart( p.date ) ),
         values: recentPoints.map( p => p.capital )
     };
-}
-
-// ==================== MOVIMIENTOS DE CAPITAL ====================
-
-function updateCapitalMovementsList() {
-    const container = document.getElementById( 'capitalMovementsList' );
-    const noMovementsMsg = document.getElementById( 'noMovementsMessage' );
-
-    if ( !container ) {
-        console.warn( 'Container capitalMovementsList no encontrado' );
-        return;
-    }
-
-    // CORRECCIÓN: Usar 'trading_capitalAdditions' y 'trading_withdrawals'
-    const capitalAdded = JSON.parse( localStorage.getItem( 'trading_capitalAdditions' ) ) || [];
-    const withdrawals = JSON.parse( localStorage.getItem( 'trading_withdrawals' ) ) || [];
-
-    console.log( 'Capital agregado:', capitalAdded.length, 'registros' );
-    console.log( 'Retiros:', withdrawals.length, 'registros' );
-
-    const allMovements = [
-        ...capitalAdded.map( item => ( { ...item, type: 'deposit' } ) ),
-        ...withdrawals.map( item => ( { ...item, type: 'withdrawal' } ) )
-    ].sort( ( a, b ) => new Date( b.date ) - new Date( a.date ) );
-
-    if ( allMovements.length === 0 ) {
-        container.classList.add( 'hidden' );
-        if ( noMovementsMsg ) noMovementsMsg.classList.remove( 'hidden' );
-        return;
-    }
-
-    container.classList.remove( 'hidden' );
-    if ( noMovementsMsg ) noMovementsMsg.classList.add( 'hidden' );
-
-    container.innerHTML = allMovements.map( movement => `
-        <div class="bg-gray-800 border border-gray-700 rounded-lg p-3 hover:border-gray-600 transition-all">
-            <div class="flex items-start justify-between mb-2">
-                <div class="flex items-center space-x-2">
-                    <span class="text-lg">${movement.type === 'deposit' ? '💰' : '📤'}</span>
-                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold ${movement.type === 'deposit'
-            ? 'bg-green-900/50 text-green-300 border border-green-700'
-            : 'bg-orange-900/50 text-orange-300 border border-orange-700'
-        }">
-                        ${movement.type === 'deposit' ? 'Depósito' : 'Retiro'}
-                    </span>
-                </div>
-                <span class="text-xs text-gray-400">${formatDateForDisplay( movement.date )}</span>
-            </div>
-            
-            <div class="space-y-1">
-                <div class="flex justify-between items-center">
-                    <span class="text-xs text-gray-400">Cantidad:</span>
-                    <span class="font-bold ${movement.type === 'deposit' ? 'text-green-400' : 'text-orange-400'}">
-                        ${movement.type === 'deposit' ? '+' : '-'}$${parseFloat( movement.amount ).toFixed( 2 )}
-                    </span>
-                </div>
-                
-                ${movement.concept ? `
-                    <div class="flex justify-between items-start">
-                        <span class="text-xs text-gray-400">Concepto:</span>
-                        <span class="text-xs text-white text-right max-w-[60%]">${movement.concept}</span>
-                    </div>
-                ` : ''}
-                
-                ${movement.notes ? `
-                    <div class="mt-2 pt-2 border-t border-gray-700">
-                        <p class="text-xs text-gray-400 italic">${movement.notes}</p>
-                    </div>
-                ` : ''}
-            </div>
-        </div>
-    `).join( '' );
 }
 
 // ==================== FUNCIONES AUXILIARES ====================
@@ -564,15 +442,6 @@ function formatDateForChart( date ) {
     const day = date.getDate().toString().padStart( 2, '0' );
     const month = ( date.getMonth() + 1 ).toString().padStart( 2, '0' );
     return `${day}/${month}`;
-}
-
-function formatDateForDisplay( dateString ) {
-    const date = new Date( dateString );
-    return date.toLocaleDateString( 'es-PE', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
-    } );
 }
 
 function formatDateForInput( date ) {
@@ -603,7 +472,6 @@ window.forceUpdateDashboard = function () {
     try {
         console.log( 'Forzando actualización del dashboard...' );
         updateAllCharts();
-        updateCapitalMovementsList();
         console.log( 'Dashboard actualizado correctamente' );
     } catch ( error ) {
         console.error( 'Error actualizando dashboard:', error );
@@ -618,7 +486,6 @@ document.addEventListener( 'DOMContentLoaded', function () {
     setTimeout( () => {
         console.log( 'Chart.js disponible:', typeof Chart );
         initializeCharts();
-        updateCapitalMovementsList();
     }, 800 );
 
     const dashboardTab = document.querySelector( '[data-tab="dashboard"]' );
@@ -626,7 +493,6 @@ document.addEventListener( 'DOMContentLoaded', function () {
         dashboardTab.addEventListener( 'click', function () {
             setTimeout( () => {
                 updateAllCharts();
-                updateCapitalMovementsList();
             }, 150 );
         } );
     }
@@ -646,7 +512,5 @@ window.addEventListener( 'storage', function ( e ) {
 
 // Exportar funciones
 window.updateAllCharts = updateAllCharts;
-window.updateCapitalMovementsList = updateCapitalMovementsList;
-window.updateCapitalMovementsTable = updateCapitalMovementsList; // Alias
 
 console.log( 'charts.js cargado correctamente' );

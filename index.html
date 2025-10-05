@@ -170,7 +170,6 @@
     <!-- Main Content -->
     <main class="container mx-auto p-2 sm:p-4">
         <!-- Dashboard Tab -->
-        <!-- Dashboard Tab -->
         <section id="dashboard" class="tab-content hidden">
             <!-- Cards superiores -->
             <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-2 sm:gap-4 mb-4 sm:mb-8">
@@ -509,6 +508,39 @@
                             </button>
                         </div>
 
+                        <!-- Tabla de Historial de Movimientos -->
+                        <div class="bg-trading-card rounded-lg p-6 border border-gray-700 mt-6">
+                            <div class="flex items-center justify-between mb-6">
+                                <h2 class="text-2xl font-bold text-gold tracking-tight">
+                                    💼 Historial de Movimientos
+                                    <span id="totalMovementsCount" class="ml-3 text-base text-gray-400 font-normal">(0)</span>
+                                </h2>
+                            </div>
+
+                            <!-- Tabla responsive -->
+                            <div class="overflow-x-auto">
+                                <table class="w-full border-collapse">
+                                    <thead>
+                                        <tr class="border-b-2 border-gold/60">
+                                            <th class="p-4 text-left text-sm font-bold text-gray-300 uppercase tracking-wider">Fecha</th>
+                                            <th class="p-4 text-left text-sm font-bold text-gray-300 uppercase tracking-wider">Tipo</th>
+                                            <th class="p-4 text-left text-sm font-bold text-gray-300 uppercase tracking-wider">Concepto</th>
+                                            <th class="p-4 text-right text-sm font-bold text-gray-300 uppercase tracking-wider">Monto</th>
+                                            <th class="p-4 text-right text-sm font-bold text-gray-300 uppercase tracking-wider">Notas / Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="capitalMovementsTableBody">
+                                        <!-- Filas se generan dinámicamente -->
+                                    </tbody>
+                                    <tfoot>
+                                        <tr id="capitalSummaryRow" class="border-t-2 border-gold/60">
+                                            <!-- Totales se generan dinámicamente -->
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+
                         <div class="bg-gray-800 p-4 rounded-lg">
                             <h4 class="font-semibold text-profit mb-2">Cálculos Automáticos</h4>
                             <div class="space-y-2 text-sm">
@@ -590,7 +622,7 @@
         </section>
 
         <!-- Registro de Trades Tab -->
-        <section id="trades" class="tab-content" style="">
+        <section id="trades" class="tab-content hidden">
             <div class="bg-trading-card p-4 sm:p-6 rounded-lg border border-gray-700">
                 <!-- Header con título y botones -->
                 <div class="mb-6">
@@ -631,7 +663,7 @@
                 </div>
 
                 <!-- Tabla de Trades -->
-                <div class="overflow-x-auto">
+                <div class="overflow-x-auto custom-scrollbar">
                     <table class="w-full table-auto">
                         <thead>
                             <tr class="border-b border-gray-700">
@@ -1550,9 +1582,9 @@
 
             <!-- Lista de retiros recientes -->
             <div class="mt-6 pt-4 border-t border-gray-700">
-                <h4 class="font-semibold text-gray-300 mb-3">Retiros Recientes</h4>
-                <div id="recentWithdrawals" class="space-y-2 max-h-32 overflow-y-auto">
-                    <!-- Retiros serán insertados aquí -->
+                <h4 class="font-semibold text-gray-300 mb-3">Movimientos Recientes</h4>
+                <div id="recentWithdrawals" class="space-y-2 max-h-64 overflow-y-auto custom-scrollbar">
+                    <!-- Los movimientos se insertarán aquí dinámicamente -->
                 </div>
             </div>
         </div>

@@ -277,14 +277,6 @@ function initializePWA() {
     console.log( 'PWA: Initialization complete' );
 }
 
-// Agregar al evento DOMContentLoaded existente
-document.addEventListener( 'DOMContentLoaded', function () {
-    // ... código existente ...
-
-    // Inicializar PWA
-    setTimeout( initializePWA, 1000 );
-} );
-
 // Exponer funciones globalmente
 window.installPWA = installPWA;
 window.checkIfAppInstalled = checkIfAppInstalled;
@@ -520,10 +512,10 @@ function addCapital( amount, concept, notes, date ) {
     if ( currentUser ) syncDataToFirebase();
     renderAllData();
 
-    // AGREGAR ESTAS LÍNEAS
-    if ( window.updateCapitalMovementsList ) {
-        window.updateCapitalMovementsList();
-    }
+    // LLAMADAS CORRECTAS:
+    renderRecentWithdrawals();
+    renderCapitalMovementsTable();
+
     if ( window.updateAllCharts ) {
         window.updateAllCharts();
     }
@@ -544,12 +536,11 @@ function registerWithdrawal( amount, concept, notes, date ) {
     saveDataLocally();
     if ( currentUser ) syncDataToFirebase();
     renderAllData();
-    renderRecentWithdrawals();
 
-    // AGREGAR ESTAS LÍNEAS
-    if ( window.updateCapitalMovementsList ) {
-        window.updateCapitalMovementsList();
-    }
+    // LLAMADAS CORRECTAS:
+    renderRecentWithdrawals();
+    renderCapitalMovementsTable();
+
     if ( window.updateAllCharts ) {
         window.updateAllCharts();
     }
@@ -564,6 +555,14 @@ function resetAllData() {
     saveDataLocally();
     if ( currentUser ) syncDataToFirebase();
     renderAllData();
+
+    // LIMPIAR VISUALIZACIONES:
+    renderRecentWithdrawals();
+    renderCapitalMovementsTable();
+
+    if ( window.updateAllCharts ) {
+        window.updateAllCharts();
+    }
 }
 
 // CORREGIDA: Función para mostrar gestión de trades activos
@@ -1082,8 +1081,13 @@ function calculateEffectiveCapital() {
             return 0;
         }
 
+        // Capital base es la suma de todas las adiciones
+        const totalAdditions = capitalAdditions.reduce( ( sum, a ) => sum + parseFloat( a.amount || 0 ), 0 );
         const totalWithdrawals = withdrawals.reduce( ( sum, w ) => sum + parseFloat( w.amount || 0 ), 0 );
-        const effectiveCapital = currentCapital - totalWithdrawals;
+
+        // Capital efectivo = Adiciones - Retiros + P&L de trades
+        const totalPnL = calculateTotalPnL();
+        const effectiveCapital = totalAdditions - totalWithdrawals + totalPnL;
 
         // Asegurar que el resultado sea válido
         return Math.max( 0, effectiveCapital );
@@ -1197,30 +1201,220 @@ function renderObservations() {
         .join( "" );
 }
 
+// FUNCIÓN ÚNICA PARA MODAL DE RETIROS (recentWithdrawals)
 function renderRecentWithdrawals() {
     const container = document.getElementById( "recentWithdrawals" );
     if ( !container ) return;
 
-    const recentWithdrawals = withdrawals
-        .sort( ( a, b ) => new Date( b.timestamp ) - new Date( a.timestamp ) )
-        .slice( 0, 3 );
+    // Combinar retiros y depósitos
+    const allMovements = [
+        ...withdrawals.map( w => ( { ...w, type: 'withdrawal' } ) ),
+        ...capitalAdditions.map( d => ( { ...d, type: 'deposit' } ) )
+    ].sort( ( a, b ) => new Date( b.date ) - new Date( a.date ) );
 
-    container.innerHTML =
-        recentWithdrawals
-            .map(
-                ( w ) => `
-        <div class="text-sm bg-gray-800 p-2 rounded">
-            <div class="flex justify-between">
-                <span>${w.concept}</span>
-                <span class="text-orange-400">-$${w.amount.toFixed( 2 )}</span>
+    const recentMovements = allMovements.slice( 0, 10 );
+
+    if ( recentMovements.length === 0 ) {
+        container.innerHTML = `
+            <div class="text-center text-gray-500 py-4">
+                <div class="text-2xl mb-2">💰</div>
+                <div class="text-sm">No hay movimientos registrados</div>
             </div>
-            <div class="text-xs text-gray-500">${new Date( w.date ).toLocaleDateString()}</div>
+        `;
+        return;
+    }
+
+    container.innerHTML = recentMovements.map( movement => `
+        <div class="capital-movement-item ${movement.type}">
+            <div class="capital-movement-header">
+                <span class="capital-movement-amount ${movement.type === 'deposit' ? 'text-profit' : 'text-orange-400'}">
+                    ${movement.type === 'deposit' ? '+' : '-'}$${parseFloat( movement.amount ).toFixed( 2 )}
+                </span>
+                <span class="text-xs text-gray-500">
+                    ${new Date( movement.date ).toLocaleDateString()}
+                </span>
+            </div>
+            ${movement.concept ? `
+                <div class="capital-movement-details">
+                    ${movement.concept}
+                </div>
+            ` : ''}
         </div>
-    `
-            )
-            .join( "" ) ||
-        '<p class="text-sm text-gray-500">No hay retiros recientes</p>';
+    `).join( '' );
 }
+
+
+function renderCapitalMovementsTable() {
+    const container = document.getElementById( 'capitalMovementsTableBody' );
+    const summaryContainer = document.getElementById( 'capitalSummaryRow' );
+
+    if ( !container ) {
+        console.warn( 'Contenedor de tabla de movimientos no encontrado' );
+        return;
+    }
+
+    // Combinar y ordenar movimientos
+    const allMovements = [
+        ...capitalAdditions.map( d => ( { ...d, type: 'deposit' } ) ),
+        ...withdrawals.map( w => ( { ...w, type: 'withdrawal' } ) )
+    ].sort( ( a, b ) => new Date( b.date ) - new Date( a.date ) );
+
+    // Calcular totales
+    const totalDeposits = capitalAdditions.reduce( ( sum, d ) => sum + parseFloat( d.amount || 0 ), 0 );
+    const totalWithdrawals = withdrawals.reduce( ( sum, w ) => sum + parseFloat( w.amount || 0 ), 0 );
+    const netBalance = totalDeposits - totalWithdrawals;
+
+    // Renderizar filas
+    if ( allMovements.length === 0 ) {
+        container.innerHTML = `
+            <tr>
+                <td colspan="6" class="p-8 text-center">
+                    <div class="text-gray-500 text-base">No hay movimientos registrados</div>
+                    <div class="text-gray-600 text-sm mt-1">Los depósitos y retiros aparecerán aquí</div>
+                </td>
+            </tr>
+        `;
+
+        if ( summaryContainer ) {
+            summaryContainer.innerHTML = `
+                <td colspan="3" class="p-4 text-right font-bold text-white uppercase tracking-wide">Totales:</td>
+                <td class="p-4 text-right font-bold text-green-400 text-lg">+$0.00</td>
+                <td class="p-4 text-right font-bold text-orange-400 text-lg">-$0.00</td>
+                <td class="p-4 text-right font-bold text-gold text-xl">$0.00</td>
+            `;
+        }
+        return;
+    }
+
+    container.innerHTML = allMovements.map( movement => {
+        const isDeposit = movement.type === 'deposit';
+        const amount = parseFloat( movement.amount );
+
+        return `
+            <tr class="border-b border-gray-700/50 hover:bg-gray-800/50 transition-all group">
+                <td class="p-4 text-sm text-gray-300 font-medium">
+                    ${new Date( movement.date ).toLocaleDateString( 'es-PE', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric'
+        } )}
+                </td>
+                <td class="p-4">
+                    <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider
+                                 ${isDeposit
+                ? 'bg-green-900/40 text-green-300 border border-green-600/50'
+                : 'bg-orange-900/40 text-orange-300 border border-orange-600/50'}">
+                        ${isDeposit ? 'Ingreso' : 'Retiro'}
+                    </span>
+                </td>
+                <td class="p-4 text-sm text-white font-medium">
+                    ${movement.concept || 'Sin concepto'}
+                </td>
+                <td class="p-4 text-right">
+                    <span class="text-base font-bold ${isDeposit ? 'text-green-400' : 'text-orange-400'}">
+                        ${isDeposit ? '+' : '-'}$${amount.toFixed( 2 )}
+                    </span>
+                </td>
+                <td class="p-4">
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm text-gray-400 italic truncate max-w-[250px]" 
+                              title="${movement.notes || 'Sin notas'}">
+                            ${movement.notes || '-'}
+                        </span>
+                        <button onclick="deleteCapitalMovement('${movement.id}', '${movement.type}')"
+                                class="ml-3 opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-300 
+                                       text-sm transition-all hover:scale-110"
+                                title="Eliminar movimiento">
+                            🗑️
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    } ).join( '' );
+
+    // Renderizar fila de totales
+    if ( summaryContainer ) {
+        summaryContainer.innerHTML = `
+            <td colspan="3" class="p-5 text-right font-bold text-white uppercase tracking-wider text-base bg-gray-800/80">
+                Totales:
+            </td>
+            <td class="p-5 text-right bg-gray-800/80">
+                <div class="text-green-400 font-bold text-lg">+$${totalDeposits.toFixed( 2 )}</div>
+                <div class="text-orange-400 font-bold text-lg mt-1">-$${totalWithdrawals.toFixed( 2 )}</div>
+            </td>
+            <td class="p-5 text-right font-bold ${netBalance >= 0 ? 'text-gold' : 'text-red-400'} text-2xl bg-gray-800/80" colspan="2">
+                $${netBalance.toFixed( 2 )}
+            </td>
+        `;
+    }
+
+    // Actualizar contador
+    const countElement = document.getElementById( 'totalMovementsCount' );
+    if ( countElement ) {
+        countElement.textContent = allMovements.length;
+    }
+}
+
+/**
+ * Elimina un movimiento de capital
+ */
+function deleteCapitalMovement( movementId, type ) {
+    if ( !confirm( '¿Eliminar este movimiento? Esta acción no se puede deshacer.' ) ) {
+        return;
+    }
+
+    if ( type === 'deposit' ) {
+        const movement = capitalAdditions.find( d => d.id === movementId );
+        if ( movement ) {
+            currentCapital -= movement.amount;
+            capitalAdditions = capitalAdditions.filter( d => d.id !== movementId );
+        }
+    } else if ( type === 'withdrawal' ) {
+        const movement = withdrawals.find( w => w.id === movementId );
+        if ( movement ) {
+            currentCapital += movement.amount;
+            withdrawals = withdrawals.filter( w => w.id !== movementId );
+        }
+    }
+
+    saveDataLocally();
+    if ( currentUser ) syncDataToFirebase();
+
+    renderAllData();
+    updateSyncStatus( 'Movimiento eliminado', true );
+}
+
+
+//  Elimina un movimiento de capital
+
+function deleteCapitalMovement( movementId, type ) {
+    if ( !confirm( '¿Eliminar este movimiento? Esta acción no se puede deshacer.' ) ) {
+        return;
+    }
+
+    if ( type === 'deposit' ) {
+        const movement = capitalAdditions.find( d => d.id === movementId );
+        if ( movement ) {
+            currentCapital -= movement.amount;
+            capitalAdditions = capitalAdditions.filter( d => d.id !== movementId );
+        }
+    } else if ( type === 'withdrawal' ) {
+        const movement = withdrawals.find( w => w.id === movementId );
+        if ( movement ) {
+            currentCapital += movement.amount;
+            withdrawals = withdrawals.filter( w => w.id !== movementId );
+        }
+    }
+
+    saveDataLocally();
+    if ( currentUser ) syncDataToFirebase();
+
+    renderAllData();
+    updateSyncStatus( 'Movimiento eliminado', true );
+}
+
+
 
 // ===== SETUP CHECKER MEJORADO =====
 function renderSetupChecklist() {
@@ -1952,9 +2146,15 @@ function updateLevelsLastUpdate() {
 
 // ===== FUNCIONES DE INTERFAZ =====
 function switchTab( tabName ) {
-    // Ocultar todos los tabs
+    console.log( `Cambiando a tab: ${tabName}` );
+
+    // Ocultar TODOS los tabs primero
     document.querySelectorAll( ".tab-content" ).forEach( ( tab ) => {
         tab.classList.add( "hidden" );
+        // Asegurar que no haya estilos inline residuales
+        tab.style.display = '';
+        tab.style.transform = '';
+        tab.style.opacity = '';
     } );
 
     // Mostrar el tab seleccionado
@@ -1986,6 +2186,7 @@ function switchTab( tabName ) {
         updateLevelsLastUpdate();
     }
 
+    // Actualizar estrategia después de cambiar tab
     setTimeout( () => {
         updateStrategyDisplay();
     }, 100 );
@@ -4164,6 +4365,9 @@ window.closePartialTPModal = closePartialTPModal;
 window.closeManualCloseModal = closeManualCloseModal;
 window.editTrade = editTrade;
 window.addTrade = addTrade;
+// Exponer funciones globalmente
+window.renderCapitalMovementsTable = renderCapitalMovementsTable;
+window.deleteCapitalMovement = deleteCapitalMovement;
 
 // Inicializar al cargar el documento
 if ( typeof document !== 'undefined' ) {

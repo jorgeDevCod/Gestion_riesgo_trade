@@ -1,74 +1,96 @@
-// Swipe Navigation System - Vista previa en movimiento
+// Swipe Navigation System - Versión Optimizada Final
 class SwipeNavigation {
     constructor( containerSelector, tabsSelector ) {
         this.container = document.querySelector( containerSelector );
         this.tabs = document.querySelectorAll( tabsSelector );
+
+        // Encontrar el índice del tab activo inicial
         this.currentTab = 0;
+        this.tabs.forEach( ( tab, index ) => {
+            if ( tab.getAttribute( 'data-tab' ) === 'signals' ) {
+                this.currentTab = index;
+            }
+        } );
 
         // Touch tracking
         this.startX = 0;
         this.startY = 0;
         this.currentX = 0;
+        this.currentY = 0;
         this.isDragging = false;
         this.isMouseDown = false;
         this.startTime = 0;
+        this.scrollLocked = false;
+        this.scrollDirection = null;
 
         // Configuración
-        this.threshold = 100; // Distancia para cambiar tab
+        this.threshold = 100;
         this.allowedTime = 500;
-
-        // Para vista previa
-        this.previewLayer = null;
-        this.currentSection = null;
-        this.nextSection = null;
+        this.verticalThreshold = 15;
 
         this.init();
     }
 
     init() {
         this.updateCurrentTab();
-        this.setupPreviewLayer();
         this.attachEventListeners();
+        this.setupScrollableAreas();
 
         this.container.style.userSelect = 'none';
         this.container.style.webkitUserSelect = 'none';
         this.container.style.cursor = 'grab';
     }
 
-    setupPreviewLayer() {
-        // Crear capa de vista previa (invisible por defecto)
-        this.previewLayer = document.createElement( 'div' );
-        this.previewLayer.id = 'swipe-preview-layer';
-        this.previewLayer.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 9999;
-            opacity: 0;
-            display: none;
-        `;
-        document.body.appendChild( this.previewLayer );
+    setupScrollableAreas() {
+        // Identificar TODAS las áreas con scroll interno
+        this.scrollableSelectors = [
+            '.overflow-x-auto',
+            '.overflow-y-auto',
+            '[id$="Content"]',
+            '#tradesTableBody',
+            '#setupCheckerContent',
+            '#observationsList',
+            '#recentWithdrawals',
+            '.max-h-64',
+            '.max-h-96',
+            '.max-h-screen',
+            'table',
+            '.overflow-auto'
+        ];
     }
 
     attachEventListeners() {
+        // Touch events
         this.container.addEventListener( 'touchstart', ( e ) => this.handleStart( e ), { passive: true } );
         this.container.addEventListener( 'touchmove', ( e ) => this.handleMove( e ), { passive: false } );
         this.container.addEventListener( 'touchend', ( e ) => this.handleEnd( e ), { passive: true } );
 
+        // Mouse events
         this.container.addEventListener( 'mousedown', ( e ) => this.handleStart( e ) );
         this.container.addEventListener( 'mousemove', ( e ) => this.handleMove( e ) );
         this.container.addEventListener( 'mouseup', ( e ) => this.handleEnd( e ) );
         this.container.addEventListener( 'mouseleave', ( e ) => this.handleEnd( e ) );
 
+        // Prevenir clicks durante drag
         this.container.addEventListener( 'click', ( e ) => {
             if ( this.isDragging ) {
                 e.preventDefault();
                 e.stopPropagation();
             }
         }, true );
+
+        // Observer para tabs activos
+        this.observeTabChanges();
+    }
+
+    observeTabChanges() {
+        const observer = new MutationObserver( () => {
+            this.updateCurrentTab();
+        } );
+
+        this.tabs.forEach( tab => {
+            observer.observe( tab, { attributes: true, attributeFilter: [ 'class' ] } );
+        } );
     }
 
     updateCurrentTab() {
@@ -79,6 +101,82 @@ class SwipeNavigation {
         } );
     }
 
+    isScrollableElement( element ) {
+        let el = element;
+        while ( el && el !== this.container && el !== document.body ) {
+            const computedStyle = window.getComputedStyle( el );
+            const hasScrollX = el.scrollWidth > el.clientWidth;
+            const hasScrollY = el.scrollHeight > el.clientHeight;
+            const overflowX = computedStyle.overflowX;
+            const overflowY = computedStyle.overflowY;
+
+            // Verificar si tiene scroll activo
+            if ( hasScrollY && ( overflowY === 'auto' || overflowY === 'scroll' ) ) {
+                return true;
+            }
+
+            if ( hasScrollX && ( overflowX === 'auto' || overflowX === 'scroll' ) ) {
+                return true;
+            }
+
+            // 🆕 VERIFICAR SI ES LA TABLA DE TRADES O SU CONTENEDOR
+            if ( el.tagName === 'TABLE' ||
+                el.tagName === 'TBODY' ||
+                el.id === 'tradesTableBody' ||
+                el.classList.contains( 'overflow-x-auto' ) ||
+                el.classList.contains( 'overflow-y-auto' ) ) {
+                return true;
+            }
+
+            // Verificar selectores conocidos
+            const matchesSelector = this.scrollableSelectors.some( selector => {
+                try {
+                    return el.matches( selector );
+                } catch ( e ) {
+                    return false;
+                }
+            } );
+
+            if ( matchesSelector ) {
+                return true;
+            }
+
+            el = el.parentElement;
+        }
+        return false;
+    }
+
+    isFixedElement( element ) {
+        let el = element;
+        while ( el && el !== document.body ) {
+            const position = window.getComputedStyle( el ).position;
+            if ( position === 'fixed' ) return true;
+
+            const fixedIds = [
+                'confluenceToggle',
+                'confluencePanel',
+                'installAppContainer',
+                'userSection',
+                'syncStatus',
+                'swipeIndicator',
+                'swipe-direction-indicator'
+            ];
+            if ( fixedIds.includes( el.id ) ) return true;
+
+            // Elementos interactivos
+            if ( el.tagName === 'BUTTON' ||
+                el.tagName === 'A' ||
+                el.tagName === 'INPUT' ||
+                el.tagName === 'SELECT' ||
+                el.tagName === 'TEXTAREA' ) {
+                return true;
+            }
+
+            el = el.parentElement;
+        }
+        return false;
+    }
+
     handleStart( e ) {
         if ( this.isFixedElement( e.target ) ) return;
 
@@ -86,8 +184,11 @@ class SwipeNavigation {
         this.startX = point.pageX;
         this.startY = point.pageY;
         this.currentX = point.pageX;
+        this.currentY = point.pageY;
         this.startTime = new Date().getTime();
         this.isDragging = false;
+        this.scrollLocked = false;
+        this.scrollDirection = null;
 
         if ( !e.touches ) {
             this.isMouseDown = true;
@@ -102,17 +203,34 @@ class SwipeNavigation {
 
         const point = e.touches ? e.touches[ 0 ] : e;
         this.currentX = point.pageX;
+        this.currentY = point.pageY;
 
-        const diffX = this.currentX - this.startX;
-        const diffY = Math.abs( ( e.touches ? e.touches[ 0 ].pageY : e.pageY ) - this.startY );
+        const diffX = Math.abs( this.currentX - this.startX );
+        const diffY = Math.abs( this.currentY - this.startY );
 
-        if ( Math.abs( diffX ) > 15 && Math.abs( diffX ) > diffY ) {
+        // Determinar dirección solo una vez
+        if ( !this.scrollDirection && ( diffX > 10 || diffY > 10 ) ) {
+            this.scrollDirection = diffY > diffX ? 'vertical' : 'horizontal';
+
+            // Si es vertical Y está en elemento scrolleable, bloquear swipe
+            if ( this.scrollDirection === 'vertical' && this.isScrollableElement( e.target ) ) {
+                this.scrollLocked = true;
+                return;
+            }
+        }
+
+        // Si está bloqueado por scroll vertical, salir
+        if ( this.scrollLocked ) return;
+
+        // Solo proceder si es horizontal
+        if ( this.scrollDirection === 'horizontal' && diffX > 15 ) {
             this.isDragging = true;
             if ( e.cancelable ) {
                 e.preventDefault();
             }
 
-            this.showPreview( diffX );
+            const diffXSigned = this.currentX - this.startX;
+            this.showPreview( diffXSigned );
         }
     }
 
@@ -122,14 +240,14 @@ class SwipeNavigation {
             Math.min( this.currentTab + 1, this.tabs.length - 1 ) :
             Math.max( this.currentTab - 1, 0 );
 
-        // Si no hay tab siguiente/anterior, aplicar resistencia
+        // Resistencia si no hay tab siguiente/anterior
         if ( targetIndex === this.currentTab ) {
             const resistance = Math.sign( diffX ) * Math.pow( Math.abs( diffX ), 0.7 ) * 0.3;
             this.applyTransform( resistance );
             return;
         }
 
-        // Limitar el deslizamiento
+        // Limitar deslizamiento
         const maxSlide = window.innerWidth * 0.85;
         const limitedDiff = Math.sign( diffX ) * Math.min( Math.abs( diffX ), maxSlide );
 
@@ -140,15 +258,15 @@ class SwipeNavigation {
         const currentSection = document.querySelector( '.tab-content:not(.hidden)' );
         if ( !currentSection ) return;
 
-        // Aplicar transformación suave
+        // Aplicar transformación
         currentSection.style.transition = 'none';
         currentSection.style.transform = `translateX(${diffX}px)`;
 
-        // Calcular opacidad
+        // Opacidad progresiva
         const opacity = 1 - Math.abs( diffX ) / ( window.innerWidth * 0.5 );
         currentSection.style.opacity = Math.max( 0.3, Math.min( 1, opacity ) );
 
-        // Mostrar indicador visual del siguiente tab
+        // Indicador visual
         const progress = Math.abs( diffX ) / this.threshold;
         if ( progress > 0.3 ) {
             this.showSwipeIndicator( diffX < 0 ? 'next' : 'prev', progress );
@@ -172,7 +290,7 @@ class SwipeNavigation {
                 border-radius: 50px;
                 font-weight: 600;
                 font-size: 14px;
-                z-index: 10000;
+                z-index: 9997;
                 pointer-events: none;
                 transition: opacity 0.2s;
                 box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
@@ -223,12 +341,14 @@ class SwipeNavigation {
 
         this.hideSwipeIndicator();
 
-        if ( this.isDragging ) {
+        if ( this.isDragging && !this.scrollLocked ) {
             this.processSwipe( diffX, elapsedTime );
         }
 
         this.isDragging = false;
         this.isMouseDown = false;
+        this.scrollLocked = false;
+        this.scrollDirection = null;
         this.container.style.cursor = 'grab';
     }
 
@@ -259,7 +379,6 @@ class SwipeNavigation {
         const currentSection = document.querySelector( '.tab-content:not(.hidden)' );
 
         if ( currentSection ) {
-            // Animación de salida completa
             const exitDistance = direction === 'left' ? '-100%' : '100%';
             currentSection.style.transition = 'all 0.35s cubic-bezier(0.4, 0, 0.2, 1)';
             currentSection.style.transform = `translateX(${exitDistance})`;
@@ -269,6 +388,9 @@ class SwipeNavigation {
         setTimeout( () => {
             targetTab.click();
             this.currentTab = index;
+
+            // Scroll horizontal de tabs si es necesario
+            this.scrollTabIntoView( targetTab );
 
             setTimeout( () => {
                 const newSection = document.querySelector( '.tab-content:not(.hidden)' );
@@ -288,38 +410,53 @@ class SwipeNavigation {
                         newSection.style.transition = '';
                         newSection.style.transform = '';
                         newSection.style.opacity = '';
+
+                        // Scroll al inicio del contenido
+                        this.scrollToTop();
                     }, 350 );
                 }
             }, 50 );
         }, 150 );
     }
 
-    isFixedElement( element ) {
-        let el = element;
-        while ( el && el !== document.body ) {
-            const position = window.getComputedStyle( el ).position;
-            if ( position === 'fixed' ) return true;
+    scrollTabIntoView( tab ) {
+        const navContainer = tab.closest( 'nav' );
+        if ( !navContainer ) return;
 
-            const fixedIds = [
-                'confluenceToggle',
-                'confluencePanel',
-                'installAppContainer',
-                'userSection',
-                'syncStatus'
-            ];
-            if ( fixedIds.includes( el.id ) ) return true;
+        const tabRect = tab.getBoundingClientRect();
+        const containerRect = navContainer.getBoundingClientRect();
 
-            if ( el.tagName === 'BUTTON' ||
-                el.tagName === 'A' ||
-                el.tagName === 'INPUT' ||
-                el.tagName === 'SELECT' ||
-                el.tagName === 'TEXTAREA' ) {
-                return true;
-            }
-
-            el = el.parentElement;
+        // Si el tab está fuera de vista a la derecha o izquierda
+        if ( tabRect.right > containerRect.right ) {
+            // Scroll para mostrar el tab en el centro
+            const scrollAmount = tabRect.right - containerRect.right + ( tabRect.width / 2 );
+            navContainer.scrollBy( {
+                left: scrollAmount,
+                behavior: 'smooth'
+            } );
+        } else if ( tabRect.left < containerRect.left ) {
+            const scrollAmount = tabRect.left - containerRect.left - ( tabRect.width / 2 );
+            navContainer.scrollBy( {
+                left: scrollAmount,
+                behavior: 'smooth'
+            } );
         }
-        return false;
+    }
+
+    scrollToTop() {
+        // Scroll suave al inicio del contenido
+        window.scrollTo( {
+            top: 0,
+            behavior: 'smooth'
+        } );
+
+        const mainContainer = document.querySelector( 'main' );
+        if ( mainContainer ) {
+            mainContainer.scrollTo( {
+                top: 0,
+                behavior: 'smooth'
+            } );
+        }
     }
 }
 
