@@ -1961,7 +1961,7 @@ function updateDynamicSetupScore() {
             feedbackText = `⚡ Setup débil para ${config?.name || "esta estrategia"} - Esperar más confluencias`;
             feedbackClass = "text-orange-400";
         } else if ( score === 0 ) {
-            feedbackText = `❌ ${config?.name || "Setup"} - Solo ingresar si cumple + 70% de señales`;
+            feedbackText = `❌ Solo ingresar si cumple + 70% de señales`;
             feedbackClass = "text-red-400 font-medium";
         } else {
             feedbackText = `❌ insuficiente( Continuar buscando señales). No entrar con menos de 70%`;
