@@ -516,17 +516,17 @@ function createTrendPatternSVG( patternId, width = 320, height = 180 ) {
     const patterns = {
         // BANDERAS Y BANDERINES OPTIMIZADOS
         bull_flag: `
-<svg width="${width}" height="${height}" class="bg-slate-900 rounded-lg">
+<svg width="320" height="180" class="bg-slate-900 rounded-lg">
     <!-- Impulso inicial (asta) -->
-    <path d="M20 110 L80 30" class="price-action" stroke="#10b981" stroke-width="4" fill="none"/>
+    <path d="M22 110 L80 28" class="price-action" stroke="#10b981" stroke-width="4" fill="none"></path>
     <!-- Línea superior del canal (resistencia) - más horizontal -->
-    <line x1="80" y1="30" x2="188" y2="32" stroke="#ef4444" stroke-width="2" fill="none"/>
+    <line x1="80" y1="28" x2="215" y2="36" stroke="#ef4444" stroke-width="2" fill="none"></line>
     <!-- Línea inferior del canal (soporte) - más horizontal -->
-    <line x1="80" y1="48" x2="188" y2="56" stroke="#3b82f6" stroke-width="2" fill="none"/>
+    <line x1="80" y1="48" x2="218" y2="56" stroke="#3b82f6" stroke-width="2" fill="none"></line>
     <!-- Precio moviéndose DENTRO del canal con líneas -->
-    <path d="M80 35 L95 45 L110 32 L125 48 L140 35 L155 45 L170 38 L185 50 L190 45" stroke="#fbbf24" stroke-width="3" fill="none"/>
+    <path d="M80 35 L95 45 L110 32 L125 48 L140 35 L155 45 L170 38 L185 50 L190 45" stroke="#fbbf24" stroke-width="3" fill="none"></path>
     <!-- Ruptura -->
-    <path d="M190 45 L220 20" class="price-action" stroke="#10b981" stroke-width="4" fill="none"/>
+    <path d="M190 45 L220 20" class="price-action" stroke="#10b981" stroke-width="4" fill="none"></path>
     <!-- Labels -->
     <text x="40" y="130" fill="#10b981" font-size="11">Impulso</text>
     <text x="120" y="130" fill="#fbbf24" font-size="11">Canal</text>
@@ -540,9 +540,9 @@ function createTrendPatternSVG( patternId, width = 320, height = 180 ) {
     <!-- Impulso inicial -->
     <path d="M20 110 L80 25" stroke="#10b981" stroke-width="4" fill="none"/>
     <!-- Línea de resistencia del banderín -->
-    <line x1="80" y1="22" x2="170" y2="40" stroke="#ef4444" stroke-width="2" fill="none"/>
+    <line x1="80" y1="22" x2="180" y2="34" stroke="#ef4444" stroke-width="2" fill="none"></line>
     <!-- Línea de soporte del banderín -->
-    <line x1="80" y1="48" x2="170" y2="42" stroke="#3b82f6" stroke-width="2" fill="none"/>
+    <line x1="80" y1="48" x2="180" y2="40" stroke="#3b82f6" stroke-width="2" fill="none"/>
     <!-- Precio moviéndose ENTRE las líneas convergentes -->
     <path d="M80 25 L95 42 L110 28 L125 40 L140 32 L155 38 L170 35" stroke="#fbbf24" stroke-width="3" fill="none"/>
     <!-- Ruptura -->
@@ -557,10 +557,9 @@ function createTrendPatternSVG( patternId, width = 320, height = 180 ) {
 <svg width="${width}" height="${height}" class="bg-slate-900 rounded-lg">
     <!-- Caída inicial -->
     <path d="M20 25 L80 110" stroke="#ef4444" stroke-width="4" fill="none"/>
-    <!-- Línea superior del canal (resistencia) - más horizontal -->
-    <line x1="80" y1="95" x2="190" y2="85" stroke="#ef4444" stroke-width="2" fill="none"/>
+    <line x1="84" y1="90" x2="196" y2="82" stroke="#ef4444" stroke-width="2" fill="none"></line>
     <!-- Línea inferior del canal (soporte) - más horizontal -->
-    <line x1="80" y1="115" x2="190" y2="105" stroke="#3b82f6" stroke-width="2" fill="none"/>
+    <line x1="80" y1="115" x2="210" y2="100" stroke="#3b82f6" stroke-width="2" fill="none"></line>
     <!-- Precio moviéndose DENTRO del canal con líneas -->
     <path d="M80 105 L95 90 L110 108 L125 88 L140 105 L155 90 L170 102 L185 85 L190 95" stroke="#fbbf24" stroke-width="3" fill="none"/>
     <!-- Continuación bajista -->
@@ -591,7 +590,7 @@ function createTrendPatternSVG( patternId, width = 320, height = 180 ) {
         rising_wedge: `
 <svg width="${width}" height="${height}" class="bg-slate-900 rounded-lg">
     <!-- Línea de resistemcia descendente (arriba del precio)-->
-    <line x1="30" y1="76" x2="180" y2="68" stroke="#ef4444" stroke-width="2" fill="none"></line>
+    <line x1="28" y1="78" x2="190" y2="68" stroke="#ef4444" stroke-width="2" fill="none"></line>
     
     <!-- Línea de soporte ascendente (DEBAJO del precio) - ajustada -->
     <line x1="28" y1="98" x2="200" y2="80" stroke="#3b82f6" stroke-width="2" fill="none"></line>
@@ -609,8 +608,8 @@ function createTrendPatternSVG( patternId, width = 320, height = 180 ) {
         falling_wedge: `
 <svg width="${width}" height="${height}" class="bg-slate-900 rounded-lg">
     <!-- Líneas de la cuña descendente - tocando extremos -->
-    <line x1="30" y1="40" x2="180" y2="75" stroke="#ef4444" stroke-width="2" fill="none"/>
-    <line x1="30" y1="90" x2="180" y2="85" stroke="#3b82f6" stroke-width="2" fill="none"/>
+    <line x1="32" y1="38" x2="210" y2="74" stroke="#ef4444" stroke-width="2" fill="none"></line>
+<line x1="30" y1="90" x2="200" y2="80" stroke="#3b82f6" stroke-width="2" fill="none"></line>
     <!-- Acción del precio tocando las líneas -->
     <path d="M30 90 L55 45 L80 85 L105 55 L130 80 L155 65 L180 80" stroke="#fbbf24" stroke-width="3" fill="none"/>
     <!-- Ruptura explosiva -->
@@ -623,9 +622,9 @@ function createTrendPatternSVG( patternId, width = 320, height = 180 ) {
         bull_range: `
 <svg width="${width}" height="${height}" class="bg-slate-900 rounded-lg">
     <!-- Resistencia horizontal -->
-    <line x1="40" y1="45" x2="190" y2="45" stroke="#ef4444" stroke-width="2" fill="none"/>
+<line x1="40" y1="45" x2="220" y2="50" stroke="#ef4444" stroke-width="2" fill="none"></line>
     <!-- Soporte horizontal -->
-    <line x1="40" y1="90" x2="190" y2="90" stroke="#3b82f6" stroke-width="2" fill="none"/>
+    <line x1="40" y1="86" x2="210" y2="86" stroke="#3b82f6" stroke-width="2" fill="none"></line>
     <!-- Precio rebotando ENTRE las líneas con más movimientos -->
     <path d="M40 75 L55 48 L70 85 L85 52 L100 80 L115 55 L130 82 L145 50 L160 85 L175 58 L190 75" stroke="#fbbf24" stroke-width="3" fill="none"/>
     <!-- Ruptura alcista -->
@@ -638,9 +637,9 @@ function createTrendPatternSVG( patternId, width = 320, height = 180 ) {
         bear_range: `
 <svg width="${width}" height="${height}" class="bg-slate-900 rounded-lg">
     <!-- Resistencia -->
-    <line x1="40" y1="45" x2="190" y2="45" stroke="#ef4444" stroke-width="2" fill="none"/>
+    <line x1="40" y1="55" x2="190" y2="60" stroke="#ef4444" stroke-width="2" fill="none"></line>
     <!-- Soporte -->
-    <line x1="40" y1="90" x2="190" y2="90" stroke="#3b82f6" stroke-width="2" fill="none"/>
+    <line x1="40" y1="90" x2="210" y2="90" stroke="#3b82f6" stroke-width="2" fill="none"/>
     <!-- Precio con más movimientos y sesgo bajista -->
     <path d="M40 60 L55 80 L70 52 L85 85 L100 58 L115 82 L130 62 L145 88 L160 65 L175 85 L190 78" stroke="#fbbf24" stroke-width="3" fill="none"/>
     <!-- Ruptura bajista -->
@@ -652,13 +651,13 @@ function createTrendPatternSVG( patternId, width = 320, height = 180 ) {
         ascending_triangle: `
 <svg width="${width}" height="${height}" class="bg-slate-900 rounded-lg">
     <!-- Línea de resistencia horizontal -->
-    <line x1="50" y1="35" x2="190" y2="35" stroke="#ef4444" stroke-width="2" fill="none"/>
+    <line x1="50" y1="30" x2="190" y2="35" stroke="#ef4444" stroke-width="2" fill="none"/>
     <!-- Línea de soporte ascendente -->
     <line x1="50" y1="100" x2="190" y2="35" stroke="#3b82f6" stroke-width="2" fill="none"/>
     <!-- Acción del precio -->
     <path d="M50 100 L70 35 L90 80 L110 35 L130 60 L150 35 L170 50" stroke="#fbbf24" stroke-width="3" fill="none"/>
     <!-- Ruptura -->
-    <path d="M190 35 L220 15" stroke="#10b981" stroke-width="4" fill="none"/>
+    <path d="M170 48 L190 15" stroke="#10b981" stroke-width="4" fill="none"></path>
     <text x="90" y="25" fill="#ef4444" font-size="10">Resistencia</text>
     <text x="90" y="130" fill="#3b82f6" font-size="10">Soporte</text>
 </svg>`,
@@ -672,7 +671,7 @@ function createTrendPatternSVG( patternId, width = 320, height = 180 ) {
     <!-- Acción del precio -->
     <path d="M50 35 L70 100 L90 55 L110 100 L130 75 L150 100 L170 90" stroke="#fbbf24" stroke-width="3" fill="none"/>
     <!-- Ruptura bajista -->
-    <path d="M190 100 L220 120" stroke="#ef4444" stroke-width="4" fill="none"/>
+    <path d="M170 90 L185 125" stroke="#ef4444" stroke-width="4" fill="none"></path>
     <text x="90" y="25" fill="#ef4444" font-size="10">Resistencia</text>
     <text x="90" y="130" fill="#3b82f6" font-size="10">Soporte</text>
 </svg>`,
@@ -680,13 +679,12 @@ function createTrendPatternSVG( patternId, width = 320, height = 180 ) {
         symmetrical_triangle_bull: `
 <svg width="${width}" height="${height}" class="bg-slate-900 rounded-lg">
     <!-- Líneas convergentes simétricas -->
-    <line x1="50" y1="45" x2="180" y2="75" stroke="#ef4444" stroke-width="2" fill="none"/>
+    <line x1="50" y1="42" x2="186" y2="70" stroke="#ef4444" stroke-width="2" fill="none"></line>
     <line x1="50" y1="90" x2="180" y2="75" stroke="#3b82f6" stroke-width="2" fill="none"/>
     <!-- Acción del precio -->
     <path d="M50 90 L70 50 L90 85 L110 55 L130 80 L150 65 L170 75" stroke="#fbbf24" stroke-width="3" fill="none"/>
     <!-- Ruptura alcista -->
-    <path d="M180 75 L210 45" stroke="#10b981" stroke-width="4" fill="none"/>
-    <text x="100" y="130" fill="#64748b" font-size="11">Triángulo Simétrico</text>
+    <path d="M170 75 L210 35" stroke="#10b981" stroke-width="4" fill="none"></path>
 </svg>`,
 
         symmetrical_triangle_bear: `
@@ -697,7 +695,7 @@ function createTrendPatternSVG( patternId, width = 320, height = 180 ) {
     <!-- Precio con sesgo bajista -->
     <path d="M50 90 L70 50 L90 85 L110 55 L130 80 L150 65 L170 78" stroke="#fbbf24" stroke-width="3" fill="none"/>
     <!-- Ruptura bajista -->
-    <path d="M180 78 L210 105" stroke="#ef4444" stroke-width="4" fill="none"/>
+<path d="M167 75 L190 110" stroke="#ef4444" stroke-width="4" fill="none"></path>
     <text x="100" y="130" fill="#64748b" font-size="11">Triángulo Simétrico</text>
 </svg>`,
 
@@ -747,6 +745,7 @@ function createTrendPatternSVG( patternId, width = 320, height = 180 ) {
     <path d="M10 90 L50 30" stroke="#10b981" stroke-width="2" fill="none"/>
     <!-- Patrón M clásico -->
     <path d="M50 30 L80 65 L110 30 L140 70" stroke="#fbbf24" stroke-width="4" fill="none"/>
+    <line x1="20" y1="65" x2="190" y2="65" stroke="#3b82f6" stroke-width="2" fill="none" stroke-dasharray="5,5"></line>
     <!-- Ruptura directa -->
     <path d="M140 70 L180 105" stroke="#ef4444" stroke-width="5" fill="none"/>
     <!-- Labels -->
@@ -763,6 +762,7 @@ function createTrendPatternSVG( patternId, width = 320, height = 180 ) {
     <path d="M20 80 L60 25 L90 60 L120 25 L150 65" stroke="#fbbf24" stroke-width="3" fill="none"/>
     <!-- Segundo triángulo descendente después del M -->
     <path d="M150 65 L170 55 L190 60 L205 55" stroke="#fbbf24" stroke-width="3" fill="none"/>
+    <line x1="20" y1="60" x2="215" y2="60" stroke="#3b82f6" stroke-width="2" fill="none" stroke-dasharray="5,5"></line>
     <!-- Líneas del triángulo descendente -->
     <line x1="150" y1="50" x2="205" y2="50" stroke="#ef4444" stroke-width="1" stroke-dasharray="2,2"/>
     <line x1="150" y1="70" x2="205" y2="60" stroke="#3b82f6" stroke-width="1" stroke-dasharray="2,2"/>
@@ -802,6 +802,7 @@ function createTrendPatternSVG( patternId, width = 320, height = 180 ) {
     <path d="M10 45 L50 105" stroke="#ef4444" stroke-width="2" fill="none"/>
     <!-- Patrón W clásico -->
     <path d="M50 105 L80 70 L110 105 L140 65" stroke="#fbbf24" stroke-width="4" fill="none"/>
+    <line x1="20" y1="70" x2="200" y2="70" stroke="#3b82f6" stroke-width="2" fill="none" stroke-dasharray="5,5"></line>
     <!-- Ruptura directa -->
     <path d="M140 65 L180 30" stroke="#10b981" stroke-width="5" fill="none"/>
     <!-- Labels -->
@@ -821,6 +822,7 @@ function createTrendPatternSVG( patternId, width = 320, height = 180 ) {
     <!-- Líneas del triángulo ascendente -->
     <line x1="150" y1="85" x2="205" y2="85" stroke="#ef4444" stroke-width="1" stroke-dasharray="2,2"/>
     <line x1="150" y1="65" x2="205" y2="75" stroke="#3b82f6" stroke-width="1" stroke-dasharray="2,2"/>
+    <line x1="20" y1="76" x2="200" y2="76" stroke="#3b82f6" stroke-width="2" fill="none" stroke-dasharray="5,5"></line>
     <!-- Ruptura alcista final -->
     <path d="M205 80 L230 50" stroke="#10b981" stroke-width="4" fill="none"/>
     <!-- Puntos de valles del W -->
@@ -854,25 +856,49 @@ function createTrendPatternSVG( patternId, width = 320, height = 180 ) {
         // PATRONES V
         v_bottom: `
 <svg width="${width}" height="${height}" class="bg-slate-900 rounded-lg">
-    <!-- Caída dramática -->
-    <path d="M20 35 L110 105" stroke="#ef4444" stroke-width="4" fill="none"/>
-    <!-- Reversión en V -->
-    <path d="M110 105 L200 35" stroke="#10b981" stroke-width="5" fill="none"/>
-    <path d="M200 35 L230 20" stroke="#10b981" stroke-width="4" fill="none"/>
-    <text x="100" y="125" fill="#64748b" font-size="11">V Bottom</text>
-    <circle cx="110" cy="105" r="3" fill="#fbbf24"/>
+  <!-- Línea de caída -->
+  <path d="M20 35 Q65 70 110 105" stroke="#ef4444" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+  
+  <!-- Línea de rebote -->
+  <path d="M110 105 Q155 70 200 35" stroke="#10b981" stroke-width="4.5" fill="none" stroke-linecap="round"/>
+  
+  <!-- Extensión del rebote -->
+  <path d="M200 35 Q215 25 230 20" stroke="#10b981" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+
+  <!-- Punto de reversión -->
+  <circle cx="110" cy="105" r="5" fill="#fbbf24" stroke="#fff" stroke-width="1"/>
+  <circle cx="110" cy="105" r="8" fill="none" stroke="#fbbf24" stroke-opacity="0.3" stroke-width="2"/>
+
+  <!-- Etiqueta -->
+  <text x="90" y="130" fill="#94a3b8" font-size="12" font-family="sans-serif" text-anchor="middle">V Bottom</text>
+
+  <!-- Línea base -->
+  <line x1="10" y1="120" x2="240" y2="120" stroke="#475569" stroke-width="1" stroke-dasharray="3,3"/>
 </svg>`,
+
 
         v_top: `
 <svg width="${width}" height="${height}" class="bg-slate-900 rounded-lg">
-    <!-- Subida dramática -->
-    <path d="M20 105 L110 35" stroke="#10b981" stroke-width="4" fill="none"/>
-    <!-- Reversión en V invertida -->
-    <path d="M110 35 L200 105" stroke="#ef4444" stroke-width="5" fill="none"/>
-    <path d="M200 105 L230 120" stroke="#ef4444" stroke-width="4" fill="none"/>
-    <text x="100" y="20" fill="#64748b" font-size="11">V Top</text>
-    <circle cx="110" cy="35" r="3" fill="#fbbf24"/>
+  <!-- Subida fuerte -->
+  <path d="M20 105 Q65 70 110 35" stroke="#10b981" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+
+  <!-- Caída en V -->
+  <path d="M110 35 Q155 70 200 105" stroke="#ef4444" stroke-width="4.5" fill="none" stroke-linecap="round"/>
+
+  <!-- Extensión bajista -->
+  <path d="M200 105 Q215 115 230 120" stroke="#ef4444" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+
+  <!-- Punto de reversión -->
+  <circle cx="110" cy="35" r="5" fill="#fbbf24" stroke="#fff" stroke-width="1"/>
+  <circle cx="110" cy="35" r="8" fill="none" stroke="#fbbf24" stroke-opacity="0.3" stroke-width="2"/>
+
+  <!-- Etiqueta -->
+  <text x="100" y="25" fill="#94a3b8" font-size="12" font-family="sans-serif" text-anchor="middle">V Top</text>
+
+  <!-- Línea base -->
+  <line x1="10" y1="120" x2="240" y2="120" stroke="#475569" stroke-width="1" stroke-dasharray="3,3"/>
 </svg>`,
+
 
         // PATRONES TRIPLES
         triple_top: `
