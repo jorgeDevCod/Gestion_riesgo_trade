@@ -759,7 +759,7 @@ function showPatternDetails( patternId ) {
 
             <!-- Columna derecha: Trading Info -->
             <div class="space-y-6">
-                <div class="bg-gradient-to-r from-green-900 to-green-800 bg-opacity-50 rounded-xl p-6">
+                <div class="bg-gradient-to-br from-green-900/50 to-emerald-900/50 rounded-xl p-6 border border-green-700/30">
                     <h4 class="text-xl font-semibold mb-4 text-green-300">Parámetros de Trading</h4>
                     <div class="space-y-4">
                         <div class="bg-slate-800 bg-opacity-50 rounded-lg p-4">
@@ -785,7 +785,7 @@ function showPatternDetails( patternId ) {
                     </div>
                 </div>
 
-                <div class="bg-gradient-to-r from-yellow-900 to-amber-900 bg-opacity-50 rounded-xl p-6">
+                <div class="bg-gradient-to-br from-amber-900/50 to-yellow-900/50 rounded-xl p-6 border border-yellow-700/30">
                     <h4 class="text-xl font-semibold mb-4 text-yellow-300">Métricas</h4>
                     <div class="grid grid-cols-2 gap-4">
                         <div class="text-center">

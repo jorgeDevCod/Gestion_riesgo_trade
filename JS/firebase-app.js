@@ -519,6 +519,14 @@ function addCapital( amount, concept, notes, date ) {
     saveDataLocally();
     if ( currentUser ) syncDataToFirebase();
     renderAllData();
+
+    // AGREGAR ESTAS LÍNEAS
+    if ( window.updateCapitalMovementsList ) {
+        window.updateCapitalMovementsList();
+    }
+    if ( window.updateAllCharts ) {
+        window.updateAllCharts();
+    }
 }
 
 function registerWithdrawal( amount, concept, notes, date ) {
@@ -537,6 +545,14 @@ function registerWithdrawal( amount, concept, notes, date ) {
     if ( currentUser ) syncDataToFirebase();
     renderAllData();
     renderRecentWithdrawals();
+
+    // AGREGAR ESTAS LÍNEAS
+    if ( window.updateCapitalMovementsList ) {
+        window.updateCapitalMovementsList();
+    }
+    if ( window.updateAllCharts ) {
+        window.updateAllCharts();
+    }
 }
 
 function resetAllData() {
@@ -642,6 +658,11 @@ function addTrade( tradeData ) {
     }
 
     renderAllData();
+
+    // AGREGAR ESTAS LÍNEAS ANTES DEL RETURN
+    if ( window.forceUpdateDashboard ) {
+        setTimeout( () => window.forceUpdateDashboard(), 200 );
+    }
 
     if ( trade.closed ) {
         const disciplinaryMsg = generateDisciplinaryMessage();
@@ -2391,7 +2412,7 @@ function checkAndResetDailyCounters() {
 
 function renderAllData() {
     try {
-        updateDailyCountersFromTrades(); // Actualizar contadores primero
+        updateDailyCountersFromTrades();
         renderDashboard();
         renderCapitalSection();
         renderTrades();
@@ -2404,7 +2425,18 @@ function renderAllData() {
             renderSetupChecklist();
         }
 
-        // CORREGIDO: Mostrar mensaje disciplinario si es necesario
+        // AGREGAR ESTAS LÍNEAS
+        if ( currentTab === "dashboard" ) {
+            setTimeout( () => {
+                if ( window.updateAllCharts ) {
+                    window.updateAllCharts();
+                }
+                if ( window.updateCapitalMovementsList ) {
+                    window.updateCapitalMovementsList();
+                }
+            }, 100 );
+        }
+
         const disciplinaryMsg = generateDisciplinaryMessage();
         if ( disciplinaryMsg && ( disciplinaryMsg.priority === 'high' || disciplinaryMsg.priority === 'critical' ) ) {
             setTimeout( () => showDisciplinaryMessage( disciplinaryMsg ), 500 );

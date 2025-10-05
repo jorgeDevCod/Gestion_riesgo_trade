@@ -1122,24 +1122,6 @@ function showTrendPatternDetails( patternId ) {
                         `).join( '' )}
                     </div>
                 </div>
-
-                <div class="bg-slate-700 rounded-xl p-6">
-                    <h4 class="text-xl font-semibold mb-4 text-orange-400">Gestión de Riesgo</h4>
-                    <div class="space-y-3 text-sm text-slate-300">
-                        <div class="flex justify-between">
-                            <span>Riesgo por operación:</span>
-                            <span class="text-yellow-400 font-medium">1-2% del capital</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span>Ratio Riesgo/Beneficio:</span>
-                            <span class="text-green-400 font-medium">1:2 mínimo</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span>Timeframe recomendado:</span>
-                            <span class="text-blue-400 font-medium">${pattern.timeframe}</span>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
     `;

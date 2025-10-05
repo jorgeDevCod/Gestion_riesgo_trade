@@ -12,10 +12,14 @@
     <!-- AÑADIR PARA PWA -->
     <link rel="manifest" href="/manifest.json">
 
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
     <!-- JS APP -->
     <script src="./JS/firebase-app.js"></script>
     <script src="./JS/confluence.js"></script>
@@ -23,6 +27,8 @@
     <script src="./JS/tendencia.js"></script>
     <script src="./JS/sw.js"></script>
     <script src="./JS/swipe-navigation.js"></script>
+    <!-- JS para gráficas -->
+    <script src="./JS/charts.js"></script>
 
 </head>
 
@@ -164,7 +170,9 @@
     <!-- Main Content -->
     <main class="container mx-auto p-2 sm:p-4">
         <!-- Dashboard Tab -->
+        <!-- Dashboard Tab -->
         <section id="dashboard" class="tab-content hidden">
+            <!-- Cards superiores -->
             <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-2 sm:gap-4 mb-4 sm:mb-8">
                 <!-- Capital Actual -->
                 <div class="bg-trading-card dashboard-card p-3 sm:p-4 rounded-lg border border-gray-700">
@@ -206,6 +214,33 @@
                     <h3 class="text-xs sm:text-sm font-semibold text-blue-400 mb-1 sm:mb-2">P&L Total</h3>
                     <p class="text-lg sm:text-xl font-bold text-profit" id="totalPnL">$0.00</p>
                     <p class="text-xs text-gray-400 mt-1">Acumulado</p>
+                </div>
+            </div>
+
+            <!-- NUEVA SECCIÓN: Gráficas -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-4 sm:mb-8">
+                <!-- Gráfica de P&L Diario -->
+                <div class="bg-trading-card p-4 sm:p-6 rounded-lg border border-gray-700">
+                    <h3 class="text-lg sm:text-xl font-semibold text-gold mb-4">📈 P&L Diario (Últimos 7 días)</h3>
+                    <canvas id="dailyPnLChart" class="w-full" style="max-height: 300px;"></canvas>
+                </div>
+
+                <!-- Gráfica de Win Rate por Estrategia -->
+                <div class="bg-trading-card p-4 sm:p-6 rounded-lg border border-gray-700">
+                    <h3 class="text-lg sm:text-xl font-semibold text-gold mb-4">🎯 Win Rate por Estrategia</h3>
+                    <canvas id="strategyWinRateChart" class="w-full" style="max-height: 300px;"></canvas>
+                </div>
+
+                <!-- Gráfica de Distribución de Resultados -->
+                <div class="bg-trading-card p-4 sm:p-6 rounded-lg border border-gray-700">
+                    <h3 class="text-lg sm:text-xl font-semibold text-gold mb-4">📊 Distribución de Resultados</h3>
+                    <canvas id="resultsDistributionChart" class="w-full" style="max-height: 300px;"></canvas>
+                </div>
+
+                <!-- Gráfica de Evolución de Capital -->
+                <div class="bg-trading-card p-4 sm:p-6 rounded-lg border border-gray-700">
+                    <h3 class="text-lg sm:text-xl font-semibold text-gold mb-4">💰 Evolución de Capital</h3>
+                    <canvas id="capitalEvolutionChart" class="w-full" style="max-height: 300px;"></canvas>
                 </div>
             </div>
 
@@ -555,7 +590,7 @@
         </section>
 
         <!-- Registro de Trades Tab -->
-        <section id="trades" class="tab-content hidden">
+        <section id="trades" class="tab-content" style="">
             <div class="bg-trading-card p-4 sm:p-6 rounded-lg border border-gray-700">
                 <!-- Header con título y botones -->
                 <div class="mb-6">
@@ -587,7 +622,7 @@
                     </select>
 
                     <select id="filterResult" class="p-2 bg-gray-800 border border-gray-600 rounded-lg text-white text-sm sm:text-base">
-                        <option value="all" selected>Todos</option>
+                        <option value="all" selected="">Todos</option>
                         <option value="open">Abiertos</option>
                         <option value="win">Ganadores</option>
                         <option value="loss">Perdedores</option>
@@ -607,13 +642,21 @@
                                 <th class="text-left p-3 text-gold text-sm">Precio Apert.</th>
                                 <th class="text-left p-3 text-gold text-sm">Precio Cierre</th>
                                 <th class="text-left p-3 text-gold text-sm">Estado</th>
-                                <th class="text-left p-3 text-gold text-sm">P&L ($)</th>
+                                <th class="text-left p-3 text-gold text-sm">P&amp;L ($)</th>
                                 <th class="text-left p-3 text-gold text-sm">Comentarios</th>
                                 <th class="text-left p-3 text-gold text-sm">Acciones</th>
                             </tr>
                         </thead>
                         <tbody id="tradesTableBody">
-                            <!-- Trades serán insertados aquí dinámicamente -->
+                            <tr>
+                                <td colspan="11" class="p-4 text-center text-gray-400">
+                                    <div class="flex flex-col items-center space-y-1">
+                                        <div class="text-lg">📊</div>
+                                        <div>No hay trades que mostrar</div>
+
+                                    </div>
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
