@@ -513,10 +513,11 @@
                             <div class="flex items-center justify-between mb-6">
                                 <h2 class="text-2xl font-bold text-gold tracking-tight">
                                     💼 Historial de Movimientos
-                                    <span id="totalMovementsCount" class="ml-3 text-base text-gray-400 font-normal">(0)</span>
+                        
                                 </h2>
+                                <span id="totalMovementsCount" class="ml-3 text-base text-gray-400 font-normal">0</span>
                             </div>
-
+                        
                             <!-- Tabla responsive -->
                             <div class="overflow-x-auto">
                                 <table class="w-full border-collapse">
@@ -530,11 +531,24 @@
                                         </tr>
                                     </thead>
                                     <tbody id="capitalMovementsTableBody">
-                                        <!-- Filas se generan dinámicamente -->
+                                        <tr>
+                                            <td colspan="5" class="p-8 text-center">
+                                                <div class="text-gray-600 text-sm mt-4">Los depósitos y retiros aparecerán aquí</div>
+                                            </td>
+                                        </tr>
                                     </tbody>
-                                    <tfoot>
+                                    <tfoot class="hidden">
                                         <tr id="capitalSummaryRow" class="border-t-2 border-gold/60">
-                                            <!-- Totales se generan dinámicamente -->
+                                            <td class="p-5 text-left font-bold text-white uppercase tracking-wider text-base bg-gray-800/80">Totales:</td>
+                                            <td class="p-5 bg-gray-800/80"></td>
+                                            <td class="p-5 bg-gray-800/80"></td>
+                                            <td class="p-5 text-right bg-gray-800/80">
+                                                <div class="text-green-400 font-bold text-md">$0.00</div>
+                                                <div class="text-orange-400 font-bold text-md mt-1">$0.00</div>
+                                            </td>
+                                            <td class="p-5 text-right font-bold text-gold text-xl bg-gray-800/80">
+                                                $0.00
+                                            </td>
                                         </tr>
                                     </tfoot>
                                 </table>
@@ -557,67 +571,6 @@
                     </div>
                 </div>
 
-                <!-- Calculadora por Estrategia -->
-                <div class="bg-trading-dark p-6 rounded-lg border border-gray-700">
-                    <h3 class="text-xl font-semibold text-gold mb-4">Calculadora por Estrategia</h3>
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-sm font-medium mb-2">Seleccionar Estrategia</label>
-                            <select id="strategySelect" class="w-full p-3 bg-gray-900 border border-gray-600 rounded-lg text-white focus:border-gold focus:ring-2 focus:ring-gold/20 outline-none transition-all appearance-none cursor-pointer">
-                                <option value="regulares" class="bg-gray-900 text-white py-2">📈 Estrategia 1: Trades Regulares</option>
-                                <option value="estructura-confluencia" class="bg-gray-900 text-white py-2">🎯 Estrategia 2: Estructura + Confluencia</option>
-                                <option value="ema-macd" class="bg-gray-900 text-white py-2">📊 Estrategia 3: EMA + MACD</option>
-                                <option value="contra-tendencia" class="bg-gray-900 text-white py-2">⚡ Estrategia 4: Contra Tendencia</option>
-                            </select>
-                        </div>
-
-                        <!-- Información de la Estrategia -->
-                        <div class="bg-gray-900 p-4 rounded-lg border border-blue-500">
-                            <h4 class="font-semibold text-blue-400 mb-3">📈 Info de Estrategia Seleccionada</h4>
-                            <div class="grid grid-cols-2 gap-4 text-sm">
-                                <div>
-                                    <span class="text-gray-400">Win Rate Histórico:</span>
-                                    <p class="text-lg font-bold text-profit" id="strategyWinRate">55%</p>
-                                </div>
-                                <div>
-                                    <span class="text-gray-400">Ratio R:R Promedio:</span>
-                                    <p class="text-lg font-bold text-gold" id="strategyRR">2.2:1</p>
-                                </div>
-                                <div class="col-span-2">
-                                    <span class="text-gray-400">% Riesgo Recomendado:</span>
-                                    <p class="text-lg font-bold text-orange-400" id="strategyRiskPercent">2.0%</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="bg-trading-dark p-4 rounded-lg">
-                            <h4 class="font-semibold text-gold mb-3">💰 Parámetros Calculados</h4>
-                            <div class="grid grid-cols-2 gap-4 text-sm">
-                                <div class="col-span-2 bg-gray-900 p-3 rounded-lg border-l-4 border-red-400">
-                                    <span class="text-gray-400">Riesgo Máximo por Trade:</span>
-                                    <p class="text-xl font-bold text-loss" id="maxRiskPerTrade">$0</p>
-                                </div>
-
-                                <div>
-                                    <span class="text-gray-400">Contratos Óptimos:</span>
-                                    <p class="text-lg font-bold" id="optimalContracts">0</p>
-                                </div>
-                                <div>
-                                    <span class="text-gray-400">Stop Loss Sugerido:</span>
-                                    <p class="text-lg font-bold" id="suggestedSL">6 pips</p>
-                                </div>
-                                <div>
-                                    <span class="text-gray-400">Take Profit 1:</span>
-                                    <p class="text-lg font-bold text-profit" id="takeProfit1">13 pips</p>
-                                </div>
-                                <div>
-                                    <span class="text-gray-400">Take Profit 2:</span>
-                                    <p class="text-lg font-bold text-profit" id="takeProfit2">24 pips</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
                 <div class="bg-trading-dark p-6 rounded-lg border border-gray-700">
                     <h3 class="text-xl font-semibold text-gold mb-4">Calculadora por Estrategia</h3>
                     <div class="space-y-4">
