@@ -1,14 +1,4 @@
-:root {
-  --trading-bg: #0a0e1a;
-  --trading-card: #0f1419;
-  --trading-border: #1e2738;
-  --gold: #f59e0b;
-  --profit: #10b981;
-  --loss: #ef4444;
-  --neutral: #6b7280;
-}
-/* Añade al inicio de aditional.css */
-
+/* ===== VARIABLES GLOBALES ===== */
 :root {
   --trading-bg: #0a0e1a;
   --trading-card: #0f1419;
@@ -19,7 +9,7 @@
   --neutral: #6b7280;
 }
 
-/* Reemplaza el fondo negro puro */
+/* ===== FONDOS Y EFECTOS ===== */
 .bg-trading-bg {
   background: linear-gradient(135deg, #0a0e1a 0%, #111827 100%) !important;
 }
@@ -29,12 +19,6 @@
   backdrop-filter: blur(10px);
 }
 
-/* Mejora los bordes para menos contraste */
-.border-gray-700 {
-  border-color: #1e2738 !important;
-}
-
-/* Efecto glassmorphism para cards importantes */
 .glass-card {
   background: rgba(15, 20, 25, 0.8);
   backdrop-filter: blur(12px);
@@ -42,7 +26,7 @@
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
-/* Indicadores de riesgo mejorados */
+/* ===== GESTIÓN DE RIESGO ===== */
 .risk-critical {
   border-color: #ef4444 !important;
   box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
@@ -54,20 +38,14 @@
   opacity: 0.6;
 }
 
-.disciplinary-message {
-  animation: slideInFromTop 0.5s ease-out;
-  -webkit-animation: slideInFromTop 0.5s ease-out;
+.trading-blocked {
+  filter: grayscale(1);
+  pointer-events: none;
 }
 
-@keyframes slideInFromTop {
-  from {
-    transform: translateY(-100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
+.risk-warning {
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
+  border: 2px solid #ef4444;
 }
 
 .risk-indicator {
@@ -85,8 +63,10 @@
   background: linear-gradient(90deg, #22c55e 0%, #eab308 50%, #ef4444 100%);
 }
 
+/* ===== ANIMACIONES ===== */
 .disciplinary-message {
   animation: slideInFromTop 0.5s ease-out;
+  -webkit-animation: slideInFromTop 0.5s ease-out;
 }
 
 @keyframes slideInFromTop {
@@ -100,23 +80,12 @@
   }
 }
 
-.trading-blocked {
-  filter: grayscale(1);
-  pointer-events: none;
-}
-
-.risk-warning {
-  box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
-  border: 2px solid #ef4444;
-}
-
 .pulse-red {
   animation: pulseRed 2s infinite;
 }
 
 @keyframes pulseRed {
-  0%,
-  100% {
+  0%, 100% {
     box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
   }
   70% {
@@ -124,179 +93,7 @@
   }
 }
 
-@media (max-width: 640px) {
-  #confluencePanel {
-    width: calc(100vw - 2rem);
-    right: 1rem;
-  }
-}
-
-/* Animación mejorada para el botón */
-#confluenceToggle:hover {
-  transform: scale(1.05);
-}
-
-/* Estilos específicos para patrones de tendencia */
-/* ======================
-   ESTILOS PARA PATRONES DE TENDENCIA ESCALADOS
-   ====================== */
-
-/* Stats cards mejoradas */
-.stats-card {
-  background: #1e293b;
-  border: 1px solid #334155;
-  transition: all 0.3s ease;
-}
-
-.stats-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
-  border-color: #475569;
-  -webkit-transform: translateY(-2px);
-  -moz-transform: translateY(-2px);
-  -ms-transform: translateY(-2px);
-  -o-transform: translateY(-2px);
-}
-
-/* Container para cards de patrones */
-.bg-card-dark {
-  background: #1e293b;
-  border: 1px solid #334155;
-  transition: all 0.3s ease;
-}
-
-.pattern-card {
-  background: #1e293b;
-  border: 1px solid #334155;
-  transition: all 0.3s ease;
-  min-height: 420px; /* Aumentado para acomodar gráficos más grandes */
-}
-
-.pattern-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
-  border-color: #facc15;
-}
-
-/* Botones de categoría activos */
-.trend-category-button.active {
-  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-  color: white;
-  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
-}
-
-.trend-category-button {
-  transition: all 0.2s ease;
-}
-
-.trend-category-button:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-}
-
-/* Barra de confiabilidad mejorada */
-.reliability-bar {
-  background: linear-gradient(90deg, #ef4444, #f59e0b, #10b981);
-  transition: width 0.5s ease;
-}
-
-/* SVGs responsivos y mejorados */
-.pattern-card svg {
-  max-width: 100%;
-  height: auto;
-}
-
-/* Estilos para textos en SVG */
-.pattern-card svg text {
-  font-family:
-    system-ui,
-    -apple-system,
-    sans-serif;
-}
-
-/* Backdrop del modal mejorado */
-.modal-backdrop {
-  backdrop-filter: blur(8px);
-}
-
-/* Contenedor del grid responsive */
-#trendPatternsGrid {
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .pattern-card {
-    min-height: 380px;
-  }
-
-  #trendPatternsGrid {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-
-  .stats-card {
-    min-height: 80px;
-  }
-}
-
-@media (max-width: 640px) {
-  .pattern-card svg {
-    width: 100% !important;
-    max-width: 260px;
-  }
-}
-
-/* Añade a aditional.css */
-
-.dashboard-card {
-  position: relative;
-  overflow: hidden;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.dashboard-card::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, var(--gold), var(--profit));
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.dashboard-card:hover::before {
-  opacity: 1;
-}
-
-.dashboard-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
-  border-color: rgba(245, 158, 11, 0.3);
-}
-
-/* Iconos animados */
-.stat-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
-  background: rgba(245, 158, 11, 0.1);
-  margin-bottom: 0.5rem;
-  transition: all 0.3s ease;
-}
-
-.dashboard-card:hover .stat-icon {
-  transform: scale(1.1) rotate(5deg);
-  background: rgba(245, 158, 11, 0.2);
-}
-
-/* Añade a aditional.css */
-
+/* ===== TABS MEJORADOS ===== */
 .tab-btn {
   position: relative;
   transition: all 0.2s ease;
@@ -326,7 +123,6 @@
   width: 100%;
 }
 
-/* Indicador de badge para tabs con contenido importante */
 .tab-badge {
   display: inline-block;
   width: 6px;
@@ -338,17 +134,118 @@
 }
 
 @keyframes pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
 }
 
-/* Añade a aditional.css */
+/* ===== CARDS Y ESTADÍSTICAS ===== */
+.dashboard-card {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
 
+.dashboard-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--gold), var(--profit));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.dashboard-card:hover::before {
+  opacity: 1;
+}
+
+.dashboard-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+.stat-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: rgba(245, 158, 11, 0.1);
+  margin-bottom: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.dashboard-card:hover .stat-icon {
+  transform: scale(1.1) rotate(5deg);
+  background: rgba(245, 158, 11, 0.2);
+}
+
+.stats-card {
+  background: #1e293b;
+  border: 1px solid #334155;
+  transition: all 0.3s ease;
+}
+
+.stats-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+  border-color: #475569;
+}
+
+.bg-card-dark {
+  background: #1e293b;
+  border: 1px solid #334155;
+  transition: all 0.3s ease;
+}
+
+/* ===== PATRONES ===== */
+.pattern-card {
+  background: #1e293b;
+  border: 1px solid #334155;
+  transition: all 0.3s ease;
+  min-height: 420px;
+}
+
+.pattern-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+  border-color: #facc15;
+}
+
+.trend-category-button.active {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  color: white;
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+}
+
+.trend-category-button {
+  transition: all 0.2s ease;
+}
+
+.trend-category-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.reliability-bar {
+  background: linear-gradient(90deg, #ef4444, #f59e0b, #10b981);
+  transition: width 0.5s ease;
+}
+
+.pattern-card svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.pattern-card svg text {
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+/* ===== MODALES ===== */
 .modal-overlay {
   backdrop-filter: blur(8px);
   background: rgba(0, 0, 0, 0.75);
@@ -380,12 +277,8 @@
 }
 
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 @keyframes scaleIn {
@@ -399,7 +292,11 @@
   }
 }
 
-/* Swipe Navigation Styles */
+.modal-backdrop {
+  backdrop-filter: blur(8px);
+}
+
+/* ===== SWIPE NAVIGATION ===== */
 main {
   cursor: grab;
   user-select: none;
@@ -411,56 +308,70 @@ main:active {
   cursor: grabbing;
 }
 
-/* Animaciones de transición entre tabs */
-@keyframes slideOutLeft {
-  from {
-    transform: translateX(0);
-    opacity: 1;
-  }
-  to {
-    transform: translateX(-50px);
-    opacity: 0;
-  }
+main.container {
+  position: relative;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: pan-y pinch-zoom;
 }
 
-@keyframes slideOutRight {
-  from {
-    transform: translateX(0);
-    opacity: 1;
-  }
-  to {
-    transform: translateX(50px);
-    opacity: 0;
-  }
+main.container.dragging {
+  cursor: grabbing !important;
 }
 
-@keyframes slideInLeft {
-  from {
-    transform: translateX(50px);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
-}
-
-@keyframes slideInRight {
-  from {
-    transform: translateX(-50px);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
+main.container.dragging * {
+  cursor: grabbing !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
 }
 
 .tab-content {
   animation: slideInLeft 0.3s ease-out;
+  position: relative;
+  will-change: transform, opacity;
 }
 
-/* Indicador visual de swipe (opcional) */
+.tab-content {
+  transition: none;
+}
+
+.tab-content.transitioning {
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.tab-content.resisting {
+  transform-origin: center;
+}
+
+@keyframes slideOutLeft {
+  from { transform: translateX(0); opacity: 1; }
+  to { transform: translateX(-50px); opacity: 0; }
+}
+
+@keyframes slideOutRight {
+  from { transform: translateX(0); opacity: 1; }
+  to { transform: translateX(50px); opacity: 0; }
+}
+
+@keyframes slideInLeft {
+  from { transform: translateX(50px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(-50px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+#swipe-direction-indicator {
+  backdrop-filter: blur(10px);
+  animation: swipePulse 1.5s ease-in-out infinite;
+}
+
+@keyframes swipePulse {
+  0%, 100% { transform: translateY(-50%) scale(1); }
+  50% { transform: translateY(-50%) scale(1.05); }
+}
+
 .swipe-indicator {
   position: fixed;
   bottom: 20px;
@@ -482,7 +393,6 @@ main:active {
   opacity: 1;
 }
 
-/* Prevenir selección de texto durante swipe */
 .no-select {
   -webkit-touch-callout: none;
   -webkit-user-select: none;
@@ -492,137 +402,114 @@ main:active {
   user-select: none;
 }
 
-/* Swipe Navigation - Vista previa profesional */
-main.container {
-  position: relative;
-  -webkit-tap-highlight-color: transparent;
-  touch-action: pan-y pinch-zoom;
-}
-
-.tab-content {
-  position: relative;
-  will-change: transform, opacity;
-}
-
-/* Indicador de dirección de swipe */
-#swipe-direction-indicator {
-  backdrop-filter: blur(10px);
-  animation: swipePulse 1.5s ease-in-out infinite;
-}
-
-@keyframes swipePulse {
-  0%,
-  100% {
-    transform: translateY(-50%) scale(1);
-  }
-  50% {
-    transform: translateY(-50%) scale(1.05);
-  }
-}
-
-/* Efecto de resistencia en los bordes */
-.tab-content.resisting {
-  transform-origin: center;
-}
-
-/* Optimización de rendimiento */
-.tab-content,
-#swipe-direction-indicator {
+.tab-content, #swipe-direction-indicator {
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Prevenir selección durante drag */
-main.container.dragging {
-  cursor: grabbing !important;
-}
-
-main.container.dragging * {
-  cursor: grabbing !important;
-  user-select: none !important;
-  -webkit-user-select: none !important;
-}
-
-/* Suavizar transiciones */
-.tab-content {
-  transition: none;
-}
-
-.tab-content.transitioning {
-  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1) !important;
-}
-
-/* Visualización de movimientos de capital */
+/* ===== MOVIMIENTOS DE CAPITAL ===== */
 .capital-movement-item {
-    background: rgba(31, 41, 55, 0.6);
-    border-left: 3px solid;
-    padding: 12px;
-    border-radius: 6px;
-    margin-bottom: 8px;
-    transition: all 0.2s;
+  background: rgba(31, 41, 55, 0.6);
+  border-left: 3px solid;
+  padding: 12px;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  transition: all 0.2s;
 }
 
 .capital-movement-item:hover {
-    background: rgba(31, 41, 55, 0.9);
-    transform: translateX(4px);
+  background: rgba(31, 41, 55, 0.9);
+  transform: translateX(4px);
 }
 
 .capital-movement-item.deposit {
-    border-left-color: #10b981;
+  border-left-color: #10b981;
 }
 
 .capital-movement-item.withdrawal {
-    border-left-color: #f59e0b;
+  border-left-color: #f59e0b;
 }
 
 .capital-movement-header {
-    display: flex;
-    justify-between;
-    align-items: center;
-    margin-bottom: 6px;
+  display: flex;
+  justify-between;
+  align-items: center;
+  margin-bottom: 6px;
 }
 
 .capital-movement-amount {
-    font-size: 1.1rem;
-    font-weight: 700;
+  font-size: 1.1rem;
+  font-weight: 700;
 }
 
 .capital-movement-details {
-    font-size: 0.875rem;
-    color: #9ca3af;
+  font-size: 0.875rem;
+  color: #9ca3af;
 }
 
-/* Scroll mejorado */
+/* ===== SCROLLBAR PERSONALIZADO ===== */
 .custom-scrollbar::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+  width: 6px;
+  height: 6px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
-    background: rgba(75, 85, 99, 0.3);
-    border-radius: 10px;
+  background: rgba(75, 85, 99, 0.3);
+  border-radius: 10px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: rgba(156, 163, 175, 0.5);
-    border-radius: 10px;
+  background: rgba(156, 163, 175, 0.5);
+  border-radius: 10px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: rgba(156, 163, 175, 0.8);
+  background: rgba(156, 163, 175, 0.8);
 }
 
-/* Z-index fixes */
+/* ===== Z-INDEX MANAGEMENT ===== */
 #confluenceToggle {
-    z-index: 9999 !important;
+  z-index: 9999 !important;
 }
 
 #swipe-direction-indicator {
-    z-index: 9998 !important;
+  z-index: 9998 !important;
 }
 
 .modal-backdrop {
-    z-index: 10000 !important;
+  z-index: 10000 !important;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .pattern-card {
+    min-height: 380px;
+  }
+
+  #trendPatternsGrid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .stats-card {
+    min-height: 80px;
+  }
+}
+
+@media (max-width: 640px) {
+  #confluencePanel {
+    width: calc(100vw - 2rem);
+    right: 1rem;
+  }
+
+  .pattern-card svg {
+    width: 100% !important;
+    max-width: 260px;
+  }
+}
+
+#confluenceToggle:hover {
+  transform: scale(1.05);
 }

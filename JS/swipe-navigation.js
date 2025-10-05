@@ -1,8 +1,16 @@
-// Swipe Navigation System - Versión Optimizada Final
+// Swipe Navigation System - Versión Mobile/Tablet Only
 class SwipeNavigation {
     constructor( containerSelector, tabsSelector ) {
         this.container = document.querySelector( containerSelector );
         this.tabs = document.querySelectorAll( tabsSelector );
+
+        // Detectar tipo de dispositivo
+        this.isMobile = this.detectMobileDevice();
+
+        if ( !this.isMobile ) {
+            console.log( 'SwipeNavigation: Desktop detectado - Sistema desactivado' );
+            return; // No inicializar en desktop
+        }
 
         // Encontrar el índice del tab activo inicial
         this.currentTab = 0;
@@ -18,7 +26,6 @@ class SwipeNavigation {
         this.currentX = 0;
         this.currentY = 0;
         this.isDragging = false;
-        this.isMouseDown = false;
         this.startTime = 0;
         this.scrollLocked = false;
         this.scrollDirection = null;
@@ -27,8 +34,26 @@ class SwipeNavigation {
         this.threshold = 100;
         this.allowedTime = 500;
         this.verticalThreshold = 15;
+        this.minSwipeDistance = 50; // Distancia mínima para considerar swipe
 
         this.init();
+    }
+
+    detectMobileDevice() {
+        // Detectar si es touch device
+        const hasTouch = ( 'ontouchstart' in window ) ||
+            ( navigator.maxTouchPoints > 0 ) ||
+            ( navigator.msMaxTouchPoints > 0 );
+
+        // Detectar por user agent (backup)
+        const mobileRegex = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i;
+        const isMobileUA = mobileRegex.test( navigator.userAgent );
+
+        // Detectar por ancho de pantalla (tablet incluido)
+        const isSmallScreen = window.innerWidth <= 1024;
+
+        // Es móvil/tablet si tiene touch Y (es mobile UA O pantalla pequeña)
+        return hasTouch && ( isMobileUA || isSmallScreen );
     }
 
     init() {
@@ -36,13 +61,15 @@ class SwipeNavigation {
         this.attachEventListeners();
         this.setupScrollableAreas();
 
-        this.container.style.userSelect = 'none';
-        this.container.style.webkitUserSelect = 'none';
-        this.container.style.cursor = 'grab';
+        // Estilos solo para touch devices
+        this.container.style.touchAction = 'pan-y'; // Permitir scroll vertical
+        this.container.style.overscrollBehavior = 'contain';
+
+        console.log( 'SwipeNavigation: Inicializado para mobile/tablet' );
     }
 
     setupScrollableAreas() {
-        // Identificar TODAS las áreas con scroll interno
+        // Identificar áreas con scroll interno
         this.scrollableSelectors = [
             '.overflow-x-auto',
             '.overflow-y-auto',
@@ -51,36 +78,44 @@ class SwipeNavigation {
             '#setupCheckerContent',
             '#observationsList',
             '#recentWithdrawals',
+            '#capitalMovementsTableBody',
             '.max-h-64',
             '.max-h-96',
             '.max-h-screen',
             'table',
-            '.overflow-auto'
+            '.overflow-auto',
+            'tbody',
+            '.scrollable-table'
         ];
     }
 
     attachEventListeners() {
-        // Touch events
+        // SOLO touch events (no mouse events)
         this.container.addEventListener( 'touchstart', ( e ) => this.handleStart( e ), { passive: true } );
         this.container.addEventListener( 'touchmove', ( e ) => this.handleMove( e ), { passive: false } );
         this.container.addEventListener( 'touchend', ( e ) => this.handleEnd( e ), { passive: true } );
-
-        // Mouse events
-        this.container.addEventListener( 'mousedown', ( e ) => this.handleStart( e ) );
-        this.container.addEventListener( 'mousemove', ( e ) => this.handleMove( e ) );
-        this.container.addEventListener( 'mouseup', ( e ) => this.handleEnd( e ) );
-        this.container.addEventListener( 'mouseleave', ( e ) => this.handleEnd( e ) );
-
-        // Prevenir clicks durante drag
-        this.container.addEventListener( 'click', ( e ) => {
-            if ( this.isDragging ) {
-                e.preventDefault();
-                e.stopPropagation();
-            }
-        }, true );
+        this.container.addEventListener( 'touchcancel', ( e ) => this.handleEnd( e ), { passive: true } );
 
         // Observer para tabs activos
         this.observeTabChanges();
+
+        // Observer para resize (cambio a/desde desktop)
+        this.setupResizeObserver();
+    }
+
+    setupResizeObserver() {
+        let resizeTimer;
+        window.addEventListener( 'resize', () => {
+            clearTimeout( resizeTimer );
+            resizeTimer = setTimeout( () => {
+                const wasMobile = this.isMobile;
+                this.isMobile = this.detectMobileDevice();
+
+                if ( wasMobile !== this.isMobile ) {
+                    console.log( `SwipeNavigation: Cambio de modo - Mobile: ${this.isMobile}` );
+                }
+            }, 250 );
+        } );
     }
 
     observeTabChanges() {
@@ -103,28 +138,40 @@ class SwipeNavigation {
 
     isScrollableElement( element ) {
         let el = element;
-        while ( el && el !== this.container && el !== document.body ) {
+        let depth = 0;
+        const maxDepth = 10;
+
+        while ( el && el !== this.container && el !== document.body && depth < maxDepth ) {
+            depth++;
+
             const computedStyle = window.getComputedStyle( el );
             const hasScrollX = el.scrollWidth > el.clientWidth;
             const hasScrollY = el.scrollHeight > el.clientHeight;
             const overflowX = computedStyle.overflowX;
             const overflowY = computedStyle.overflowY;
 
-            // Verificar si tiene scroll activo
+            // CRÍTICO: Verificar si puede hacer scroll horizontal
+            if ( hasScrollX && ( overflowX === 'auto' || overflowX === 'scroll' ) ) {
+                const canScrollLeft = el.scrollLeft > 0;
+                const canScrollRight = el.scrollLeft < ( el.scrollWidth - el.clientWidth );
+
+                if ( canScrollLeft || canScrollRight ) {
+                    console.log( 'SwipeNav: Elemento con scroll horizontal detectado', el.className );
+                    return true;
+                }
+            }
+
+            // Verificar scroll vertical
             if ( hasScrollY && ( overflowY === 'auto' || overflowY === 'scroll' ) ) {
                 return true;
             }
 
-            if ( hasScrollX && ( overflowX === 'auto' || overflowX === 'scroll' ) ) {
-                return true;
-            }
-
-            // 🆕 VERIFICAR SI ES LA TABLA DE TRADES O SU CONTENEDOR
+            // Verificar elementos específicos que deben tener prioridad
             if ( el.tagName === 'TABLE' ||
                 el.tagName === 'TBODY' ||
                 el.id === 'tradesTableBody' ||
-                el.classList.contains( 'overflow-x-auto' ) ||
-                el.classList.contains( 'overflow-y-auto' ) ) {
+                el.id === 'capitalMovementsTableBody' ||
+                el.classList.contains( 'overflow-x-auto' ) ) {
                 return true;
             }
 
@@ -143,14 +190,19 @@ class SwipeNavigation {
 
             el = el.parentElement;
         }
+
         return false;
     }
 
     isFixedElement( element ) {
         let el = element;
-        while ( el && el !== document.body ) {
+        let depth = 0;
+
+        while ( el && el !== document.body && depth < 8 ) {
+            depth++;
+
             const position = window.getComputedStyle( el ).position;
-            if ( position === 'fixed' ) return true;
+            if ( position === 'fixed' || position === 'sticky' ) return true;
 
             const fixedIds = [
                 'confluenceToggle',
@@ -161,6 +213,7 @@ class SwipeNavigation {
                 'swipeIndicator',
                 'swipe-direction-indicator'
             ];
+
             if ( fixedIds.includes( el.id ) ) return true;
 
             // Elementos interactivos
@@ -174,13 +227,16 @@ class SwipeNavigation {
 
             el = el.parentElement;
         }
+
         return false;
     }
 
     handleStart( e ) {
+        if ( !this.isMobile ) return;
         if ( this.isFixedElement( e.target ) ) return;
+        if ( !e.touches || !e.touches[ 0 ] ) return;
 
-        const point = e.touches ? e.touches[ 0 ] : e;
+        const point = e.touches[ 0 ];
         this.startX = point.pageX;
         this.startY = point.pageY;
         this.currentX = point.pageX;
@@ -189,42 +245,46 @@ class SwipeNavigation {
         this.isDragging = false;
         this.scrollLocked = false;
         this.scrollDirection = null;
-
-        if ( !e.touches ) {
-            this.isMouseDown = true;
-            this.container.style.cursor = 'grabbing';
-        }
     }
 
     handleMove( e ) {
+        if ( !this.isMobile ) return;
         if ( this.isFixedElement( e.target ) ) return;
-        if ( e.touches && !e.touches[ 0 ] ) return;
-        if ( !e.touches && !this.isMouseDown ) return;
+        if ( !e.touches || !e.touches[ 0 ] ) return;
 
-        const point = e.touches ? e.touches[ 0 ] : e;
+        const point = e.touches[ 0 ];
         this.currentX = point.pageX;
         this.currentY = point.pageY;
 
         const diffX = Math.abs( this.currentX - this.startX );
         const diffY = Math.abs( this.currentY - this.startY );
 
-        // Determinar dirección solo una vez
-        if ( !this.scrollDirection && ( diffX > 10 || diffY > 10 ) ) {
+        // Determinar dirección solo una vez (con umbral más alto)
+        if ( !this.scrollDirection && ( diffX > 20 || diffY > 20 ) ) {
             this.scrollDirection = diffY > diffX ? 'vertical' : 'horizontal';
 
-            // Si es vertical Y está en elemento scrolleable, bloquear swipe
-            if ( this.scrollDirection === 'vertical' && this.isScrollableElement( e.target ) ) {
+            // Si es vertical O está en elemento scrolleable, bloquear swipe
+            if ( this.scrollDirection === 'vertical' ) {
+                this.scrollLocked = true;
+                return;
+            }
+
+            // Si es horizontal PERO está en elemento con scroll horizontal, bloquear
+            if ( this.scrollDirection === 'horizontal' && this.isScrollableElement( e.target ) ) {
+                console.log( 'SwipeNav: Bloqueado por elemento scrolleable' );
                 this.scrollLocked = true;
                 return;
             }
         }
 
-        // Si está bloqueado por scroll vertical, salir
+        // Si está bloqueado, salir
         if ( this.scrollLocked ) return;
 
-        // Solo proceder si es horizontal
-        if ( this.scrollDirection === 'horizontal' && diffX > 15 ) {
+        // Solo proceder si es horizontal y supera umbral mínimo
+        if ( this.scrollDirection === 'horizontal' && diffX > this.minSwipeDistance ) {
             this.isDragging = true;
+
+            // Prevenir scroll de página durante swipe
             if ( e.cancelable ) {
                 e.preventDefault();
             }
@@ -268,7 +328,7 @@ class SwipeNavigation {
 
         // Indicador visual
         const progress = Math.abs( diffX ) / this.threshold;
-        if ( progress > 0.3 ) {
+        if ( progress > 0.4 ) {
             this.showSwipeIndicator( diffX < 0 ? 'next' : 'prev', progress );
         } else {
             this.hideSwipeIndicator();
@@ -319,6 +379,7 @@ class SwipeNavigation {
     }
 
     handleEnd( e ) {
+        if ( !this.isMobile ) return;
         if ( this.isFixedElement( e.target ) ) return;
 
         const endX = this.currentX;
@@ -346,10 +407,8 @@ class SwipeNavigation {
         }
 
         this.isDragging = false;
-        this.isMouseDown = false;
         this.scrollLocked = false;
         this.scrollDirection = null;
-        this.container.style.cursor = 'grab';
     }
 
     processSwipe( diffX, elapsedTime ) {
@@ -411,7 +470,6 @@ class SwipeNavigation {
                         newSection.style.transform = '';
                         newSection.style.opacity = '';
 
-                        // Scroll al inicio del contenido
                         this.scrollToTop();
                     }, 350 );
                 }
@@ -426,9 +484,7 @@ class SwipeNavigation {
         const tabRect = tab.getBoundingClientRect();
         const containerRect = navContainer.getBoundingClientRect();
 
-        // Si el tab está fuera de vista a la derecha o izquierda
         if ( tabRect.right > containerRect.right ) {
-            // Scroll para mostrar el tab en el centro
             const scrollAmount = tabRect.right - containerRect.right + ( tabRect.width / 2 );
             navContainer.scrollBy( {
                 left: scrollAmount,
@@ -444,7 +500,6 @@ class SwipeNavigation {
     }
 
     scrollToTop() {
-        // Scroll suave al inicio del contenido
         window.scrollTo( {
             top: 0,
             behavior: 'smooth'

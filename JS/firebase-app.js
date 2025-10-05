@@ -725,6 +725,7 @@ function editTrade( tradeId, updatedData ) {
     return true;
 }
 
+// FUNCIÓN MEJORADA: renderTrades con stats y filtros avanzados
 function renderTrades() {
     const tbody = document.getElementById( "tradesTableBody" );
     if ( !tbody ) return;
@@ -732,67 +733,159 @@ function renderTrades() {
     let filteredTrades = [ ...trades ];
 
     const strategyFilter = document.getElementById( "filterStrategy" )?.value;
+    const resultFilter = document.getElementById( "filterResult" )?.value;
     const dateFilter = document.getElementById( "filterDate" )?.value;
 
+    // Aplicar filtros
     if ( strategyFilter && strategyFilter !== 'all' ) {
         filteredTrades = filteredTrades.filter( trade => trade.strategy === strategyFilter );
+    }
+
+    if ( resultFilter && resultFilter !== 'all' ) {
+        if ( resultFilter === 'open' ) {
+            filteredTrades = filteredTrades.filter( trade => !trade.closed );
+        } else if ( resultFilter === 'win' ) {
+            filteredTrades = filteredTrades.filter( trade => trade.closed && trade.result === 'win' );
+        } else if ( resultFilter === 'loss' ) {
+            filteredTrades = filteredTrades.filter( trade => trade.closed && trade.result === 'loss' );
+        }
     }
 
     if ( dateFilter ) {
         filteredTrades = filteredTrades.filter( trade => trade.date === dateFilter );
     }
 
+    // Mostrar indicador de filtros activos
+    const hasActiveFilters = strategyFilter || resultFilter !== 'all' || dateFilter;
+    const activeFiltersIndicator = document.getElementById( "activeFiltersIndicator" );
+    const filteredCountEl = document.getElementById( "filteredTradesCount" );
+
+    if ( hasActiveFilters && activeFiltersIndicator && filteredCountEl ) {
+        activeFiltersIndicator.classList.remove( "hidden" );
+        filteredCountEl.textContent = filteredTrades.length;
+    } else if ( activeFiltersIndicator ) {
+        activeFiltersIndicator.classList.add( "hidden" );
+    }
+
+    // Ordenar por fecha más reciente
     filteredTrades.sort( ( a, b ) => new Date( b.timestamp ) - new Date( a.timestamp ) );
+
+    // Calcular estadísticas
+    const winningTrades = trades.filter( t => t.closed && t.result === 'win' );
+    const allPnLs = trades.filter( t => t.closed ).map( t => parseFloat( t.pnl || 0 ) );
+    const bestTrade = allPnLs.length > 0 ? Math.max( ...allPnLs ) : 0;
+    const worstTrade = allPnLs.length > 0 ? Math.min( ...allPnLs ) : 0;
+    const totalPnL = calculateTotalPnL();
+    const winRate = trades.length > 0 ? Math.round( ( winningTrades.length / trades.filter( t => t.closed ).length ) * 100 ) || 0 : 0;
+    const openTrades = trades.filter( t => !t.closed ).length;
+
+    // Actualizar badges y stats
+    updateElement( "tradesCountBadge", trades.length );
+    updateElement( "openTradesCountBadge", openTrades );
+    updateElement( "tradesWinRate", `${winRate}%` );
+    updateElement( "tradesPnLTotal", `$${totalPnL.toFixed( 2 )}`, totalPnL >= 0 ? 'text-profit' : 'text-loss' );
+    updateElement( "tradesBestTrade", `$${bestTrade.toFixed( 2 )}` );
+    updateElement( "tradesWorstTrade", `$${worstTrade.toFixed( 2 )}` );
+    updateElement( "displayedTradesCount", filteredTrades.length );
+    updateElement( "totalTradesCount", trades.length );
+    updateElement( "lastTradesUpdate", new Date().toLocaleTimeString( 'es-PE', { hour: '2-digit', minute: '2-digit' } ) );
+
+    // Renderizar filas
+    if ( filteredTrades.length === 0 ) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="10" class="p-12 mt-6 text-center text-gray-400">
+                    <div class="flex flex-col items-center space-y-3 py-6">
+                        <div class="text-5xl">${hasActiveFilters ? '🔍' : '📊'}</div>
+                        <div class="text-lg font-semibold">
+                            ${hasActiveFilters ? 'No hay trades que coincidan con los filtros' : 'No hay trades registrados'}
+                        </div>
+                        ${hasActiveFilters ? `
+                            <div class="text-sm text-gray-500">
+                                Intenta ajustar los filtros o <button onclick="clearTradeFilters()" class="text-blue-400 hover:text-blue-300 underline">limpiar todos los filtros</button>
+                            </div>
+                        ` : `
+                            <div class="text-sm text-gray-500">
+                                Comienza registrando tu primer trade
+                            </div>
+                            <button onclick="document.getElementById('addTradeBtn').click()" 
+                                    class="mt- hover:bg-slate-700 py-4 rounded-lg font-medium text-sm transition-colors text-blue-400">
+                                ➕ Registrar mi primer trade
+                            </button>
+                        `}
+                    </div>
+                </td>
+            </tr>
+        `;
+        return;
+    }
 
     tbody.innerHTML = filteredTrades.map( trade => {
         const strategyName = strategyConfigs[ trade.strategy ]?.name || trade.strategy;
         const pnlValue = parseFloat( trade.pnl ) || 0;
-
-        // MOSTRAR P&L REAL del trade (no recalcular)
-        const displayedPnL = pnlValue;
-        const pnlClass = displayedPnL >= 0 ? "text-profit" : "text-loss";
+        const pnlClass = pnlValue >= 0 ? "text-profit" : "text-loss";
 
         const statusDisplay = trade.closed ? trade.status : 'Abierto';
-        const statusClass = trade.closed ? ( trade.status === 'Cerrado por TP' ? 'bg-green-800 text-green-200' : trade.status === 'Cierre manual' ? 'bg-orange-800 text-orange-200' : 'bg-gray-800 text-gray-200' ) : 'bg-green-800 text-green-200';
-        const closePrice = trade.closePrice ? `$${trade.closePrice.toFixed( 2 )}` : ( trade.closed ? 'Cerrado' : 'Sin cerrar' );
+        const statusClass = trade.closed
+            ? ( trade.status === 'Cerrado por TP' ? 'bg-green-800 text-green-200'
+                : trade.status === 'Cierre manual' ? 'bg-orange-800 text-orange-200'
+                    : 'bg-gray-800 text-gray-200' )
+            : 'bg-green-800 text-green-200 animate-pulse';
+
+        const closePrice = trade.closePrice
+            ? `$${trade.closePrice.toFixed( 2 )}`
+            : ( trade.closed ? 'Cerrado' : '⏳ Pendiente' );
 
         return `
-            <tr class="border-b border-gray-700 hover:bg-gray-800 transition-colors">
-                <td class="p-2 text-sm">${new Date( trade.date ).toLocaleDateString()}</td>
-                <td class="p-2 text-sm font-medium">${strategyName}</td>
-                <td class="p-2">
-                    <span class="px-1 py-0.5 rounded text-xs font-medium ${trade.direction === 'buy' ? 'bg-green-800 text-green-200' : 'bg-red-800 text-red-200'}">
-                        ${trade.direction === 'buy' ? 'Compra' : 'Venta'}
+            <tr class="border-b border-gray-700 hover:bg-gray-800/50 transition-all duration-200 group">
+                <td class="p-3 text-sm whitespace-nowrap">
+                    ${new Date( trade.date ).toLocaleDateString( 'es-PE', { day: '2-digit', month: 'short' } )}
+                </td>
+                <td class="p-3 text-sm font-medium">
+                    <span class="inline-block max-w-[150px] truncate" title="${strategyName}">
+                        ${strategyName}
                     </span>
                 </td>
-                <td class="p-2 text-sm font-medium">${trade.totalContracts || trade.contracts}</td>
-                <td class="p-2 text-sm">${trade.openPrice ? `$${trade.openPrice.toFixed( 2 )}` : 'N/A'}</td>
-                <td class="p-2 text-sm">${closePrice}</td>
-                <td class="p-2">
-                    <span class="px-1 py-0.5 rounded text-xs font-medium ${statusClass}">
-                        ${statusDisplay} ${trade.tpLevel ? `(${trade.tpLevel})` : ''}
+                <td class="p-3">
+                    <span class="px-2 py-1 rounded-full text-xs font-bold ${trade.direction === 'buy' ? 'bg-green-900/40 text-green-300 border border-green-600/50' : 'bg-red-900/40 text-red-300 border border-red-600/50'}">
+                        ${trade.direction === 'buy' ? '↗️ LONG' : '↘️ SHORT'}
                     </span>
                 </td>
-                <td class="p-2 ${pnlClass} font-bold text-sm">$${displayedPnL.toFixed( 2 )}</td>
-                <td class="p-2">
-                    <span class="cursor-pointer text-blue-400 hover:text-blue-300 text-xs" 
+                <td class="p-3 text-sm font-bold text-center">${trade.totalContracts || trade.contracts}</td>
+                <td class="p-3 text-sm font-mono">${trade.openPrice ? `$${trade.openPrice.toFixed( 2 )}` : '—'}</td>
+                <td class="p-3 text-sm font-mono">${closePrice}</td>
+                <td class="p-3">
+                    <span class="px-2 py-1 rounded-full text-xs font-medium ${statusClass}">
+                        ${statusDisplay} ${trade.tpLevel ? `(${trade.tpLevel.toUpperCase()})` : ''}
+                    </span>
+                </td>
+                <td class="p-3 ${pnlClass} font-bold text-sm font-mono">
+                    ${pnlValue >= 0 ? '+' : ''}$${pnlValue.toFixed( 2 )}
+                </td>
+                <td class="p-3 max-w-[150px]">
+                    <span class="cursor-pointer text-blue-400 hover:text-blue-300 text-xs truncate block" 
                           onclick="showCommentTooltip(event, '${( trade.comments || '' ).replace( /'/g, "\\'" )}')">
-                        ${trade.comments && trade.comments.length > 15 ? trade.comments.substring( 0, 15 ) + "..." : ( trade.comments || 'Sin comentarios' )}
+                        ${trade.comments && trade.comments.length > 20
+                ? trade.comments.substring( 0, 20 ) + "..."
+                : ( trade.comments || '📝 Sin notas' )}
                     </span>
                 </td>
-                <td class="p-2">
-                    <div class="flex gap-1">
+                <td class="p-3">
+                    <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button onclick="showEditTradeModal('${trade.id}')" 
-                                class="text-blue-400 hover:text-blue-300 text-xs px-1 py-0.5 rounded bg-blue-900 bg-opacity-30">
-                            Editar
-                        </button>
-                        <button onclick="deleteTrade('${trade.id}')" 
-                                class="text-red-400 hover:text-red-300 text-xs px-1 py-0.5 rounded bg-red-900 bg-opacity-30">
-                            Eliminar
+                                class="text-blue-400 hover:text-blue-300 hover:bg-blue-900/30 text-xs px-2 py-1 rounded transition-all"
+                                title="Editar trade">
+                            ✏️
                         </button>
                         <button onclick="showTradeDetails('${trade.id}')" 
-                                class="text-purple-400 hover:text-purple-300 text-xs px-1 py-0.5 rounded bg-purple-900 bg-opacity-30">
-                            Detalles
+                                class="text-purple-400 hover:text-purple-300 hover:bg-purple-900/30 text-xs px-2 py-1 rounded transition-all"
+                                title="Ver detalles">
+                            👁️
+                        </button>
+                        <button onclick="deleteTrade('${trade.id}')" 
+                                class="text-red-400 hover:text-red-300 hover:bg-red-900/30 text-xs px-2 py-1 rounded transition-all"
+                                title="Eliminar trade">
+                            🗑️
                         </button>
                     </div>
                 </td>
@@ -800,21 +893,32 @@ function renderTrades() {
         `;
     } ).join( "" );
 
-    if ( filteredTrades.length === 0 ) {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="11" class="p-4 text-center text-gray-400">
-                    <div class="flex flex-col items-center space-y-1">
-                        <div class="text-lg">📊</div>
-                        <div>No hay trades que mostrar</div>
-                        ${strategyFilter || dateFilter ? '<div class="text-sm text-gray-500">Verifica los filtros aplicados</div>' : ''}
-                    </div>
-                </td>
-            </tr>
-        `;
-    }
-
     console.log( `Tabla renderizada: ${filteredTrades.length} trades de ${trades.length} totales` );
+}
+
+// NUEVA FUNCIÓN: Helper para actualizar elementos
+function updateElement( id, content, className = null ) {
+    const el = document.getElementById( id );
+    if ( el ) {
+        el.textContent = content;
+        if ( className ) {
+            el.className = className;
+        }
+    }
+}
+
+// NUEVA FUNCIÓN: Limpiar filtros
+function clearTradeFilters() {
+    const strategyFilter = document.getElementById( "filterStrategy" );
+    const resultFilter = document.getElementById( "filterResult" );
+    const dateFilter = document.getElementById( "filterDate" );
+
+    if ( strategyFilter ) strategyFilter.value = "";
+    if ( resultFilter ) resultFilter.value = "all";
+    if ( dateFilter ) dateFilter.value = "";
+
+    renderTrades();
+    updateSyncStatus( "Filtros limpiados", true );
 }
 
 function deleteTrade( tradeId ) {
@@ -1243,10 +1347,10 @@ function renderRecentWithdrawals() {
     `).join( '' );
 }
 
-
 function renderCapitalMovementsTable() {
     const container = document.getElementById( 'capitalMovementsTableBody' );
     const summaryContainer = document.getElementById( 'capitalSummaryRow' );
+    const tfoot = summaryContainer?.closest( 'tfoot' );
 
     if ( !container ) {
         console.warn( 'Contenedor de tabla de movimientos no encontrado' );
@@ -1264,26 +1368,25 @@ function renderCapitalMovementsTable() {
     const totalWithdrawals = withdrawals.reduce( ( sum, w ) => sum + parseFloat( w.amount || 0 ), 0 );
     const netBalance = totalDeposits - totalWithdrawals;
 
+    // OCULTAR/MOSTRAR TFOOT según si hay registros
+    if ( tfoot ) {
+        if ( allMovements.length === 0 ) {
+            tfoot.classList.add( 'hidden' );
+        } else {
+            tfoot.classList.remove( 'hidden' );
+        }
+    }
+
     // Renderizar filas
     if ( allMovements.length === 0 ) {
         container.innerHTML = `
             <tr>
-                <td colspan="6" class="p-8 text-center">
-                    <div class="text-gray-500 text-base">No hay movimientos registrados</div>
-                    <div class="text-gray-600 text-sm mt-1">Los depósitos y retiros aparecerán aquí</div>
+                <td colspan="5" class="p-8 text-center">
+                    <div class="text-gray-600 text-sm mt-4">Los depósitos y retiros aparecerán aquí</div>
                 </td>
             </tr>
         `;
-
-        if ( summaryContainer ) {
-            summaryContainer.innerHTML = `
-                <td colspan="3" class="p-4 text-right font-bold text-white uppercase tracking-wide">Totales:</td>
-                <td class="p-4 text-right font-bold text-green-400 text-lg">+$0.00</td>
-                <td class="p-4 text-right font-bold text-orange-400 text-lg">-$0.00</td>
-                <td class="p-4 text-right font-bold text-gold text-xl">$0.00</td>
-            `;
-        }
-        return;
+        return; // Salir temprano si no hay movimientos
     }
 
     container.innerHTML = allMovements.map( movement => {
@@ -1333,20 +1436,22 @@ function renderCapitalMovementsTable() {
         `;
     } ).join( '' );
 
-    // Renderizar fila de totales
+    // Renderizar fila de totales (solo si hay movimientos)
     if ( summaryContainer ) {
         summaryContainer.innerHTML = `
-            <td colspan="3" class="p-5 text-right font-bold text-white uppercase tracking-wider text-base bg-gray-800/80">
-                Totales:
-            </td>
-            <td class="p-5 text-right bg-gray-800/80">
-                <div class="text-green-400 font-bold text-lg">+$${totalDeposits.toFixed( 2 )}</div>
-                <div class="text-orange-400 font-bold text-lg mt-1">-$${totalWithdrawals.toFixed( 2 )}</div>
-            </td>
-            <td class="p-5 text-right font-bold ${netBalance >= 0 ? 'text-gold' : 'text-red-400'} text-2xl bg-gray-800/80" colspan="2">
-                $${netBalance.toFixed( 2 )}
-            </td>
-        `;
+        <td class="p-5 text-left font-bold text-white uppercase tracking-wider text-base bg-gray-800/80">
+            Totales:
+        </td>
+        <td class="p-5 bg-gray-800/80"></td>
+        <td class="p-5 bg-gray-800/80"></td>
+        <td class="p-5 text-right bg-gray-800/80">
+            <div class="text-green-400 font-bold text-md">$${totalDeposits.toFixed( 2 )}</div>
+            <div class="text-orange-400 font-bold text-md mt-1">$${totalWithdrawals.toFixed( 2 )}</div>
+        </td>
+        <td class="p-5 text-right font-bold ${netBalance >= 0 ? 'text-gold' : 'text-red-400'} text-xl bg-gray-800/80">
+            $${netBalance.toFixed( 2 )}
+        </td>
+    `;
     }
 
     // Actualizar contador
@@ -1359,62 +1464,91 @@ function renderCapitalMovementsTable() {
 /**
  * Elimina un movimiento de capital
  */
+// CORRECCIÓN 1: Asegurar que renderAllData incluya la tabla de movimientos
+function renderAllData() {
+    try {
+        updateDailyCountersFromTrades();
+        renderDashboard();
+        renderCapitalSection();
+        renderTrades();
+        renderObservations();
+        renderRecentWithdrawals();
+        renderCapitalMovementsTable(); // ← AGREGAR ESTA LÍNEA
+        updateCapitalBreakdown();
+        updateStrategyDisplay();
+
+        if ( currentTab === "signals" ) {
+            renderSetupChecklist();
+        }
+
+        if ( currentTab === "dashboard" ) {
+            setTimeout( () => {
+                if ( window.updateAllCharts ) {
+                    window.updateAllCharts();
+                }
+                if ( window.updateCapitalMovementsList ) {
+                    window.updateCapitalMovementsList();
+                }
+            }, 100 );
+        }
+
+        const disciplinaryMsg = generateDisciplinaryMessage();
+        if ( disciplinaryMsg && ( disciplinaryMsg.priority === 'high' || disciplinaryMsg.priority === 'critical' ) ) {
+            setTimeout( () => showDisciplinaryMessage( disciplinaryMsg ), 500 );
+        }
+
+    } catch ( error ) {
+        console.error( "Error en renderAllData:", error );
+        updateSyncStatus( "Error actualizando datos", false );
+    }
+}
+
+// CORRECCIÓN 2: Mejorar la función deleteCapitalMovement con forzado de re-render
 function deleteCapitalMovement( movementId, type ) {
     if ( !confirm( '¿Eliminar este movimiento? Esta acción no se puede deshacer.' ) ) {
         return;
     }
 
-    if ( type === 'deposit' ) {
-        const movement = capitalAdditions.find( d => d.id === movementId );
-        if ( movement ) {
-            currentCapital -= movement.amount;
-            capitalAdditions = capitalAdditions.filter( d => d.id !== movementId );
+    try {
+        if ( type === 'deposit' ) {
+            const movement = capitalAdditions.find( d => d.id === movementId );
+            if ( movement ) {
+                currentCapital -= movement.amount;
+                capitalAdditions = capitalAdditions.filter( d => d.id !== movementId );
+                console.log( `Depósito eliminado: $${movement.amount}` );
+            }
+        } else if ( type === 'withdrawal' ) {
+            const movement = withdrawals.find( w => w.id === movementId );
+            if ( movement ) {
+                currentCapital += movement.amount;
+                withdrawals = withdrawals.filter( w => w.id !== movementId );
+                console.log( `Retiro eliminado: $${movement.amount}` );
+            }
         }
-    } else if ( type === 'withdrawal' ) {
-        const movement = withdrawals.find( w => w.id === movementId );
-        if ( movement ) {
-            currentCapital += movement.amount;
-            withdrawals = withdrawals.filter( w => w.id !== movementId );
+
+        // Guardar cambios
+        saveDataLocally();
+        if ( currentUser ) syncDataToFirebase();
+
+        // FORZAR actualización inmediata de todas las vistas
+        renderCapitalMovementsTable(); // ← Actualización directa
+        renderRecentWithdrawals();     // ← Actualizar modal también
+        renderDashboard();              // ← Actualizar stats generales
+        updateCapitalBreakdown();      // ← Actualizar desglose de capital
+
+        // Actualizar gráficos si existen
+        if ( window.updateAllCharts ) {
+            setTimeout( () => window.updateAllCharts(), 100 );
         }
+
+        updateSyncStatus( 'Movimiento eliminado correctamente', true );
+
+    } catch ( error ) {
+        console.error( 'Error eliminando movimiento:', error );
+        updateSyncStatus( 'Error al eliminar movimiento', false );
+        alert( 'Ocurrió un error al eliminar el movimiento. Por favor, intenta nuevamente.' );
     }
-
-    saveDataLocally();
-    if ( currentUser ) syncDataToFirebase();
-
-    renderAllData();
-    updateSyncStatus( 'Movimiento eliminado', true );
 }
-
-
-//  Elimina un movimiento de capital
-
-function deleteCapitalMovement( movementId, type ) {
-    if ( !confirm( '¿Eliminar este movimiento? Esta acción no se puede deshacer.' ) ) {
-        return;
-    }
-
-    if ( type === 'deposit' ) {
-        const movement = capitalAdditions.find( d => d.id === movementId );
-        if ( movement ) {
-            currentCapital -= movement.amount;
-            capitalAdditions = capitalAdditions.filter( d => d.id !== movementId );
-        }
-    } else if ( type === 'withdrawal' ) {
-        const movement = withdrawals.find( w => w.id === movementId );
-        if ( movement ) {
-            currentCapital += movement.amount;
-            withdrawals = withdrawals.filter( w => w.id !== movementId );
-        }
-    }
-
-    saveDataLocally();
-    if ( currentUser ) syncDataToFirebase();
-
-    renderAllData();
-    updateSyncStatus( 'Movimiento eliminado', true );
-}
-
-
 
 // ===== SETUP CHECKER MEJORADO =====
 function renderSetupChecklist() {
@@ -2619,6 +2753,7 @@ function renderAllData() {
         renderTrades();
         renderObservations();
         renderRecentWithdrawals();
+        renderCapitalMovementsTable();
         updateCapitalBreakdown();
         updateStrategyDisplay();
 
@@ -4368,6 +4503,7 @@ window.addTrade = addTrade;
 // Exponer funciones globalmente
 window.renderCapitalMovementsTable = renderCapitalMovementsTable;
 window.deleteCapitalMovement = deleteCapitalMovement;
+window.clearTradeFilters = clearTradeFilters;
 
 // Inicializar al cargar el documento
 if ( typeof document !== 'undefined' ) {
