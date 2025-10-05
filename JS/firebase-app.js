@@ -1347,17 +1347,14 @@ function renderRecentWithdrawals() {
     `).join( '' );
 }
 
+// ACTUALIZAR el contador de registros en la tabla
 function renderCapitalMovementsTable() {
     const container = document.getElementById( 'capitalMovementsTableBody' );
     const summaryContainer = document.getElementById( 'capitalSummaryRow' );
     const tfoot = summaryContainer?.closest( 'tfoot' );
 
-    if ( !container ) {
-        console.warn( 'Contenedor de tabla de movimientos no encontrado' );
-        return;
-    }
+    if ( !container ) return;
 
-    // Combinar y ordenar movimientos
     const allMovements = [
         ...capitalAdditions.map( d => ( { ...d, type: 'deposit' } ) ),
         ...withdrawals.map( w => ( { ...w, type: 'withdrawal' } ) )
@@ -1368,16 +1365,9 @@ function renderCapitalMovementsTable() {
     const totalWithdrawals = withdrawals.reduce( ( sum, w ) => sum + parseFloat( w.amount || 0 ), 0 );
     const netBalance = totalDeposits - totalWithdrawals;
 
-    // OCULTAR/MOSTRAR TFOOT según si hay registros
-    if ( tfoot ) {
-        if ( allMovements.length === 0 ) {
-            tfoot.classList.add( 'hidden' );
-        } else {
-            tfoot.classList.remove( 'hidden' );
-        }
-    }
+    // Mostrar u ocultar tfoot
+    if ( tfoot ) tfoot.classList.toggle( 'hidden', allMovements.length === 0 );
 
-    // Renderizar filas
     if ( allMovements.length === 0 ) {
         container.innerHTML = `
             <tr>
@@ -1386,84 +1376,75 @@ function renderCapitalMovementsTable() {
                 </td>
             </tr>
         `;
-        return; // Salir temprano si no hay movimientos
+    } else {
+        container.innerHTML = allMovements.map( movement => {
+            const isDeposit = movement.type === 'deposit';
+            const amount = parseFloat( movement.amount );
+            return `
+                <tr class="border-b border-gray-700/50 hover:bg-gray-800/50 transition-all group">
+                    <td class="p-4 text-sm text-gray-300 font-medium">
+                        ${new Date( movement.date ).toLocaleDateString( 'es-PE', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric'
+            } )}
+                    </td>
+                    <td class="p-4">
+                        <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider
+                                    ${isDeposit
+                    ? 'bg-green-900/40 text-green-300 border border-green-600/50'
+                    : 'bg-orange-900/40 text-orange-300 border border-orange-600/50'}">
+                            ${isDeposit ? 'Ingreso' : 'Retiro'}
+                        </span>
+                    </td>
+                    <td class="p-4 text-sm text-white font-medium">${movement.concept || 'Sin concepto'}</td>
+                    <td class="p-4 text-right">
+                        <span class="text-base font-bold ${isDeposit ? 'text-green-400' : 'text-orange-400'}">
+                            ${isDeposit ? '+' : '-'}$${amount.toFixed( 2 )}
+                        </span>
+                    </td>
+                    <td class="p-4">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-400 italic truncate max-w-[250px]" 
+                                  title="${movement.notes || 'Sin notas'}">
+                                ${movement.notes || '-'}
+                            </span>
+                            <button onclick="deleteCapitalMovement('${movement.id}', '${movement.type}')"
+                                    class="ml-3 opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-300 
+                                           text-sm transition-all hover:scale-110"
+                                    title="Eliminar movimiento">
+                                🗑️
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        } ).join( '' );
     }
 
-    container.innerHTML = allMovements.map( movement => {
-        const isDeposit = movement.type === 'deposit';
-        const amount = parseFloat( movement.amount );
-
-        return `
-            <tr class="border-b border-gray-700/50 hover:bg-gray-800/50 transition-all group">
-                <td class="p-4 text-sm text-gray-300 font-medium">
-                    ${new Date( movement.date ).toLocaleDateString( 'es-PE', {
-            day: '2-digit',
-            month: 'short',
-            year: 'numeric'
-        } )}
-                </td>
-                <td class="p-4">
-                    <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider
-                                 ${isDeposit
-                ? 'bg-green-900/40 text-green-300 border border-green-600/50'
-                : 'bg-orange-900/40 text-orange-300 border border-orange-600/50'}">
-                        ${isDeposit ? 'Ingreso' : 'Retiro'}
-                    </span>
-                </td>
-                <td class="p-4 text-sm text-white font-medium">
-                    ${movement.concept || 'Sin concepto'}
-                </td>
-                <td class="p-4 text-right">
-                    <span class="text-base font-bold ${isDeposit ? 'text-green-400' : 'text-orange-400'}">
-                        ${isDeposit ? '+' : '-'}$${amount.toFixed( 2 )}
-                    </span>
-                </td>
-                <td class="p-4">
-                    <div class="flex items-center justify-between">
-                        <span class="text-sm text-gray-400 italic truncate max-w-[250px]" 
-                              title="${movement.notes || 'Sin notas'}">
-                            ${movement.notes || '-'}
-                        </span>
-                        <button onclick="deleteCapitalMovement('${movement.id}', '${movement.type}')"
-                                class="ml-3 opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-300 
-                                       text-sm transition-all hover:scale-110"
-                                title="Eliminar movimiento">
-                            🗑️
-                        </button>
-                    </div>
-                </td>
-            </tr>
-        `;
-    } ).join( '' );
-
-    // Renderizar fila de totales (solo si hay movimientos)
+    // Fila de totales
     if ( summaryContainer ) {
         summaryContainer.innerHTML = `
-        <td class="p-5 text-left font-bold text-white uppercase tracking-wider text-base bg-gray-800/80">
-            Totales:
-        </td>
-        <td class="p-5 bg-gray-800/80"></td>
-        <td class="p-5 bg-gray-800/80"></td>
-        <td class="p-5 text-right bg-gray-800/80">
-            <div class="text-green-400 font-bold text-md">$${totalDeposits.toFixed( 2 )}</div>
-            <div class="text-orange-400 font-bold text-md mt-1">$${totalWithdrawals.toFixed( 2 )}</div>
-        </td>
-        <td class="p-5 text-right font-bold ${netBalance >= 0 ? 'text-gold' : 'text-red-400'} text-xl bg-gray-800/80">
-            $${netBalance.toFixed( 2 )}
-        </td>
-    `;
+            <td class="p-5 text-left font-bold text-white uppercase tracking-wider text-base bg-gray-800/80">Totales:</td>
+            <td class="p-5 bg-gray-800/80"></td>
+            <td class="p-5 bg-gray-800/80"></td>
+            <td class="p-5 text-right bg-gray-800/80">
+                <div class="text-green-400 font-bold text-md">$${totalDeposits.toFixed( 2 )}</div>
+                <div class="text-orange-400 font-bold text-md mt-1">$${totalWithdrawals.toFixed( 2 )}</div>
+            </td>
+            <td class="p-5 text-right font-bold ${netBalance >= 0 ? 'text-gold' : 'text-red-400'} text-xl bg-gray-800/80">
+                $${netBalance.toFixed( 2 )}
+            </td>
+        `;
     }
 
-    // Actualizar contador
+    // ✅ Actualizar contador visible
     const countElement = document.getElementById( 'totalMovementsCount' );
     if ( countElement ) {
-        countElement.textContent = allMovements.length;
+        countElement.textContent = allMovements.length.toString();
     }
 }
 
-/**
- * Elimina un movimiento de capital
- */
 // CORRECCIÓN 1: Asegurar que renderAllData incluya la tabla de movimientos
 function renderAllData() {
     try {
@@ -1503,46 +1484,47 @@ function renderAllData() {
     }
 }
 
-// CORRECCIÓN 2: Mejorar la función deleteCapitalMovement con forzado de re-render
+//Mejorar la función deleteCapitalMovement con forzado de re-render
 function deleteCapitalMovement( movementId, type ) {
-    if ( !confirm( '¿Eliminar este movimiento? Esta acción no se puede deshacer.' ) ) {
-        return;
-    }
+    if ( !confirm( '¿Eliminar este movimiento? Esta acción no se puede deshacer.' ) ) return;
 
     try {
         if ( type === 'deposit' ) {
             const movement = capitalAdditions.find( d => d.id === movementId );
             if ( movement ) {
-                currentCapital -= movement.amount;
+                currentCapital -= parseFloat( movement.amount );
                 capitalAdditions = capitalAdditions.filter( d => d.id !== movementId );
-                console.log( `Depósito eliminado: $${movement.amount}` );
             }
         } else if ( type === 'withdrawal' ) {
             const movement = withdrawals.find( w => w.id === movementId );
             if ( movement ) {
-                currentCapital += movement.amount;
+                currentCapital += parseFloat( movement.amount );
                 withdrawals = withdrawals.filter( w => w.id !== movementId );
-                console.log( `Retiro eliminado: $${movement.amount}` );
             }
         }
 
-        // Guardar cambios
+        // Guardar cambios y sincronizar
         saveDataLocally();
         if ( currentUser ) syncDataToFirebase();
 
-        // FORZAR actualización inmediata de todas las vistas
-        renderCapitalMovementsTable(); // ← Actualización directa
-        renderRecentWithdrawals();     // ← Actualizar modal también
-        renderDashboard();              // ← Actualizar stats generales
-        updateCapitalBreakdown();      // ← Actualizar desglose de capital
+        // 🔁 Re-render completo para asegurar sincronización visual
+        renderCapitalMovementsTable();
+        renderRecentWithdrawals();
+        renderDashboard();
+        updateCapitalBreakdown();
 
-        // Actualizar gráficos si existen
+        // ✅ Forzar contador a actualizar (por si hay retardo visual)
+        const countElement = document.getElementById( 'totalMovementsCount' );
+        if ( countElement ) {
+            const total = capitalAdditions.length + withdrawals.length;
+            countElement.textContent = total.toString();
+        }
+
         if ( window.updateAllCharts ) {
             setTimeout( () => window.updateAllCharts(), 100 );
         }
 
         updateSyncStatus( 'Movimiento eliminado correctamente', true );
-
     } catch ( error ) {
         console.error( 'Error eliminando movimiento:', error );
         updateSyncStatus( 'Error al eliminar movimiento', false );
