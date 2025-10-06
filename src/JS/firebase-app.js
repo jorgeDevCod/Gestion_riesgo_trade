@@ -1900,7 +1900,7 @@ function updateDynamicSetupScore() {
         let barClass, scoreClass;
         if ( score >= 85 ) {
             barClass = "h-4 rounded-full bg-green-500 transition-all duration-500";
-            scoreClass = "text-4xl font-bold text-green-400 mb-2";
+            scoreClass = "text-3xl font-bold text-green-400 mb-2";
         } else if ( score >= 70 ) {
             barClass = "h-4 rounded-full bg-yellow-500 transition-all duration-500";
             scoreClass = "text-4xl font-bold text-yellow-400 mb-2";
@@ -1926,7 +1926,7 @@ function updateDynamicSetupScore() {
                 "flex-1 bg-green-600 hover:bg-green-500 px-2 py-2 rounded-lg font-medium transition-all duration-200 hover:scale-[1.02] shadow-lg";
             btn.innerHTML = `
                 <span class="flex items-center justify-center space-x-2">
-                    <span>✅ Ejecutar ${config?.name || "Trade"} (${score}%)</span>
+                    <span>✅ Ejecutar (${score}%)</span>
                 </span>
             `;
         } else {

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'Gestor-trade-v3'; // Cambia versión para forzar actualización
+const CACHE_NAME = 'Gestor-tradeApp-v1'; // Cambia versión para forzar actualización
 const urlsToCache = [
     '/',
     '/index.html',
