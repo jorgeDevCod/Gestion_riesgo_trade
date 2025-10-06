@@ -2518,7 +2518,127 @@ function showEditTradeModal( tradeId ) {
     }, 100 );
 }
 
-// NUEVA FUNCIÓN: Validaciones para modal de edición
+function addRealTimeValidations() {
+    const slInput = document.getElementById( "tradeSL" );
+    const tpInput = document.getElementById( "tradeTP" );
+    const contractsInput = document.getElementById( "tradeContracts" );
+
+    if ( slInput?.hasAttribute( "data-validation-active" ) ) return;
+
+    function validateForm() {
+        const sl = parseFloat( slInput?.value || 0 );
+        const tp = parseFloat( tpInput?.value || 0 );
+        const contracts = parseInt( contractsInput?.value || 0 );
+
+        const capital = calculateEffectiveCapital();
+        const riskAmount = contracts * sl;
+        const maxRisk = capital * 0.05;
+
+        let status = { type: '', message: '' };
+
+        // Validación crítica: Límites diarios
+        checkAndResetDailyCounters();
+        if ( dailyTradesExecuted >= 3 ) {
+            status = { type: 'error', message: '🚫 Límite diario: 3 trades máximo' };
+        } else if ( calculateDailyPnL() <= -maxRisk ) {
+            status = { type: 'error', message: '🚫 Pérdida diaria máxima alcanzada' };
+        }
+        // Capital insuficiente
+        else if ( capital <= 0 ) {
+            status = { type: 'error', message: 'Capital insuficiente. Agrega fondos primero' };
+        }
+        // Contratos inválidos
+        else if ( contracts <= 0 ) {
+            status = { type: 'error', message: 'Contratos debe ser mayor a 0' };
+        }
+        // Riesgo excesivo
+        else if ( riskAmount > maxRisk && capital > 0 ) {
+            status = {
+                type: 'error',
+                message: `Riesgo: $${riskAmount.toFixed( 2 )} excede máximo $${maxRisk.toFixed( 2 )}`
+            };
+        }
+        // Ratio inadecuado
+        else if ( tp > 0 && sl > 0 && tp < sl ) {
+            status = {
+                type: 'warning',
+                message: `Ratio TP:SL = ${( tp / sl ).toFixed( 2 )}:1 (busca mínimo 1:1)`
+            };
+        }
+        // Todo correcto
+        else if ( tp > 0 && sl > 0 ) {
+            status = {
+                type: 'success',
+                message: `Ratio ${( tp / sl ).toFixed( 2 )}:1 | Riesgo $${riskAmount.toFixed( 2 )} de $${capital.toFixed( 2 )}`
+            };
+        }
+
+        // Renderizar mensaje
+        let container = document.getElementById( "tradeValidationAlert" );
+
+        if ( !container ) {
+            // Crear contenedor antes de los campos SL/TP
+            container = document.createElement( "div" );
+            container.id = "tradeValidationAlert";
+            container.className = "mb-3";
+
+            // Insertar antes del campo SL
+            const slContainer = slInput?.closest( '.space-y-4' ) || slInput?.parentElement;
+            if ( slContainer ) {
+                slContainer.insertBefore( container, slInput.parentElement );
+            }
+        }
+
+        // Actualizar contenido según tipo
+        if ( status.type === 'error' ) {
+            container.innerHTML = `
+                <div class="bg-red-900/30 border border-red-500 rounded-lg p-2.5 flex items-start gap-2">
+                    <span class="text-red-400 text-lg flex-shrink-0">⚠️</span>
+                    <span class="text-red-200 text-sm font-medium">${status.message}</span>
+                </div>
+            `;
+        } else if ( status.type === 'warning' ) {
+            container.innerHTML = `
+                <div class="bg-yellow-900/30 border border-yellow-500 rounded-lg p-2.5 flex items-start gap-2">
+                    <span class="text-yellow-400 text-lg flex-shrink-0">⚡</span>
+                    <span class="text-yellow-200 text-sm">${status.message}</span>
+                </div>
+            `;
+        } else if ( status.type === 'success' ) {
+            container.innerHTML = `
+                <div class="bg-green-900/30 border border-green-500 rounded-lg p-2.5 flex items-start gap-2">
+                    <span class="text-green-400 text-lg flex-shrink-0">✓</span>
+                    <span class="text-green-200 text-sm">${status.message}</span>
+                </div>
+            `;
+        } else {
+            container.innerHTML = '';
+        }
+
+        // Control del botón submit
+        const submitBtn = document.querySelector( '#tradeModal button[type="submit"]' );
+        if ( submitBtn ) {
+            const isBlocked = status.type === 'error';
+            submitBtn.disabled = isBlocked;
+            submitBtn.className = isBlocked
+                ? "flex-1 bg-gray-600 cursor-not-allowed px-4 py-2 rounded-lg font-medium opacity-50"
+                : "flex-1 bg-profit hover:bg-green-600 px-4 py-2 rounded-lg font-medium transition-colors";
+        }
+    }
+
+    // Agregar listeners
+    [ slInput, tpInput, contractsInput ].forEach( input => {
+        if ( input ) {
+            input.removeEventListener( "input", validateForm );
+            input.addEventListener( "input", validateForm );
+            input.setAttribute( "data-validation-active", "true" );
+        }
+    } );
+
+    setTimeout( validateForm, 100 );
+}
+
+// Validaciones para modal de edición (versión simplificada)
 function addRealTimeValidationsToEditModal() {
     const slInput = document.getElementById( "editTradeSL" );
     const tpInput = document.getElementById( "editTradeTP" );
@@ -2563,7 +2683,6 @@ function addRealTimeValidationsToEditModal() {
 
     validateEditForm();
 }
-
 
 function updateTrade() {
     if ( !editingTradeId ) return;
@@ -3218,129 +3337,6 @@ function showEnhancedTradeModal( prefilledData = {} ) {
 
     addRealTimeValidations();
     showModal( "tradeModal" );
-}
-
-/**
- * Agrega validaciones en tiempo real al formulario de trade
- */
-function addRealTimeValidations() {
-    const slInput = document.getElementById( "tradeSL" );
-    const tpInput = document.getElementById( "tradeTP" );
-    const contractsInput = document.getElementById( "tradeContracts" );
-
-    if ( slInput?.hasAttribute( "data-validation-active" ) ) return;
-
-    function validateForm() {
-        const sl = parseFloat( slInput?.value || 0 );
-        const tp = parseFloat( tpInput?.value || 0 );
-        const contracts = parseInt( contractsInput?.value || 0 );
-
-        const capital = calculateEffectiveCapital();
-        const riskAmount = contracts * sl;
-        const maxRisk = capital * 0.05;
-
-        let status = { type: '', message: '' };
-
-        // Validación crítica: Límites diarios
-        checkAndResetDailyCounters();
-        if ( dailyTradesExecuted >= 3 ) {
-            status = { type: 'error', message: '🚫 Límite diario: 3 trades máximo' };
-        } else if ( calculateDailyPnL() <= -maxRisk ) {
-            status = { type: 'error', message: '🚫 Pérdida diaria máxima alcanzada' };
-        }
-        // Capital insuficiente
-        else if ( capital <= 0 ) {
-            status = { type: 'error', message: 'Capital insuficiente. Agrega fondos primero' };
-        }
-        // Contratos inválidos
-        else if ( contracts <= 0 ) {
-            status = { type: 'error', message: 'Contratos debe ser mayor a 0' };
-        }
-        // Riesgo excesivo
-        else if ( riskAmount > maxRisk && capital > 0 ) {
-            status = {
-                type: 'error',
-                message: `Riesgo: $${riskAmount.toFixed( 2 )} excede máximo $${maxRisk.toFixed( 2 )}`
-            };
-        }
-        // Ratio inadecuado
-        else if ( tp > 0 && sl > 0 && tp < sl ) {
-            status = {
-                type: 'warning',
-                message: `Ratio TP:SL = ${( tp / sl ).toFixed( 2 )}:1 (busca mínimo 1:1)`
-            };
-        }
-        // Todo correcto
-        else if ( tp > 0 && sl > 0 ) {
-            status = {
-                type: 'success',
-                message: `Ratio ${( tp / sl ).toFixed( 2 )}:1 | Riesgo $${riskAmount.toFixed( 2 )} de $${capital.toFixed( 2 )}`
-            };
-        }
-
-        // Renderizar mensaje
-        let container = document.getElementById( "tradeValidationAlert" );
-
-        if ( !container ) {
-            // Crear contenedor antes de los campos SL/TP
-            container = document.createElement( "div" );
-            container.id = "tradeValidationAlert";
-            container.className = "mb-3";
-
-            // Insertar antes del campo SL
-            const slContainer = slInput?.closest( '.space-y-4' ) || slInput?.parentElement;
-            if ( slContainer ) {
-                slContainer.insertBefore( container, slInput.parentElement );
-            }
-        }
-
-        // Actualizar contenido según tipo
-        if ( status.type === 'error' ) {
-            container.innerHTML = `
-                <div class="bg-red-900/30 border border-red-500 rounded-lg p-2.5 flex items-start gap-2">
-                    <span class="text-red-400 text-lg flex-shrink-0">⚠️</span>
-                    <span class="text-red-200 text-sm font-medium">${status.message}</span>
-                </div>
-            `;
-        } else if ( status.type === 'warning' ) {
-            container.innerHTML = `
-                <div class="bg-yellow-900/30 border border-yellow-500 rounded-lg p-2.5 flex items-start gap-2">
-                    <span class="text-yellow-400 text-lg flex-shrink-0">⚡</span>
-                    <span class="text-yellow-200 text-sm">${status.message}</span>
-                </div>
-            `;
-        } else if ( status.type === 'success' ) {
-            container.innerHTML = `
-                <div class="bg-green-900/30 border border-green-500 rounded-lg p-2.5 flex items-start gap-2">
-                    <span class="text-green-400 text-lg flex-shrink-0">✓</span>
-                    <span class="text-green-200 text-sm">${status.message}</span>
-                </div>
-            `;
-        } else {
-            container.innerHTML = '';
-        }
-
-        // Control del botón submit
-        const submitBtn = document.querySelector( '#tradeModal button[type="submit"]' );
-        if ( submitBtn ) {
-            const isBlocked = status.type === 'error';
-            submitBtn.disabled = isBlocked;
-            submitBtn.className = isBlocked
-                ? "flex-1 bg-gray-600 cursor-not-allowed px-4 py-2 rounded-lg font-medium opacity-50"
-                : "flex-1 bg-profit hover:bg-green-600 px-4 py-2 rounded-lg font-medium transition-colors";
-        }
-    }
-
-    // Agregar listeners
-    [ slInput, tpInput, contractsInput ].forEach( input => {
-        if ( input ) {
-            input.removeEventListener( "input", validateForm );
-            input.addEventListener( "input", validateForm );
-            input.setAttribute( "data-validation-active", "true" );
-        }
-    } );
-
-    setTimeout( validateForm, 100 );
 }
 
 // ===== INDICADORES VISUALES DE LÍMITES =====
