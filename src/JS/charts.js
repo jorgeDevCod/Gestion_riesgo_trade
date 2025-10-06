@@ -299,9 +299,15 @@ function getStrategyWinRateData() {
     const trades = JSON.parse( localStorage.getItem( 'trading_trades' ) ) || [];
     const strategies = {};
 
-    // Contar trades por estrategia
+    // Contar trades por estrategia - CORRECCIÓN: usar trades cerrados O con P&L
     trades.forEach( trade => {
-        if ( !trade.closed || !trade.strategy ) return;
+        if ( !trade.strategy ) return;
+
+        // Solo contar trades que estén cerrados O tengan P&L registrado
+        const hasPnL = trade.pnl !== undefined && trade.pnl !== null;
+        const isClosed = trade.closed === true;
+
+        if ( !isClosed && !hasPnL ) return;
 
         const key = trade.strategy;
         if ( !strategies[ key ] ) {
@@ -309,7 +315,10 @@ function getStrategyWinRateData() {
         }
 
         strategies[ key ].total++;
-        if ( trade.result === 'win' || ( parseFloat( trade.pnl ) || 0 ) > 0 ) {
+
+        // CORRECCIÓN: Determinar ganancia por P&L, no solo por result
+        const pnl = parseFloat( trade.pnl ) || 0;
+        if ( pnl > 0 || trade.result === 'win' ) {
             strategies[ key ].wins++;
         }
     } );
@@ -333,7 +342,6 @@ function getStrategyWinRateData() {
 
     return { labels, values };
 }
-
 
 function getResultsDistributionData() {
     const trades = JSON.parse( localStorage.getItem( 'trading_trades' ) ) || [];

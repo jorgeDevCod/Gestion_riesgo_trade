@@ -2472,16 +2472,73 @@ function showEditTradeModal( tradeId ) {
     document.getElementById( "editTradeStrategy" ).value = trade.strategy;
     document.getElementById( "editTradeDirection" ).value = trade.direction;
     document.getElementById( "editTradeContracts" ).value = trade.contracts;
-
-    // 🆕 Nuevos campos
     document.getElementById( "editOpenPrice" ).value = trade.openPrice || "";
     document.getElementById( "editClosePrice" ).value = trade.closePrice || "";
-
     document.getElementById( "editTradeSL" ).value = trade.sl;
     document.getElementById( "editTradeTP" ).value = trade.tp;
     document.getElementById( "editTradeComments" ).value = trade.comments || "";
 
     showModal( "editTradeModal" );
+
+    // AGREGAR: Validaciones también para modal de edición
+    setTimeout( () => {
+        addRealTimeValidationsToEditModal();
+    }, 100 );
+}
+
+// NUEVA FUNCIÓN: Validaciones para modal de edición
+function addRealTimeValidationsToEditModal() {
+    const slInput = document.getElementById( "editTradeSL" );
+    const tpInput = document.getElementById( "editTradeTP" );
+    const contractsInput = document.getElementById( "editTradeContracts" );
+
+    if ( !slInput || slInput.hasAttribute( "data-validation-active" ) ) return;
+
+    function validateEditForm() {
+        const sl = parseFloat( slInput?.value || 0 );
+        const tp = parseFloat( tpInput?.value || 0 );
+        const contracts = parseInt( contractsInput?.value || 0 );
+
+        let warnings = [];
+
+        if ( tp > 0 && sl > 0 && tp < sl ) {
+            warnings.push( `⚠️ TP (${tp}) menor que SL (${sl}). Considera ajustar.` );
+        }
+
+        let warningContainer = document.getElementById( "editTradeValidationWarning" );
+        if ( !warningContainer ) {
+            warningContainer = document.createElement( "div" );
+            warningContainer.id = "editTradeValidationWarning";
+            warningContainer.className = "mt-2";
+            slInput?.parentElement?.appendChild( warningContainer );
+        }
+
+        if ( warnings.length > 0 ) {
+            warningContainer.innerHTML = `
+                <div class="bg-yellow-900/30 border border-yellow-500 p-2 rounded text-yellow-200 text-xs">
+                    ${warnings.join( '<br>' )}
+                </div>
+            `;
+        } else if ( tp > 0 && sl > 0 ) {
+            const ratio = ( tp / sl ).toFixed( 2 );
+            warningContainer.innerHTML = `
+                <div class="bg-green-900/30 border border-green-500 p-2 rounded text-green-200 text-xs">
+                    ✅ Ratio ${ratio}:1
+                </div>
+            `;
+        } else {
+            warningContainer.innerHTML = "";
+        }
+    }
+
+    [ slInput, tpInput, contractsInput ].forEach( input => {
+        if ( input ) {
+            input.addEventListener( "input", validateEditForm );
+            input.setAttribute( "data-validation-active", "true" );
+        }
+    } );
+
+    validateEditForm();
 }
 
 function updateTrade() {
@@ -3146,60 +3203,125 @@ function addRealTimeValidations() {
     const slInput = document.getElementById( "tradeSL" );
     const tpInput = document.getElementById( "tradeTP" );
     const contractsInput = document.getElementById( "tradeContracts" );
+    const directionSelect = document.getElementById( "tradeDirection" );
+
+    // Prevenir múltiples listeners
+    if ( slInput?.hasAttribute( "data-validation-active" ) ) {
+        return;
+    }
 
     function validateForm() {
         const sl = parseFloat( slInput?.value || 0 );
         const tp = parseFloat( tpInput?.value || 0 );
         const contracts = parseInt( contractsInput?.value || 0 );
+        const direction = directionSelect?.value;
 
         const effectiveCapital = calculateEffectiveCapital();
         const slLoss = contracts * sl;
         const maxAllowedLoss = effectiveCapital * 0.05;
 
-        let errorMessage = "";
-        if ( slLoss > maxAllowedLoss ) {
-            errorMessage = `⚠️ SL de $${slLoss.toFixed( 2 )} excede límite de $${maxAllowedLoss.toFixed( 2 )}. Reduce contratos o ajusta SL.`;
-        } else if ( tp < sl && tp > 0 ) {
-            errorMessage = `⚠️ TP menor que SL. Busca mínimo ratio 1:1`;
+        let errorMessages = [];
+        let warningMessages = [];
+
+        // VALIDACIÓN 1: SL excede límite de riesgo
+        if ( slLoss > maxAllowedLoss && effectiveCapital > 0 ) {
+            errorMessages.push(
+                `⚠️ SL de $${slLoss.toFixed( 2 )} excede límite de $${maxAllowedLoss.toFixed( 2 )} (5% del capital). Reduce contratos o ajusta SL.`
+            );
         }
 
+        // VALIDACIÓN 2: Ratio TP:SL menor a 1:1
+        if ( tp > 0 && sl > 0 && tp < sl ) {
+            warningMessages.push(
+                `⚠️ TP (${tp} pips) es menor que SL (${sl} pips). Busca mínimo ratio 1:1 para trades sostenibles.`
+            );
+        }
+
+        // VALIDACIÓN 3: Contratos = 0
+        if ( contracts <= 0 ) {
+            errorMessages.push( "❌ Número de contratos debe ser mayor a 0" );
+        }
+
+        // VALIDACIÓN 4: Capital insuficiente
+        if ( effectiveCapital <= 0 ) {
+            errorMessages.push( "❌ Capital efectivo insuficiente. Agrega capital antes de operar." );
+        }
+
+        // VALIDACIÓN 5: Límites diarios alcanzados
+        checkAndResetDailyCounters();
+        if ( dailyTradesExecuted >= 3 ) {
+            errorMessages.push( "🚫 Límite diario alcanzado: Máximo 3 trades cerrados por día." );
+        }
+
+        const todayPnL = calculateDailyPnL();
+        const maxDailyLoss = effectiveCapital * 0.05;
+        if ( todayPnL <= -maxDailyLoss ) {
+            errorMessages.push( "🚫 Límite de pérdida diaria excedido: No se pueden agregar más trades hoy." );
+        }
+
+        // Mostrar errores y warnings
         let errorContainer = document.getElementById( "tradeValidationError" );
         if ( !errorContainer ) {
             errorContainer = document.createElement( "div" );
             errorContainer.id = "tradeValidationError";
-            slInput?.parentElement?.parentElement?.insertAdjacentElement(
-                "afterend",
-                errorContainer
-            );
+            errorContainer.className = "mt-4";
+            slInput?.closest( '.space-y-4' )?.appendChild( errorContainer );
         }
 
-        if ( errorMessage ) {
-            errorContainer.innerHTML = `
-                <div class="bg-red-900/30 border border-red-500 p-3 rounded-lg text-red-200 text-sm mt-2">
-                    ${errorMessage}
+        let html = '';
+
+        if ( errorMessages.length > 0 ) {
+            html += `
+                <div class="bg-red-900/30 border border-red-500 p-3 rounded-lg text-red-200 text-sm space-y-2">
+                    ${errorMessages.map( msg => `<div>${msg}</div>` ).join( '' )}
                 </div>
             `;
-        } else {
-            errorContainer.innerHTML = "";
         }
 
-        const submitBtn = document.querySelector(
-            '#tradeModal button[type="submit"]'
-        );
+        if ( warningMessages.length > 0 ) {
+            html += `
+                <div class="bg-yellow-900/30 border border-yellow-500 p-3 rounded-lg text-yellow-200 text-sm mt-2 space-y-2">
+                    ${warningMessages.map( msg => `<div>${msg}</div>` ).join( '' )}
+                </div>
+            `;
+        }
+
+        errorContainer.innerHTML = html;
+
+        // Deshabilitar botón de submit si hay errores
+        const submitBtn = document.querySelector( '#tradeModal button[type="submit"]' );
         if ( submitBtn ) {
-            submitBtn.disabled = !!errorMessage;
-            submitBtn.className = errorMessage
+            const hasErrors = errorMessages.length > 0;
+            submitBtn.disabled = hasErrors;
+            submitBtn.className = hasErrors
                 ? "flex-1 bg-gray-600 cursor-not-allowed px-4 py-2 rounded-lg font-medium opacity-50"
                 : "flex-1 bg-profit hover:bg-green-600 px-4 py-2 rounded-lg font-medium";
         }
+
+        // Mostrar ratio actual si todo está OK
+        if ( errorMessages.length === 0 && warningMessages.length === 0 && tp > 0 && sl > 0 ) {
+            const ratio = ( tp / sl ).toFixed( 2 );
+            errorContainer.innerHTML = `
+                <div class="bg-green-900/30 border border-green-500 p-3 rounded-lg text-green-200 text-sm">
+                    ✅ Ratio TP:SL = ${ratio}:1 | Riesgo máximo: $${slLoss.toFixed( 2 )} | Capital disponible: $${effectiveCapital.toFixed( 2 )}
+                </div>
+            `;
+        }
     }
 
-    [ slInput, tpInput, contractsInput ].forEach( ( input ) => {
-        if ( input && !input.hasAttribute( "data-validation-added" ) ) {
+    // Agregar listeners a todos los inputs
+    [ slInput, tpInput, contractsInput, directionSelect ].forEach( ( input ) => {
+        if ( input ) {
+            input.removeEventListener( "input", validateForm );
+            input.removeEventListener( "change", validateForm );
             input.addEventListener( "input", validateForm );
-            input.setAttribute( "data-validation-added", "true" );
+            input.addEventListener( "change", validateForm );
+            input.setAttribute( "data-validation-active", "true" );
         }
     } );
+
+    // Validación inicial
+    setTimeout( validateForm, 100 );
 }
 
 // ===== INDICADORES VISUALES DE LÍMITES =====
@@ -4283,6 +4405,10 @@ document.addEventListener( "DOMContentLoaded", function () {
     // ===== TRADES =====
     document.getElementById( "addTradeBtn" )?.addEventListener( "click", () => {
         showModal( "tradeModal" );
+        // AGREGAR: Inicializar validaciones después de mostrar modal
+        setTimeout( () => {
+            addRealTimeValidations();
+        }, 100 );
     } );
 
     document
@@ -4493,6 +4619,8 @@ window.addTrade = addTrade;
 window.renderCapitalMovementsTable = renderCapitalMovementsTable;
 window.deleteCapitalMovement = deleteCapitalMovement;
 window.clearTradeFilters = clearTradeFilters;
+window.addRealTimeValidations = addRealTimeValidations;
+window.addRealTimeValidationsToEditModal = addRealTimeValidationsToEditModal;
 
 // Inicializar al cargar el documento
 if ( typeof document !== 'undefined' ) {
