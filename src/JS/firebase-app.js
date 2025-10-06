@@ -2585,8 +2585,9 @@ function addRealTimeValidations() {
             // Insertar antes del campo SL
             const slContainer = slInput?.closest( '.space-y-4' ) || slInput?.parentElement;
             if ( slContainer ) {
-                slContainer.insertBefore( container, slInput.parentElement );
+                slContainer.prepend( container );
             }
+
         }
 
         // Actualizar contenido según tipo

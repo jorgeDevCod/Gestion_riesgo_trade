@@ -25,7 +25,6 @@
     <script src="./src/JS/confluence.js"></script>
     <script src="./src/JS/patrones.js"></script>
     <script src="./src/JS/tendencia.js"></script>
-    <script src="./src/JS/sw.js"></script>
     <script src="./src/JS/swipe-navigation.js"></script>
     <!-- JS para gráficas -->
     <script src="./src/JS/charts.js"></script>
@@ -636,7 +635,7 @@
         <!-- Registro de Trades Tab -->
         <section id="trades" class="tab-content hidden">
             <div class="bg-trading-dark p-4 sm:p-6 rounded-lg border border-gray-700">
-        
+
                 <!-- Header Principal -->
                 <div class="mb-6">
                     <div class="flex items-center justify-between gap-3 mb-4">
@@ -653,7 +652,7 @@
                             </div>
                         </div>
                     </div>
-        
+
                     <!-- Grid de Estadísticas -->
                     <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
                         <!-- Win Rate -->
@@ -661,19 +660,19 @@
                             <div class="text-xs text-gray-400 uppercase tracking-wider mb-1">Win Rate</div>
                             <div class="text-xl font-bold text-white" id="tradesWinRate">0%</div>
                         </div>
-        
+
                         <!-- P&L Total -->
                         <div class="bg-gradient-to-br from-gray-800 to-gray-900 p-3 rounded-lg border border-gray-700 hover:border-gold/50 transition-all">
                             <div class="text-xs text-gray-400 uppercase tracking-wider mb-1">P&L Total</div>
                             <div class="text-xl font-bold" id="tradesPnLTotal">$0.00</div>
                         </div>
-        
+
                         <!-- Mejor Trade -->
                         <div class="bg-gradient-to-br from-gray-800 to-gray-900 p-3 rounded-lg border border-gray-700 hover:border-green-600/50 transition-all">
                             <div class="text-xs text-gray-400 uppercase tracking-wider mb-1">Mejor Trade</div>
                             <div class="text-xl font-bold text-green-400" id="tradesBestTrade">$0.00</div>
                         </div>
-        
+
                         <!-- Peor Trade -->
                         <div class="bg-gradient-to-br from-gray-800 to-gray-900 p-3 rounded-lg border border-gray-700 hover:border-red-600/50 transition-all">
                             <div class="text-xs text-gray-400 uppercase tracking-wider mb-1">Peor Trade</div>
@@ -681,10 +680,10 @@
                         </div>
                     </div>
                 </div>
-        
+
                 <!-- Línea separadora -->
                 <div class="border-t border-gray-700 mb-6"></div>
-        
+
                 <!-- Sección de Filtros -->
                 <div class="mb-4 p-3 bg-gray-800/50 rounded-lg border border-gray-700">
                     <div class="flex items-center justify-between mb-3">
@@ -693,7 +692,7 @@
                             Limpiar
                         </button>
                     </div>
-        
+
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
                         <select id="filterStrategy" class="px-3 py-2 bg-gray-900 border border-gray-600 rounded-lg text-white text-sm focus:border-gold focus:ring-2 focus:ring-gold/20 outline-none transition-all">
                             <option value="">📋 Todas las estrategias</option>
@@ -702,17 +701,17 @@
                             <option value="ema-macd">EMA + MACD</option>
                             <option value="contra-tendencia">Contra-Tendencia</option>
                         </select>
-        
+
                         <select id="filterResult" class="px-3 py-2 bg-gray-900 border border-gray-600 rounded-lg text-white text-sm focus:border-gold focus:ring-2 focus:ring-gold/20 outline-none transition-all">
                             <option value="all" selected>📊 Todos los estados</option>
                             <option value="open">🟢 Abiertos</option>
                             <option value="win">✅ Ganadores</option>
                             <option value="loss">❌ Perdedores</option>
                         </select>
-        
+
                         <input type="date" id="filterDate" class="px-3 py-2 bg-gray-900 border border-gray-600 rounded-lg text-white text-sm focus:border-gold focus:ring-2 focus:ring-gold/20 outline-none transition-all">
                     </div>
-        
+
                     <!-- Indicador de Filtros Activos -->
                     <div id="activeFiltersIndicator" class="hidden mt-2 p-2 bg-blue-900/20 border border-blue-600/30 rounded-lg">
                         <span class="text-xs text-blue-300">
@@ -720,28 +719,28 @@
                         </span>
                     </div>
                 </div>
-        
+
                 <!-- Botones de Acción -->
                 <div class="w-full mb-4">
                     <div class="grid gap-2 sm:grid-cols-3 sm:justify-end sm:justify-items-end justify-items-stretch">
-        
+
                         <button id="addTradeBtn" class="inline-flex items-center justify-center gap-1.5 bg-green-600 hover:bg-green-500 px-4 py-2 rounded-lg font-medium text-sm transition-all hover:scale-[1.02] shadow-md">
                             <span>☑️</span>
                             <span>Nuevo Trade</span>
                         </button>
-        
+
                         <button id="exportTradesBtn" class="inline-flex items-center justify-center gap-1.5 bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded-lg font-medium text-sm transition-all hover:scale-[1.02] shadow-md">
                             <span>📊</span>
                             <span>Exportar</span>
                         </button>
-        
+
                         <button id="activeTradesBtn" onclick="showClosureManagement()" class="inline-flex items-center justify-center gap-1.5 bg-orange-600 hover:bg-orange-500 px-4 py-2 rounded-lg font-medium text-sm transition-all hover:scale-[1.02] shadow-md">
                             <span>⚡</span>
                             <span>Gestión Cierre</span>
                         </button>
                     </div>
                 </div>
-        
+
                 <!-- Tabla de Trades -->
                 <div class="overflow-x-auto custom-scrollbar rounded-lg border border-gray-700">
                     <table class="w-full table-auto border-separate border-spacing-0">
@@ -783,23 +782,23 @@
                                 </th>
                             </tr>
                         </thead>
-        
+
                         <tbody id="tradesTableBody">
                             <tr>
                                 <td colspan="11" class="p-8 text-center text-gray-400">
                                     <div class="flex flex-col items-center space-y-4">
                                         <!-- Ícono principal -->
                                         <div class="text-6xl mt-4 animate-pulse">📊</div>
-        
+
                                         <!-- Mensaje -->
                                         <div class="text-lg font-semibold text-gray-200">
                                             No hay trades registrados
                                         </div>
-        
+
                                         <div class="text-sm text-gray-500">
                                             Comienza registrando tu primer trade
                                         </div>
-        
+
                                         <!-- Botón mejorado -->
                                         <button onclick="document.getElementById('addTradeBtn').click()" class="mt-3 inline-flex items-center gap-2 bg-green-600 hover:bg-green-500 text-white font-semibold px-6 py-2.5 rounded-lg text-sm shadow-md transition-all hover:scale-[1.03] focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-2 focus:ring-offset-gray-900">
                                             <span>➕</span>
@@ -810,9 +809,9 @@
                             </tr>
                         </tbody>
                     </table>
-        
+
                 </div>
-        
+
                 <!-- Footer con Información -->
                 <div class="mt-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-gray-400 border-t border-gray-700 pt-3">
                     <div class="flex items-center gap-2">
