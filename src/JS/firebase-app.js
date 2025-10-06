@@ -837,61 +837,68 @@ function renderTrades() {
             : ( trade.closed ? 'Cerrado' : '⏳ Pendiente' );
 
         return `
-            <tr class="border-b border-gray-700 hover:bg-gray-800/50 transition-all duration-200 group">
-                <td class="p-3 text-sm whitespace-nowrap">
-                    ${new Date( trade.date ).toLocaleDateString( 'es-PE', { day: '2-digit', month: 'short' } )}
-                </td>
-                <td class="p-3 text-sm font-medium">
-                    <span class="inline-block max-w-[150px] truncate" title="${strategyName}">
-                        ${strategyName}
-                    </span>
-                </td>
-                <td class="p-3">
-                    <span class="px-2 py-1 rounded-full text-xs font-bold ${trade.direction === 'buy' ? 'bg-green-900/40 text-green-300 border border-green-600/50' : 'bg-red-900/40 text-red-300 border border-red-600/50'}">
-                        ${trade.direction === 'buy' ? '↗️ LONG' : '↘️ SHORT'}
-                    </span>
-                </td>
-                <td class="p-3 text-sm font-bold text-center">${trade.totalContracts || trade.contracts}</td>
-                <td class="p-3 text-sm font-mono">${trade.openPrice ? `$${trade.openPrice.toFixed( 2 )}` : '—'}</td>
-                <td class="p-3 text-sm font-mono">${closePrice}</td>
-                <td class="p-3">
-                    <span class="px-2 py-1 rounded-full text-xs font-medium ${statusClass}">
-                        ${statusDisplay} ${trade.tpLevel ? `(${trade.tpLevel.toUpperCase()})` : ''}
-                    </span>
-                </td>
-                <td class="p-3 ${pnlClass} font-bold text-sm font-mono">
-                    ${pnlValue >= 0 ? '+' : ''}$${pnlValue.toFixed( 2 )}
-                </td>
-                <td class="p-3 max-w-[150px]">
-                    <span class="cursor-pointer text-blue-400 hover:text-blue-300 text-xs truncate block" 
-                          onclick="showCommentTooltip(event, '${( trade.comments || '' ).replace( /'/g, "\\'" )}')">
-                        ${trade.comments && trade.comments.length > 20
+    <tr class="border-b border-gray-700 hover:bg-gray-800/50 transition-all duration-200 group">
+        <td class="p-3 text-sm whitespace-nowrap w-[7%]">
+            ${new Date( trade.date ).toLocaleDateString( 'es-PE', { day: '2-digit', month: 'short' } )}
+        </td>
+
+        <td class="p-3 text-sm font-medium w-[15%]">
+            <span class="inline-block truncate" title="${strategyName}">
+                ${strategyName}
+            </span>
+        </td>
+
+        <td class="p-3 text-center w-[10%] whitespace-nowrap">
+            <span class="px-2 py-1 rounded-full inline-flex items-center justify-center text-xs font-bold 
+                ${trade.direction === 'buy'
+                ? 'bg-green-900/40 text-green-300 border border-green-600/50'
+                : 'bg-red-900/40 text-red-300 border border-red-600/50'} 
+                min-w-[70px]">
+                ${trade.direction === 'buy' ? '↗️ LONG' : '↘️ SHORT'}
+            </span>
+        </td>
+
+        <td class="p-3 text-sm font-bold text-center w-[8%]">${trade.totalContracts || trade.contracts}</td>
+
+        <td class="p-3 text-sm font-mono text-right w-[10%]">${trade.openPrice ? `$${trade.openPrice.toFixed( 2 )}` : '—'}</td>
+
+        <td class="p-3 text-sm font-mono text-right w-[10%]">${closePrice}</td>
+
+        <td class="p-3 text-center w-[12%]">
+            <span class="px-2 py-1 rounded-full text-xs font-medium ${statusClass} whitespace-nowrap">
+                ${statusDisplay} ${trade.tpLevel ? `(${trade.tpLevel.toUpperCase()})` : ''}
+            </span>
+        </td>
+
+        <td class="p-3 ${pnlClass} font-bold text-sm font-mono text-right w-[10%]">
+            ${pnlValue >= 0 ? '+' : ''}$${pnlValue.toFixed( 2 )}
+        </td>
+
+        <td class="p-3 w-[10%] max-w-[150px]">
+            <span class="cursor-pointer text-blue-400 hover:text-blue-300 text-xs truncate block" 
+                  onclick="showCommentTooltip(event, '${( trade.comments || '' ).replace( /'/g, "\\'" )}')">
+                ${trade.comments && trade.comments.length > 20
                 ? trade.comments.substring( 0, 20 ) + "..."
                 : ( trade.comments || '📝 Sin notas' )}
-                    </span>
-                </td>
-                <td class="p-3">
-                    <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onclick="showEditTradeModal('${trade.id}')" 
-                                class="text-blue-400 hover:text-blue-300 hover:bg-blue-900/30 text-xs px-2 py-1 rounded transition-all"
-                                title="Editar trade">
-                            ✏️
-                        </button>
-                        <button onclick="showTradeDetails('${trade.id}')" 
-                                class="text-purple-400 hover:text-purple-300 hover:bg-purple-900/30 text-xs px-2 py-1 rounded transition-all"
-                                title="Ver detalles">
-                            👁️
-                        </button>
-                        <button onclick="deleteTrade('${trade.id}')" 
-                                class="text-red-400 hover:text-red-300 hover:bg-red-900/30 text-xs px-2 py-1 rounded transition-all"
-                                title="Eliminar trade">
-                            🗑️
-                        </button>
-                    </div>
-                </td>
-            </tr>
-        `;
+            </span>
+        </td>
+
+        <td class="p-3 w-[8%]">
+            <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity justify-end">
+                <button onclick="showEditTradeModal('${trade.id}')" 
+                        class="text-blue-400 hover:text-blue-300 hover:bg-blue-900/30 text-xs px-2 py-1 rounded transition-all"
+                        title="Editar trade">✏️</button>
+                <button onclick="showTradeDetails('${trade.id}')" 
+                        class="text-purple-400 hover:text-purple-300 hover:bg-purple-900/30 text-xs px-2 py-1 rounded transition-all"
+                        title="Ver detalles">👁️</button>
+                <button onclick="deleteTrade('${trade.id}')" 
+                        class="text-red-400 hover:text-red-300 hover:bg-red-900/30 text-xs px-2 py-1 rounded transition-all"
+                        title="Eliminar trade">🗑️</button>
+            </div>
+        </td>
+    </tr>`;
     } ).join( "" );
+
 
     console.log( `Tabla renderizada: ${filteredTrades.length} trades de ${trades.length} totales` );
 }
