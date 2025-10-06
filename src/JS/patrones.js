@@ -165,7 +165,7 @@ const tradingPatterns = {
     },
 
     hanging_man: {
-        name: "Martillo Colgado",
+        name: "Hombre Colgado",
         category: [ "reversal_bearish" ],
         reliability: 72,
         timeframe: "15M+",
