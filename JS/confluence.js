@@ -243,19 +243,16 @@ class ConfluenceAnalyzer {
         this.isOpen = !this.isOpen;
 
         if ( this.isOpen ) {
-            panel.classList.remove( 'translate-x-full' );
-            panel.classList.add( 'translate-x-0' );
+            panel.classList.add( 'show' );
         } else {
-            panel.classList.remove( 'translate-x-0' );
-            panel.classList.add( 'translate-x-full' );
+            panel.classList.remove( 'show' );
         }
     }
 
     closePanel() {
         this.isOpen = false;
         const panel = document.getElementById( 'confluencePanel' );
-        panel.classList.remove( 'translate-x-0' );
-        panel.classList.add( 'translate-x-full' );
+        panel.classList.remove( 'show' );
     }
 
     resetFactors() {
@@ -391,6 +388,7 @@ class ConfluenceAnalyzer {
         }
     }
 }
+
 
 // Inicializar cuando el DOM esté listo
 document.addEventListener( 'DOMContentLoaded', () => {

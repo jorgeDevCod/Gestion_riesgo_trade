@@ -809,7 +809,7 @@ function renderTrades() {
                                 Comienza registrando tu primer trade
                             </div>
                             <button onclick="document.getElementById('addTradeBtn').click()" 
-                                    class="mt- hover:bg-slate-700 py-4 rounded-lg font-medium text-sm transition-colors text-blue-400">
+                                    class="hover:bg-slate-700 p-2 rounded-lg font-medium text-sm transition-colors text-blue-400">
                                 ➕ Registrar mi primer trade
                             </button>
                         `}

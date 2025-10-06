@@ -9,6 +9,14 @@
   --neutral: #6b7280;
 }
 
+body {
+    overflow-x: hidden;
+}
+
+main.container {
+    overflow-x: hidden;
+}
+
 /* ===== FONDOS Y EFECTOS ===== */
 .bg-trading-bg {
   background: linear-gradient(135deg, #0a0e1a 0%, #111827 100%) !important;
@@ -472,6 +480,7 @@ main.container.dragging * {
 /* ===== Z-INDEX MANAGEMENT ===== */
 #confluenceToggle {
   z-index: 9999 !important;
+  top: 39VH;
 }
 
 #swipe-direction-indicator {
@@ -512,4 +521,23 @@ main.container.dragging * {
 
 #confluenceToggle:hover {
   transform: scale(1.05);
+}
+
+#confluencePanel {
+    transform: translateX(calc(100% + 1rem)) !important;
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+#confluencePanel.show {
+    transform: translateX(0) !important;
+    opacity: 1;
+    pointer-events: auto;
+}
+
+@media (min-width: 993PX){
+  #confluenceToggle {
+  top: 20VH;
+}
 }

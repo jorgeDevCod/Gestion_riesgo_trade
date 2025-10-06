@@ -515,6 +515,7 @@ class SwipeNavigation {
     }
 }
 
+
 // Inicializar
 document.addEventListener( 'DOMContentLoaded', () => {
     new SwipeNavigation( 'main', '.tab-btn' );
