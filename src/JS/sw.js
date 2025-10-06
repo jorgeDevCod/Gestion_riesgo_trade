@@ -1,15 +1,17 @@
-const CACHE_NAME = 'Gestor-trade-v2.3'; // Cambia versión para forzar actualización
+const CACHE_NAME = 'Gestor-trade-v3'; // Cambia versión para forzar actualización
 const urlsToCache = [
     '/',
     '/index.html',
-    '/patrones.css',
-    '/aditional.css',
-    '/image/logoGtd-192.png',
-    '/image/logoGtd-512r.png',
-    '/firebase-app.js',
-    '/confluence.js',
-    '/patrones.js',
-    '/tendencia.js',
+    '/src/CSS/patrones.css',
+    '/src/CSS/aditional.css',
+    '/src/image/logoGtd-192.png',
+    '/src/image/logoGtd-512r.png',
+    '/src/JS/firebase-app.js',
+    '/src/JS/confluence.js',
+    '/src/JS/patrones.js',
+    '/src/JS/tendencia.js',
+    '/src/JS/swipe-navigation.js',
+    '/src/JS/charts.js',
     'https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js',
     'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js',
     'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js'

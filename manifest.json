@@ -9,12 +9,12 @@
   "orientation": "portrait",
   "icons": [
     {
-      "src": "/image/logoGtd-192.png",
+      "src": "/src/image/logoGtd-192.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "/image/logoGtd-512r.png",
+      "src": "/src/image/logoGtd-512r.png",
       "sizes": "512x512",
       "type": "image/png"
     }
