@@ -297,21 +297,20 @@ function getDailyPnLData() {
 
 function getStrategyWinRateData() {
     const trades = JSON.parse( localStorage.getItem( 'trading_trades' ) ) || [];
-    const strategies = {
-        'regulares': { wins: 0, total: 0 },
-        'estructura-confluencia': { wins: 0, total: 0 },
-        'ema-macd': { wins: 0, total: 0 },
-        'contra-tendencia': { wins: 0, total: 0 }
-    };
+    const strategies = {};
 
+    // Contar trades por estrategia
     trades.forEach( trade => {
-        if ( trade.closed && trade.result ) {
-            if ( strategies[ trade.strategy ] ) {
-                strategies[ trade.strategy ].total++;
-                if ( trade.result === 'win' ) {
-                    strategies[ trade.strategy ].wins++;
-                }
-            }
+        if ( !trade.closed || !trade.strategy ) return;
+
+        const key = trade.strategy;
+        if ( !strategies[ key ] ) {
+            strategies[ key ] = { wins: 0, total: 0 };
+        }
+
+        strategies[ key ].total++;
+        if ( trade.result === 'win' || ( parseFloat( trade.pnl ) || 0 ) > 0 ) {
+            strategies[ key ].wins++;
         }
     } );
 
@@ -319,19 +318,22 @@ function getStrategyWinRateData() {
     const values = [];
 
     Object.keys( strategies ).forEach( key => {
-        if ( strategies[ key ].total > 0 ) {
-            const winRate = ( strategies[ key ].wins / strategies[ key ].total * 100 ).toFixed( 0 );
+        const s = strategies[ key ];
+        if ( s.total > 0 ) {
+            const winRate = ( ( s.wins / s.total ) * 100 ).toFixed( 1 );
             labels.push( getStrategyName( key ) );
             values.push( parseFloat( winRate ) );
         }
     } );
 
+    // Si no hay datos reales
     if ( labels.length === 0 ) {
-        return { labels: [ 'Sin datos' ], values: [ 100 ] };
+        return { labels: [ 'Sin datos' ], values: [ 0 ] };
     }
 
     return { labels, values };
 }
+
 
 function getResultsDistributionData() {
     const trades = JSON.parse( localStorage.getItem( 'trading_trades' ) ) || [];
