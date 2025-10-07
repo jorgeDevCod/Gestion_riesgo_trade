@@ -28,10 +28,17 @@ function initDailyPnLChart() {
     if ( !ctx ) return;
 
     const data = getDailyPnLData();
+    if ( dailyPnLChart ) dailyPnLChart.destroy();
 
-    if ( dailyPnLChart ) {
-        dailyPnLChart.destroy();
-    }
+    const gradientGreen = ctx.getContext( '2d' ).createLinearGradient( 0, 0, 0, 300 );
+    gradientGreen.addColorStop( 0, 'rgba(16, 185, 129, 0.9)' );
+    gradientGreen.addColorStop( 1, 'rgba(16, 185, 129, 0.2)' );
+
+    const gradientRed = ctx.getContext( '2d' ).createLinearGradient( 0, 0, 0, 300 );
+    gradientRed.addColorStop( 0, 'rgba(239, 68, 68, 0.9)' );
+    gradientRed.addColorStop( 1, 'rgba(239, 68, 68, 0.2)' );
+
+    const colors = data.values.map( v => v >= 0 ? gradientGreen : gradientRed );
 
     dailyPnLChart = new Chart( ctx, {
         type: 'bar',
@@ -40,59 +47,61 @@ function initDailyPnLChart() {
             datasets: [ {
                 label: 'P&L Diario',
                 data: data.values,
-                backgroundColor: data.colors,
-                borderColor: data.borderColors,
-                borderWidth: 2,
-                borderRadius: 6,
+                backgroundColor: colors,
+                borderWidth: 0,
+                borderRadius: 8,
+                hoverBackgroundColor: colors,
+                hoverBorderWidth: 1.5,
             } ]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            animation: {
+                duration: 900,
+                easing: 'easeOutQuart'
+            },
             plugins: {
                 legend: { display: false },
                 tooltip: {
-                    backgroundColor: '#1F2937',
-                    titleColor: '#F59E0B',
-                    bodyColor: '#FFFFFF',
+                    backgroundColor: '#111827',
                     borderColor: '#374151',
                     borderWidth: 1,
+                    titleColor: '#FCD34D',
+                    bodyColor: '#F9FAFB',
                     padding: 12,
                     displayColors: false,
                     callbacks: {
-                        label: function ( context ) {
-                            return '$' + context.parsed.y.toFixed( 2 );
-                        }
+                        label: ( ctx ) => `P&L: $${ctx.parsed.y.toFixed( 2 )}`
                     }
                 }
             },
             scales: {
+                x: {
+                    grid: { display: false },
+                    ticks: { color: '#9CA3AF', font: { size: 11 } }
+                },
                 y: {
                     beginAtZero: true,
-                    grid: { color: '#374151', drawBorder: false },
+                    grid: { color: '#374151' },
                     ticks: {
-                        callback: function ( value ) {
-                            return '$' + value;
-                        }
+                        color: '#D1D5DB',
+                        callback: v => '$' + v
                     }
-                },
-                x: { grid: { display: false } }
+                }
             }
         }
     } );
 }
 
-// ==================== GRÁFICA 2: WIN RATE POR ESTRATEGIA ====================
 
+// ==================== GRÁFICA 2: WIN RATE POR ESTRATEGIA ====================
 function initStrategyWinRateChart() {
     const ctx = document.getElementById( 'strategyWinRateChart' );
     if ( !ctx ) return;
 
     const data = getStrategyWinRateData();
-
-    if ( strategyWinRateChart ) {
-        strategyWinRateChart.destroy();
-    }
+    if ( strategyWinRateChart ) strategyWinRateChart.destroy();
 
     strategyWinRateChart = new Chart( ctx, {
         type: 'doughnut',
@@ -100,61 +109,72 @@ function initStrategyWinRateChart() {
             labels: data.labels,
             datasets: [ {
                 data: data.values,
-                backgroundColor: [ '#3B82F6', '#06B6D4', '#A855F7', '#F97316' ],
-                borderColor: '#1F2937',
-                borderWidth: 2
+                backgroundColor: [
+                    '#3B82F6', '#06B6D4', '#A855F7', '#F97316'
+                ],
+                borderColor: '#111827',
+                borderWidth: 3,
+                hoverOffset: 10
             } ]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            cutout: '65%',
             plugins: {
                 legend: {
                     position: 'bottom',
-                    labels: { padding: 15, usePointStyle: true, font: { size: 11 } }
+                    labels: {
+                        color: '#E5E7EB',
+                        padding: 16,
+                        usePointStyle: true,
+                        font: { size: 12 }
+                    }
                 },
                 tooltip: {
-                    backgroundColor: '#1F2937',
-                    titleColor: '#F59E0B',
-                    bodyColor: '#FFFFFF',
-                    borderColor: '#374151',
+                    backgroundColor: '#111827',
+                    borderColor: '#1F2937',
                     borderWidth: 1,
+                    titleColor: '#FCD34D',
+                    bodyColor: '#F9FAFB',
                     padding: 12,
                     callbacks: {
-                        label: function ( context ) {
-                            return context.label + ': ' + context.parsed + '%';
-                        }
+                        label: ( ctx ) => `${ctx.label}: ${ctx.parsed}%`
                     }
                 }
+            },
+            animation: {
+                animateRotate: true,
+                duration: 1000,
+                easing: 'easeOutQuart'
             }
         }
     } );
 }
 
-// ==================== GRÁFICA 3: DISTRIBUCIÓN DE RESULTADOS ====================
 
+// ==================== GRÁFICA 3: DISTRIBUCIÓN DE RESULTADOS ====================
 function initResultsDistributionChart() {
     const ctx = document.getElementById( 'resultsDistributionChart' );
     if ( !ctx ) return;
 
     const data = getResultsDistributionData();
+    if ( resultsDistributionChart ) resultsDistributionChart.destroy();
 
-    if ( resultsDistributionChart ) {
-        resultsDistributionChart.destroy();
-    }
-
-    const labels = data.isEmpty ? [ 'Sin datos aún' ] : [ 'Ganadores', 'Perdedores', 'Breakeven' ];
-    const backgroundColor = data.isEmpty ? [ '#6B7280' ] : [ '#10B981', '#EF4444', '#6B7280' ];
+    const colors = data.isEmpty
+        ? [ '#6B7280' ]
+        : [ '#10B981', '#EF4444', '#9CA3AF' ];
 
     resultsDistributionChart = new Chart( ctx, {
         type: 'pie',
         data: {
-            labels: labels,
+            labels: data.isEmpty ? [ 'Sin datos aún' ] : [ 'Ganadores', 'Perdedores', 'Breakeven' ],
             datasets: [ {
                 data: data.values,
-                backgroundColor: backgroundColor,
+                backgroundColor: colors,
                 borderColor: '#1F2937',
-                borderWidth: 2
+                borderWidth: 2,
+                hoverOffset: 10
             } ]
         },
         options: {
@@ -164,64 +184,69 @@ function initResultsDistributionChart() {
                 legend: {
                     position: 'bottom',
                     labels: {
+                        color: '#D1D5DB',
                         padding: 15,
                         usePointStyle: true,
-                        font: { size: 11 },
-                        color: data.isEmpty ? '#6B7280' : '#9CA3AF'
+                        font: { size: 12 }
                     }
                 },
                 tooltip: {
-                    backgroundColor: '#1F2937',
-                    titleColor: '#F59E0B',
-                    bodyColor: '#FFFFFF',
+                    backgroundColor: '#111827',
                     borderColor: '#374151',
                     borderWidth: 1,
+                    titleColor: '#FCD34D',
+                    bodyColor: '#F9FAFB',
                     padding: 12,
                     callbacks: {
-                        label: function ( context ) {
-                            if ( data.isEmpty ) {
-                                return 'Registra trades para ver estadísticas';
-                            }
-                            const total = context.dataset.data.reduce( ( a, b ) => a + b, 0 );
-                            const percentage = total > 0 ? ( ( context.parsed / total ) * 100 ).toFixed( 1 ) : 0;
-                            return context.label + ': ' + context.parsed + ' (' + percentage + '%)';
+                        label: ( ctx ) => {
+                            if ( data.isEmpty ) return 'Agrega trades para ver datos';
+                            const total = ctx.dataset.data.reduce( ( a, b ) => a + b, 0 );
+                            const pct = ( ( ctx.parsed / total ) * 100 ).toFixed( 1 );
+                            return `${ctx.label}: ${ctx.parsed} (${pct}%)`;
                         }
                     }
                 }
+            },
+            animation: {
+                animateScale: true,
+                duration: 1000,
+                easing: 'easeOutQuart'
             }
         }
     } );
 }
 
-// ==================== GRÁFICA 4: EVOLUCIÓN DE CAPITAL ====================
 
+// ==================== GRÁFICA 4: EVOLUCIÓN DE CAPITAL ====================
 function initCapitalEvolutionChart() {
     const ctx = document.getElementById( 'capitalEvolutionChart' );
     if ( !ctx ) return;
 
     const data = getCapitalEvolutionData();
+    if ( capitalEvolutionChart ) capitalEvolutionChart.destroy();
 
-    if ( capitalEvolutionChart ) {
-        capitalEvolutionChart.destroy();
-    }
+    const gradient = ctx.getContext( '2d' ).createLinearGradient( 0, 0, 0, 300 );
+    gradient.addColorStop( 0, 'rgba(245, 158, 11, 0.4)' );
+    gradient.addColorStop( 1, 'rgba(245, 158, 11, 0.05)' );
 
     capitalEvolutionChart = new Chart( ctx, {
         type: 'line',
         data: {
             labels: data.labels,
             datasets: [ {
-                label: 'Capital',
+                label: 'Evolución de Capital',
                 data: data.values,
                 borderColor: '#F59E0B',
-                backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                backgroundColor: gradient,
                 borderWidth: 3,
                 fill: true,
                 tension: 0.4,
                 pointRadius: 4,
-                pointBackgroundColor: '#F59E0B',
+                pointHoverRadius: 7,
+                pointBackgroundColor: '#FBBF24',
                 pointBorderColor: '#1F2937',
                 pointBorderWidth: 2,
-                pointHoverRadius: 6
+                hoverBorderWidth: 3
             } ]
         },
         options: {
@@ -230,38 +255,42 @@ function initCapitalEvolutionChart() {
             plugins: {
                 legend: { display: false },
                 tooltip: {
-                    backgroundColor: '#1F2937',
-                    titleColor: '#F59E0B',
-                    bodyColor: '#FFFFFF',
+                    backgroundColor: '#111827',
                     borderColor: '#374151',
                     borderWidth: 1,
+                    titleColor: '#FCD34D',
+                    bodyColor: '#F9FAFB',
                     padding: 12,
                     displayColors: false,
                     callbacks: {
-                        label: function ( context ) {
-                            return '$' + context.parsed.y.toFixed( 2 );
-                        }
+                        label: ( ctx ) => `Capital: $${ctx.parsed.y.toFixed( 2 )}`
                     }
                 }
+            },
+            animation: {
+                duration: 1200,
+                easing: 'easeOutQuart'
             },
             scales: {
                 y: {
                     beginAtZero: false,
-                    grid: { color: '#374151', drawBorder: false },
+                    grid: { color: '#374151' },
                     ticks: {
-                        callback: function ( value ) {
-                            return '$' + value;
-                        }
+                        color: '#D1D5DB',
+                        callback: v => '$' + v
                     }
                 },
-                x: { grid: { display: false } }
+                x: {
+                    grid: { display: false },
+                    ticks: { color: '#9CA3AF', font: { size: 11 } }
+                }
             }
         }
     } );
 }
 
-// ==================== FUNCIONES DE DATOS ====================
 
+// ==================== FUNCIONES DE DATOS ====================
 function getDailyPnLData() {
     const trades = JSON.parse( localStorage.getItem( 'trading_trades' ) ) || [];
     const last7Days = getLast7Days();

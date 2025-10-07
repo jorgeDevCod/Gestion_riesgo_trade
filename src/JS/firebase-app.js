@@ -893,7 +893,7 @@ function renderTrades() {
             </span>
         </td>
 
-        <td class="p-3 text-center w-[10%]">
+        <td class="p-3 text-center w-[10%] whitespace-nowrap">
             ${resultBadge}
         </td>
 
@@ -1083,18 +1083,30 @@ function calculateStrategyStats() {
         const strategyTrades = trades.filter(
             ( trade ) => trade.strategy === strategy
         );
-        const wins = strategyTrades.filter(
-            ( trade ) => trade.result === "win"
-        ).length;
-        const winRate =
-            strategyTrades.length > 0
-                ? Math.round( ( wins / strategyTrades.length ) * 100 )
-                : 0;
+
+        // ✅ CORRECCIÓN: Solo contar trades cerrados para Win Rate
+        const closedTrades = strategyTrades.filter( t => t.closed );
+        const wins = closedTrades.filter( trade => {
+            const pnl = parseFloat( trade.pnl ) || 0;
+            return pnl > 0 || trade.result === "win";
+        } ).length;
+
+        const winRate = closedTrades.length > 0
+            ? Math.round( ( wins / closedTrades.length ) * 100 )
+            : 0;
+
         const pnl = strategyTrades.reduce(
             ( total, trade ) => total + ( parseFloat( trade.pnl ) || 0 ),
             0
         );
-        stats[ strategy ] = { winRate, pnl, count: strategyTrades.length };
+
+        stats[ strategy ] = {
+            winRate,
+            pnl,
+            count: strategyTrades.length,
+            closedCount: closedTrades.length,
+            wins: wins
+        };
     } );
     return stats;
 }
@@ -1103,15 +1115,47 @@ function updateCapitalBreakdown() {
     const totalPnL = calculateTotalPnL();
     const effectiveCapital = calculateEffectiveCapital();
 
-    document.getElementById( "baseCapital" ).textContent =
-        `$${currentCapital.toFixed( 2 )}`;
+    document.getElementById( "baseCapital" ).textContent = `$${currentCapital.toFixed( 2 )}`;
     const tradingPnLEl = document.getElementById( "tradingPnL" );
     if ( tradingPnLEl ) {
         tradingPnLEl.textContent = `$${totalPnL.toFixed( 2 )}`;
         tradingPnLEl.className = `text-lg font-bold ${totalPnL >= 0 ? "text-profit" : "text-loss"}`;
     }
-    document.getElementById( "effectiveCapitalDisplay" ).textContent =
-        `$${effectiveCapital.toFixed( 2 )}`;
+    document.getElementById( "effectiveCapitalDisplay" ).textContent = `$${effectiveCapital.toFixed( 2 )}`;
+
+    // Actualizar métricas adicionales con los IDs correctos
+    document.getElementById( "capitalGrowth" ).textContent = calculateCapitalGrowth();// Crecimiento
+    document.getElementById( "riskUtilization" ).textContent = calculateRiskUtilization(); // Riesgo Utilizado
+    document.getElementById( "withdrawalRatio" ).textContent = calculateWithdrawalRatio(); // Ratio Retiros
+    document.getElementById( "profitFactor" ).textContent = calculateProfitFactor();  // Factor Beneficio
+}
+
+function calculateCapitalGrowth() {
+    const effectiveCapital = calculateEffectiveCapital();
+    if ( currentCapital === 0 ) return "0%";
+    return `${Math.round( ( ( effectiveCapital - currentCapital ) / currentCapital ) * 100 )}%`;
+}
+
+function calculateRiskUtilization() {
+    // Ejemplo: Riesgo como porcentaje del capital efectivo (ajusta según tu lógica)
+    const openTradesRisk = trades.filter( t => !t.closed ).reduce( ( sum, t ) => sum + ( parseFloat( t.riskAmount ) || 0 ), 0 );
+    const effectiveCapital = calculateEffectiveCapital();
+    if ( effectiveCapital === 0 ) return "0%";
+    return `${Math.round( ( openTradesRisk / effectiveCapital ) * 100 )}%`;
+}
+
+function calculateWithdrawalRatio() {
+    const totalWithdrawals = withdrawals.reduce( ( sum, w ) => sum + parseFloat( w.amount || 0 ), 0 );
+    if ( currentCapital === 0 ) return "0%";
+    return `${Math.round( ( totalWithdrawals / currentCapital ) * 100 )}%`;
+}
+
+function calculateProfitFactor() {
+    const closedTrades = trades.filter( t => t.closed );
+    const totalWins = closedTrades.filter( t => parseFloat( t.pnl ) > 0 ).reduce( ( sum, t ) => sum + parseFloat( t.pnl ), 0 );
+    const totalLosses = Math.abs( closedTrades.filter( t => parseFloat( t.pnl ) < 0 ).reduce( ( sum, t ) => sum + parseFloat( t.pnl ), 0 ) );
+    if ( totalLosses === 0 ) return "0.0";
+    return ( totalWins / totalLosses ).toFixed( 1 );
 }
 
 function calculateOptimalContractsWithEffectiveCapital( strategy ) {
@@ -1200,6 +1244,8 @@ function renderDashboard() {
 
 function renderStrategyStats() {
     const stats = calculateStrategyStats();
+
+    // Actualizar stats individuales por estrategia
     Object.keys( stats ).forEach( ( strategy ) => {
         const strategyElement = document.querySelector(
             `.strategy-stats[data-strategy="${strategy}"]`
@@ -1209,32 +1255,59 @@ function renderStrategyStats() {
                 `${stats[ strategy ].winRate}%`;
             const pnlEl = strategyElement.querySelector( ".strategy-pnl" );
             pnlEl.textContent = `$${stats[ strategy ].pnl.toFixed( 2 )}`;
-            pnlEl.className = `strategy-pnl ${stats[ strategy ].pnl >= 0 ? "text-profit" : "text-loss"}`;
+            pnlEl.className = `strategy-pnl font-bold ${stats[ strategy ].pnl >= 0 ? "text-profit" : "text-loss"}`;
             strategyElement.querySelector( ".strategy-count" ).textContent =
                 stats[ strategy ].count;
         }
     } );
+
+    // ✅ NUEVA LÓGICA: Calcular y actualizar resúmenes generales
+    const usedStrategies = Object.values( stats ).filter( s => s.count > 0 );
+    const totalStrategiesUsed = usedStrategies.length;
+    const totalBalance = Object.values( stats ).reduce( ( sum, s ) => sum + s.pnl, 0 );
+
+    // Estrategia más usada (por count total)
+    let mostUsedStrategy = '-';
+    let maxCount = 0;
+    let mostUsedKey = '';
+    Object.entries( stats ).forEach( ( [ key, s ] ) => {
+        if ( s.count > maxCount ) {
+            maxCount = s.count;
+            mostUsedKey = strategyConfigs[ key ]?.name || key;
+        }
+    } );
+    if ( maxCount > 0 ) mostUsedStrategy = mostUsedKey;
+
+    // Mejor Win Rate (solo estrategias con trades cerrados > 0)
+    let bestWinRate = 0;
+    Object.values( stats ).forEach( s => {
+        if ( s.closedCount > 0 && s.winRate > bestWinRate ) {
+            bestWinRate = s.winRate;
+        }
+    } );
+
+    // Actualizar elementos del resumen
+    updateElement( "totalStrategiesUsed", totalStrategiesUsed );
+    updateElement( "bestStrategyWR", `${bestWinRate}%` );
+    updateElement( "mostUsedStrategy", mostUsedStrategy );
+    updateElement( "strategiesBalance", `$${totalBalance.toFixed( 2 )}`, totalBalance >= 0 ? 'text-profit' : 'text-loss' );
+
+    console.log( 'Resúmenes actualizados:', { totalStrategiesUsed, bestWinRate, mostUsedStrategy, totalBalance } );
 }
 
 function calculateEffectiveCapital() {
     try {
-        // Validar que currentCapital sea un número válido
         if ( typeof currentCapital !== 'number' || isNaN( currentCapital ) || currentCapital < 0 ) {
             console.warn( "currentCapital inválido:", currentCapital );
             return 0;
         }
 
-        // Capital base es la suma de todas las adiciones
         const totalAdditions = capitalAdditions.reduce( ( sum, a ) => sum + parseFloat( a.amount || 0 ), 0 );
         const totalWithdrawals = withdrawals.reduce( ( sum, w ) => sum + parseFloat( w.amount || 0 ), 0 );
-
-        // Capital efectivo = Adiciones - Retiros + P&L de trades
         const totalPnL = calculateTotalPnL();
         const effectiveCapital = totalAdditions - totalWithdrawals + totalPnL;
 
-        // Asegurar que el resultado sea válido
         return Math.max( 0, effectiveCapital );
-
     } catch ( error ) {
         console.error( "Error calculando capital efectivo:", error );
         return 0;
@@ -1493,8 +1566,8 @@ function renderAllData() {
         renderTrades();
         renderObservations();
         renderRecentWithdrawals();
-        renderCapitalMovementsTable(); // ← AGREGAR ESTA LÍNEA
-        updateCapitalBreakdown();
+        renderCapitalMovementsTable();
+        updateCapitalBreakdown(); // Asegúrate de que esta línea esté presente
         updateStrategyDisplay();
 
         if ( currentTab === "signals" ) {
@@ -1516,7 +1589,6 @@ function renderAllData() {
         if ( disciplinaryMsg && ( disciplinaryMsg.priority === 'high' || disciplinaryMsg.priority === 'critical' ) ) {
             setTimeout( () => showDisciplinaryMessage( disciplinaryMsg ), 500 );
         }
-
     } catch ( error ) {
         console.error( "Error en renderAllData:", error );
         updateSyncStatus( "Error actualizando datos", false );
@@ -2534,101 +2606,98 @@ function addRealTimeValidations() {
         const riskAmount = contracts * sl;
         const maxRisk = capital * 0.05;
 
-        let status = { type: '', message: '' };
+        let status = { type: "", message: "" };
 
-        // Validación crítica: Límites diarios
+        // 🔸 Validaciones críticas
         checkAndResetDailyCounters();
         if ( dailyTradesExecuted >= 3 ) {
-            status = { type: 'error', message: '🚫 Límite diario: 3 trades máximo' };
+            status = { type: "error", message: "🚫 Límite diario: 3 trades máximo" };
         } else if ( calculateDailyPnL() <= -maxRisk ) {
-            status = { type: 'error', message: '🚫 Pérdida diaria máxima alcanzada' };
-        }
-        // Capital insuficiente
-        else if ( capital <= 0 ) {
-            status = { type: 'error', message: 'Capital insuficiente. Agrega fondos primero' };
-        }
-        // Contratos inválidos
-        else if ( contracts <= 0 ) {
-            status = { type: 'error', message: 'Contratos debe ser mayor a 0' };
-        }
-        // Riesgo excesivo
-        else if ( riskAmount > maxRisk && capital > 0 ) {
+            status = { type: "error", message: "🚫 Pérdida diaria máxima alcanzada" };
+        } else if ( capital <= 0 ) {
+            status = { type: "error", message: "Capital insuficiente. Agrega fondos primero" };
+        } else if ( contracts <= 0 ) {
+            status = { type: "error", message: "Contratos debe ser mayor a 0" };
+        } else if ( riskAmount > maxRisk && capital > 0 ) {
             status = {
-                type: 'error',
+                type: "error",
                 message: `Riesgo: $${riskAmount.toFixed( 2 )} excede máximo $${maxRisk.toFixed( 2 )}`
             };
         }
-        // Ratio inadecuado
+        // ⚠️ Validación de ratio 1:1
         else if ( tp > 0 && sl > 0 && tp < sl ) {
             status = {
-                type: 'warning',
-                message: `Ratio TP:SL = ${( tp / sl ).toFixed( 2 )}:1 (busca mínimo 1:1)`
+                type: "warning",
+                message: `Ratio TP:SL = ${( tp / sl ).toFixed( 2 )}:1 (mínimo recomendado 1:1)`
             };
         }
-        // Todo correcto
+        // ✅ Todo correcto
         else if ( tp > 0 && sl > 0 ) {
             status = {
-                type: 'success',
+                type: "success",
                 message: `Ratio ${( tp / sl ).toFixed( 2 )}:1 | Riesgo $${riskAmount.toFixed( 2 )} de $${capital.toFixed( 2 )}`
             };
         }
 
-        // Renderizar mensaje
+        // 🧱 Renderizar mensaje visual
         let container = document.getElementById( "tradeValidationAlert" );
-
         if ( !container ) {
-            // Crear contenedor antes de los campos SL/TP
             container = document.createElement( "div" );
             container.id = "tradeValidationAlert";
             container.className = "mb-3";
 
-            // Insertar antes del campo SL
-            const slContainer = slInput?.closest( '.space-y-4' ) || slInput?.parentElement;
-            if ( slContainer ) {
-                slContainer.prepend( container );
-            }
-
+            const slContainer = slInput?.closest( ".space-y-4" ) || slInput?.parentElement;
+            if ( slContainer ) slContainer.prepend( container );
         }
 
-        // Actualizar contenido según tipo
-        if ( status.type === 'error' ) {
+        const messages = {
+            error: {
+                bg: "bg-red-900/30",
+                border: "border-red-500",
+                text: "text-red-200",
+                icon: "⚠️",
+            },
+            warning: {
+                bg: "bg-yellow-900/30",
+                border: "border-yellow-500",
+                text: "text-yellow-200",
+                icon: "⚡",
+            },
+            success: {
+                bg: "bg-green-900/30",
+                border: "border-green-500",
+                text: "text-green-200",
+                icon: "✓",
+            },
+        };
+
+        if ( status.type ) {
+            const m = messages[ status.type ];
             container.innerHTML = `
-                <div class="bg-red-900/30 border border-red-500 rounded-lg p-2.5 flex items-start gap-2">
-                    <span class="text-red-400 text-lg flex-shrink-0">⚠️</span>
-                    <span class="text-red-200 text-sm font-medium">${status.message}</span>
-                </div>
-            `;
-        } else if ( status.type === 'warning' ) {
-            container.innerHTML = `
-                <div class="bg-yellow-900/30 border border-yellow-500 rounded-lg p-2.5 flex items-start gap-2">
-                    <span class="text-yellow-400 text-lg flex-shrink-0">⚡</span>
-                    <span class="text-yellow-200 text-sm">${status.message}</span>
-                </div>
-            `;
-        } else if ( status.type === 'success' ) {
-            container.innerHTML = `
-                <div class="bg-green-900/30 border border-green-500 rounded-lg p-2.5 flex items-start gap-2">
-                    <span class="text-green-400 text-lg flex-shrink-0">✓</span>
-                    <span class="text-green-200 text-sm">${status.message}</span>
+                <div class="${m.bg} ${m.border} rounded-lg p-2.5 flex items-center justify-center gap-2 border">
+                    <span class="text-lg flex-shrink-0">${m.icon}</span>
+                    <span class="${m.text} text-sm font-medium">${status.message}</span>
                 </div>
             `;
         } else {
-            container.innerHTML = '';
+            container.innerHTML = "";
         }
 
-        // Control del botón submit
+        // 🟢 Control del botón submit
         const submitBtn = document.querySelector( '#tradeModal button[type="submit"]' );
         if ( submitBtn ) {
-            const isBlocked = status.type === 'error';
+            // Bloquear en error o warning
+            const isBlocked = status.type === "error" || status.type === "warning";
             submitBtn.disabled = isBlocked;
+
             submitBtn.className = isBlocked
-                ? "flex-1 bg-gray-600 cursor-not-allowed px-4 py-2 rounded-lg font-medium opacity-50"
+                ? "flex-1 bg-gray-600 cursor-not-allowed px-4 py-2 rounded-lg font-medium opacity-50 transition-colors"
                 : "flex-1 bg-profit hover:bg-green-600 px-4 py-2 rounded-lg font-medium transition-colors";
         }
     }
 
-    // Agregar listeners
-    [ slInput, tpInput, contractsInput ].forEach( input => {
+    // 🎯 Activar validaciones en tiempo real
+    [ slInput, tpInput, contractsInput ].forEach( ( input ) => {
         if ( input ) {
             input.removeEventListener( "input", validateForm );
             input.addEventListener( "input", validateForm );
@@ -2638,6 +2707,7 @@ function addRealTimeValidations() {
 
     setTimeout( validateForm, 100 );
 }
+
 
 // Validaciones para modal de edición (versión simplificada)
 function addRealTimeValidationsToEditModal() {
