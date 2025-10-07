@@ -173,9 +173,16 @@
         <section id="dashboard" class="tab-content hidden">
             <!-- Cards superiores -->
             <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-2 sm:gap-4 mb-4 sm:mb-8">
-                <!-- Capital Actual -->
+                <!-- Capital Base (NUEVO) -->
                 <div class="bg-trading-dark dashboard-card p-3 sm:p-4 rounded-lg border border-gray-700">
-                    <h3 class="text-xs sm:text-sm font-semibold text-gold mb-1 sm:mb-2">Capital + P&L Total</h3>
+                    <h3 class="text-xs sm:text-sm font-semibold text-blue-400 mb-1 sm:mb-2">💰 Capital Base</h3>
+                    <p class="text-lg sm:text-xl font-bold text-white" id="dashBaseCapital">$0.00</p>
+                    <p class="text-xs text-gray-400 mt-1">Ingresado</p>
+                </div>
+
+                <!-- Capital Efectivo (modificado) -->
+                <div class="bg-trading-dark dashboard-card p-3 sm:p-4 rounded-lg border border-gray-700">
+                    <h3 class="text-xs sm:text-sm font-semibold text-gold mb-1 sm:mb-2">Capital Efectivo</h3>
                     <p class="text-lg sm:text-xl font-bold" id="dashCapital"></p>
                     <p class="text-xs text-gray-400 mt-1">Riesgo: <span id="dashRisk"></span></p>
                 </div>
@@ -198,14 +205,7 @@
                 <div class="bg-trading-dark dashboard-card p-3 sm:p-4 rounded-lg border border-gray-700">
                     <h3 class="text-xs sm:text-sm font-semibold text-neutral mb-1 sm:mb-2">Trades Hoy</h3>
                     <p class="text-lg sm:text-xl font-bold" id="todayTrades">0</p>
-                    <p class="text-xs text-gray-400 mt-1">Límite: 3 o max/min de gestion</p>
-                </div>
-
-                <!-- Retiros -->
-                <div class="bg-trading-dark dashboard-card p-3 sm:p-4 rounded-lg border border-gray-700">
-                    <h3 class="text-xs sm:text-sm font-semibold text-orange-400 mb-1 sm:mb-2">Retiros</h3>
-                    <p class="text-lg sm:text-xl font-bold" id="totalWithdrawals">$0.00</p>
-                    <p class="text-xs text-gray-400 mt-1">Total</p>
+                    <p class="text-xs text-gray-400 mt-1">Límite: 3 diarios</p>
                 </div>
 
                 <!-- P&L Total -->

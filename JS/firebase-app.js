@@ -1200,6 +1200,13 @@ function renderDashboard() {
     const effectiveCapital = calculateEffectiveCapital();
     const maxDailyRisk = effectiveCapital * 0.05;
 
+    // NUEVA LÍNEA: Actualizar capital base
+    const dashBaseCapitalEl = document.getElementById( "dashBaseCapital" );
+    if ( dashBaseCapitalEl ) {
+        const totalAdded = capitalAdditions.reduce( ( sum, a ) => sum + parseFloat( a.amount || 0 ), 0 );
+        dashBaseCapitalEl.textContent = `$${totalAdded.toFixed( 2 )}`;
+    }
+
     // Actualizar elementos básicos del dashboard
     const dashCapitalEl = document.getElementById( "dashCapital" );
     const dashRiskEl = document.getElementById( "dashRisk" );
@@ -1224,21 +1231,13 @@ function renderDashboard() {
 
     if ( drawdownEl ) drawdownEl.textContent = `${drawdown}%`;
     if ( todayTradesEl ) todayTradesEl.textContent = todayTrades;
-    if ( totalWithdrawalsEl ) totalWithdrawalsEl.textContent = `$${totalWithdrawals.toFixed( 2 )}`;
 
     if ( totalPnLElement ) {
         totalPnLElement.textContent = `$${totalPnL.toFixed( 2 )}`;
         totalPnLElement.className = `text-lg sm:text-xl font-bold ${totalPnL >= 0 ? "text-profit" : "text-loss"}`;
     }
 
-    // Actualizar indicadores de riesgo (versión segura)
-    const riskIndicatorEl = document.getElementById( "riskIndicator" );
-    if ( riskIndicatorEl && effectiveCapital > 0 ) {
-        const riskPercent = ( totalPnL / effectiveCapital ) * 100;
-        riskIndicatorEl.textContent = `${riskPercent.toFixed( 2 )}%`;
-        riskIndicatorEl.className = riskPercent >= 0 ? "text-green-400" : "text-red-400";
-    }
-
+    // ... resto del código
     renderStrategyStats();
 }
 
