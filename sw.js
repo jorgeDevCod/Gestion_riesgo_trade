@@ -1,4 +1,4 @@
-const CACHE_NAME = 'Gestor-tradeApp-V2.2'; // Cambia versión para forzar actualización
+const CACHE_NAME = 'Gestor-tradeApp-V2.4'; // Cambia versión para forzar actualización
 const urlsToCache = [
     '/',
     '/index.html',
@@ -14,7 +14,9 @@ const urlsToCache = [
     '/src/JS/charts.js',
     'https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js',
     'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js',
-    'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js'
+    'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js',
+    'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js',
+
 ];
 
 self.addEventListener( 'install', ( event ) => {
@@ -55,6 +57,8 @@ self.addEventListener( 'fetch', ( event ) => {
     // NO CACHEAR Tailwind CSS ni recursos externos problemáticos
     const skipCache = [
         'cdn.tailwindcss.com',
+        'jsdelivr.net',  // ← Agrega esto para Chart.js
+        'unpkg.com',     // ← Si usas más CDNs
         'analytics',
         'tracking'
     ];
