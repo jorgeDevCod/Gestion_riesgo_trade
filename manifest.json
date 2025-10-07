@@ -9,7 +9,7 @@
   "orientation": "portrait",
   "icons": [
     {
-      "src": "/src/image/logoGtd-192.png",
+      "src": "/src/image/logoGtd-192r.png",
       "sizes": "192x192",
       "type": "image/png"
     },
