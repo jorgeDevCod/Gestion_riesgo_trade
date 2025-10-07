@@ -690,7 +690,7 @@ function createTrendPatternSVG( patternId, width = 320, height = 180 ) {
         symmetrical_triangle_bear: `
 <svg width="${width}" height="${height}" class="bg-slate-900 rounded-lg">
     <!-- Líneas simétricas -->
-    <line x1="50" y1="45" x2="180" y2="75" stroke="#ef4444" stroke-width="2" fill="none"/>
+    <line x1="50" y1="42" x2="184" y2="70" stroke="#ef4444" stroke-width="2" fill="none"></line>
     <line x1="50" y1="90" x2="180" y2="75" stroke="#3b82f6" stroke-width="2" fill="none"/>
     <!-- Precio con sesgo bajista -->
     <path d="M50 90 L70 50 L90 85 L110 55 L130 80 L150 65 L170 78" stroke="#fbbf24" stroke-width="3" fill="none"/>
