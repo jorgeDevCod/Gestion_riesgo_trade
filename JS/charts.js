@@ -1,5 +1,5 @@
 // charts.js - Sistema de gráficas para el dashboard
-// VERSIÓN CORREGIDA - Sin duplicados ni llamadas incorrectas
+// VERSIÓN FINAL - Con acceso correcto a variables globales
 
 // Configuración global de Chart.js
 Chart.defaults.color = '#9CA3AF';
@@ -25,7 +25,10 @@ function initializeCharts() {
 
 function initDailyPnLChart() {
     const ctx = document.getElementById( 'dailyPnLChart' );
-    if ( !ctx ) return;
+    if ( !ctx ) {
+        console.warn( 'Canvas dailyPnLChart no encontrado' );
+        return;
+    }
 
     const data = getDailyPnLData();
     if ( dailyPnLChart ) dailyPnLChart.destroy();
@@ -92,16 +95,26 @@ function initDailyPnLChart() {
             }
         }
     } );
+
+    console.log( 'Gráfica P&L Diario creada' );
 }
 
 
 // ==================== GRÁFICA 2: WIN RATE POR ESTRATEGIA ====================
 function initStrategyWinRateChart() {
     const ctx = document.getElementById( 'strategyWinRateChart' );
-    if ( !ctx ) return;
+    if ( !ctx ) {
+        console.warn( 'Canvas strategyWinRateChart no encontrado' );
+        return;
+    }
 
     const data = getStrategyWinRateData();
     if ( strategyWinRateChart ) strategyWinRateChart.destroy();
+
+    // Colores condicionales según si hay datos
+    const colors = data.isEmpty
+        ? [ '#6B7280' ]
+        : [ '#3B82F6', '#06B6D4', '#A855F7', '#F97316' ];
 
     strategyWinRateChart = new Chart( ctx, {
         type: 'doughnut',
@@ -109,9 +122,7 @@ function initStrategyWinRateChart() {
             labels: data.labels,
             datasets: [ {
                 data: data.values,
-                backgroundColor: [
-                    '#3B82F6', '#06B6D4', '#A855F7', '#F97316'
-                ],
+                backgroundColor: colors,
                 borderColor: '#111827',
                 borderWidth: 3,
                 hoverOffset: 10
@@ -139,7 +150,10 @@ function initStrategyWinRateChart() {
                     bodyColor: '#F9FAFB',
                     padding: 12,
                     callbacks: {
-                        label: ( ctx ) => `${ctx.label}: ${ctx.parsed}%`
+                        label: ( ctx ) => {
+                            if ( data.isEmpty ) return 'Agrega trades para ver win rate';
+                            return `${ctx.label}: ${ctx.parsed}%`;
+                        }
                     }
                 }
             },
@@ -150,13 +164,18 @@ function initStrategyWinRateChart() {
             }
         }
     } );
+
+    console.log( 'Gráfica Win Rate creada' );
 }
 
 
 // ==================== GRÁFICA 3: DISTRIBUCIÓN DE RESULTADOS ====================
 function initResultsDistributionChart() {
     const ctx = document.getElementById( 'resultsDistributionChart' );
-    if ( !ctx ) return;
+    if ( !ctx ) {
+        console.warn( 'Canvas resultsDistributionChart no encontrado' );
+        return;
+    }
 
     const data = getResultsDistributionData();
     if ( resultsDistributionChart ) resultsDistributionChart.destroy();
@@ -214,13 +233,18 @@ function initResultsDistributionChart() {
             }
         }
     } );
+
+    console.log( 'Gráfica Distribución creada' );
 }
 
 
 // ==================== GRÁFICA 4: EVOLUCIÓN DE CAPITAL ====================
 function initCapitalEvolutionChart() {
     const ctx = document.getElementById( 'capitalEvolutionChart' );
-    if ( !ctx ) return;
+    if ( !ctx ) {
+        console.warn( 'Canvas capitalEvolutionChart no encontrado' );
+        return;
+    }
 
     const data = getCapitalEvolutionData();
     if ( capitalEvolutionChart ) capitalEvolutionChart.destroy();
@@ -287,12 +311,20 @@ function initCapitalEvolutionChart() {
             }
         }
     } );
+
+    console.log( 'Gráfica Evolución Capital creada' );
 }
 
 
 // ==================== FUNCIONES DE DATOS ====================
+
 function getDailyPnLData() {
-    const trades = JSON.parse( localStorage.getItem( 'trading_trades' ) ) || [];
+    // Intentar obtener trades desde variables globales primero
+    const trades = window.getTrades ? window.getTrades() :
+        JSON.parse( localStorage.getItem( 'trading_trades' ) ) || [];
+
+    console.log( `getDailyPnLData: ${trades.length} trades encontrados` );
+
     const last7Days = getLast7Days();
     const dailyPnL = {};
 
@@ -310,29 +342,25 @@ function getDailyPnLData() {
     } );
 
     const values = last7Days.map( day => dailyPnL[ day ] );
-    const colors = values.map( value =>
-        value > 0 ? 'rgba(16, 185, 129, 0.8)' :
-            value < 0 ? 'rgba(239, 68, 68, 0.8)' :
-                'rgba(107, 114, 128, 0.8)'
-    );
-    const borderColors = values.map( value =>
-        value > 0 ? '#10B981' :
-            value < 0 ? '#EF4444' :
-                '#6B7280'
-    );
 
-    return { labels: last7Days, values, colors, borderColors };
+    console.log( 'P&L últimos 7 días:', values );
+
+    return { labels: last7Days, values };
 }
 
 function getStrategyWinRateData() {
-    const trades = JSON.parse( localStorage.getItem( 'trading_trades' ) ) || [];
+    const trades = window.getTrades ? window.getTrades() :
+        JSON.parse( localStorage.getItem( 'trading_trades' ) ) || [];
+
+    console.log( `getStrategyWinRateData: ${trades.length} trades encontrados` );
+
     const strategies = {};
 
-    // Contar trades por estrategia - CORRECCIÓN: usar trades cerrados O con P&L
+    // Contar trades por estrategia
     trades.forEach( trade => {
         if ( !trade.strategy ) return;
 
-        // Solo contar trades que estén cerrados O tengan P&L registrado
+        // Solo contar trades cerrados
         const hasPnL = trade.pnl !== undefined && trade.pnl !== null;
         const isClosed = trade.closed === true;
 
@@ -345,7 +373,7 @@ function getStrategyWinRateData() {
 
         strategies[ key ].total++;
 
-        // CORRECCIÓN: Determinar ganancia por P&L, no solo por result
+        // Determinar ganancia por P&L
         const pnl = parseFloat( trade.pnl ) || 0;
         if ( pnl > 0 || trade.result === 'win' ) {
             strategies[ key ].wins++;
@@ -364,16 +392,26 @@ function getStrategyWinRateData() {
         }
     } );
 
+    console.log( 'Win Rate por estrategia:', { labels, values } );
+
     // Si no hay datos reales
     if ( labels.length === 0 ) {
-        return { labels: [ 'Sin datos' ], values: [ 0 ] };
+        return {
+            labels: [ 'Sin trades aún' ],
+            values: [ 100 ],
+            isEmpty: true
+        };
     }
 
-    return { labels, values };
+    return { labels, values, isEmpty: false };
 }
 
 function getResultsDistributionData() {
-    const trades = JSON.parse( localStorage.getItem( 'trading_trades' ) ) || [];
+    const trades = window.getTrades ? window.getTrades() :
+        JSON.parse( localStorage.getItem( 'trading_trades' ) ) || [];
+
+    console.log( `getResultsDistributionData: ${trades.length} trades encontrados` );
+
     let wins = 0, losses = 0, breakeven = 0;
 
     trades.forEach( trade => {
@@ -385,6 +423,8 @@ function getResultsDistributionData() {
         }
     } );
 
+    console.log( 'Distribución:', { wins, losses, breakeven } );
+
     if ( wins === 0 && losses === 0 && breakeven === 0 ) {
         return { values: [ 0, 0, 1 ], isEmpty: true };
     }
@@ -393,7 +433,17 @@ function getResultsDistributionData() {
 }
 
 function getCapitalEvolutionData() {
-    // Combinar todos los movimientos: trades, depósitos y retiros
+    // Obtener datos desde variables globales o localStorage
+    const trades = window.getTrades ? window.getTrades() :
+        JSON.parse( localStorage.getItem( 'trading_trades' ) ) || [];
+    const capitalAdditions = window.getCapitalAdditions ? window.getCapitalAdditions() :
+        JSON.parse( localStorage.getItem( 'capital_additions' ) ) || [];
+    const withdrawals = window.getWithdrawals ? window.getWithdrawals() :
+        JSON.parse( localStorage.getItem( 'withdrawals' ) ) || [];
+
+    console.log( `getCapitalEvolutionData: ${trades.length} trades, ${capitalAdditions.length} depósitos, ${withdrawals.length} retiros` );
+
+    // Combinar todos los movimientos
     const allEvents = [];
 
     // Agregar adiciones de capital
@@ -411,7 +461,7 @@ function getCapitalEvolutionData() {
         allEvents.push( {
             date: withdrawal.date,
             type: 'withdrawal',
-            amount: -( parseFloat( withdrawal.amount ) || 0 ), // Negativo para restar
+            amount: -( parseFloat( withdrawal.amount ) || 0 ),
             timestamp: withdrawal.timestamp || new Date( withdrawal.date ).toISOString()
         } );
     } );
@@ -426,10 +476,11 @@ function getCapitalEvolutionData() {
         } );
     } );
 
-    // Ordenar todos los eventos por fecha
+    // Ordenar por fecha
     allEvents.sort( ( a, b ) => new Date( a.timestamp ) - new Date( b.timestamp ) );
 
     if ( allEvents.length === 0 ) {
+        console.log( 'Sin eventos para evolución de capital' );
         return { labels: [ formatDateForChart( new Date() ) ], values: [ 0 ] };
     }
 
@@ -448,12 +499,14 @@ function getCapitalEvolutionData() {
         runningCapital += event.amount;
         capitalPoints.push( {
             date: event.date,
-            capital: Math.max( 0, runningCapital ) // Nunca negativo
+            capital: Math.max( 0, runningCapital )
         } );
     } );
 
     // Tomar los últimos 30 puntos
     const recentPoints = capitalPoints.slice( -30 );
+
+    console.log( `Evolución de capital: ${recentPoints.length} puntos` );
 
     return {
         labels: recentPoints.map( p => formatDateForChart( p.date ) ),
@@ -481,10 +534,6 @@ function formatDateForChart( date ) {
     const day = date.getDate().toString().padStart( 2, '0' );
     const month = ( date.getMonth() + 1 ).toString().padStart( 2, '0' );
     return `${day}/${month}`;
-}
-
-function formatDateForInput( date ) {
-    return date.toISOString().split( 'T' )[ 0 ];
 }
 
 function getStrategyName( key ) {
@@ -522,11 +571,25 @@ window.forceUpdateDashboard = function () {
 document.addEventListener( 'DOMContentLoaded', function () {
     console.log( '=== INICIALIZANDO CHARTS.JS ===' );
 
-    setTimeout( () => {
-        console.log( 'Chart.js disponible:', typeof Chart );
-        initializeCharts();
-    }, 800 );
+    // Verificar dependencias
+    if ( typeof Chart === 'undefined' ) {
+        console.error( 'Chart.js no está cargado' );
+        return;
+    }
 
+    console.log( 'Chart.js disponible:', typeof Chart );
+
+    // Esperar un momento para que firebase-app.js termine de inicializar
+    setTimeout( () => {
+        console.log( 'Verificando datos disponibles:' );
+        console.log( '- Trades:', window.getTrades ? window.getTrades().length : 'función no disponible' );
+        console.log( '- Capital:', window.getCapitalAdditions ? window.getCapitalAdditions().length : 'función no disponible' );
+        console.log( '- Retiros:', window.getWithdrawals ? window.getWithdrawals().length : 'función no disponible' );
+
+        initializeCharts();
+    }, 1000 );
+
+    // Listener para el tab de dashboard
     const dashboardTab = document.querySelector( '[data-tab="dashboard"]' );
     if ( dashboardTab ) {
         dashboardTab.addEventListener( 'click', function () {

@@ -9,10 +9,9 @@
     <link rel="stylesheet" href="./CSS/aditional.css">
     <link rel="stylesheet" href="./dist/output.css">
     <link rel="icon" type="image/webp" href="./logoApp.webp">
-    <!-- AÑADIR PARA PWA -->
     <link rel="manifest" href="./manifest.json">
 
-    <!-- Chart.js CDN -->
+    <!-- Chart.js PRIMERO -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
     <!-- Firebase SDKs -->
@@ -20,13 +19,16 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
-    <!-- JS APP -->
+    <!-- JS APP - firebase-app.js PRIMERO (define variables globales) -->
     <script src="./JS/firebase-app.js"></script>
+
+    <!-- Otros scripts -->
     <script src="./JS/confluence.js"></script>
     <script src="./JS/patrones.js"></script>
     <script src="./JS/tendencia.js"></script>
     <script src="./JS/swipe-navigation.js"></script>
-    <!-- JS para gráficas -->
+
+    <!-- charts.js DESPUÉS (usa las variables globales) -->
     <script src="./JS/charts.js"></script>
 </head>
 

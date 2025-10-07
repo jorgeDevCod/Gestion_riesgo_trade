@@ -4710,6 +4710,21 @@ window.clearTradeFilters = clearTradeFilters;
 window.addRealTimeValidations = addRealTimeValidations;
 window.addRealTimeValidationsToEditModal = addRealTimeValidationsToEditModal;
 
+// ===== EXPONER VARIABLES PARA CHARTS.JS =====
+window.getTrades = function () {
+    return trades || [];
+};
+
+window.getCapitalAdditions = function () {
+    return capitalAdditions || [];
+};
+
+window.getWithdrawals = function () {
+    return withdrawals || [];
+};
+
+console.log( 'Variables globales exportadas para charts.js' );
+
 // Inicializar al cargar el documento
 if ( typeof document !== 'undefined' ) {
     document.addEventListener( 'DOMContentLoaded', initializeRiskManagement );
