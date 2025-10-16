@@ -130,7 +130,6 @@ const setupChecklists = {
         "5M: Volumen aumenta en ruptura del micro soporte/resistencia (>1.25x promedio)",
         "Entrada(5M/3M): Pullback suave con volumen decreciente antes de entrada"
     ]
-
 };
 
 // ===== INSTALACIÓN PWA =====

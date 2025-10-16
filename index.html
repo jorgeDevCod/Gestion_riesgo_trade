@@ -1978,7 +1978,7 @@
         </div>
 
         <!-- Template Estructura + Confluencia -->
-        < id="template-estructura-confluencia" class="strategy-template">
+        <div id="template-estructura-confluencia" class="strategy-template">
             <h4 class="text-lg font-semibold text-cyan-400 mb-4">🎯 ESTRATEGIA 2: Estructura + Confluencia</h4>
 
             <!-- INVALIDACIONES CRÍTICAS -->
@@ -2087,166 +2087,166 @@
 
 
 
-    </div>
+        </div>
 
-    <!-- Template EMA + MACD -->
-    <div id="template-ema-macd" class="strategy-template">
-        <h4 class="text-lg font-semibold text-purple-400 mb-4">📊 ESTRATEGIA 3: EMA + MACD + CONFLUENCIA</h4>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <!-- COMPRAS EMA+MACD -->
-            <div class="bg-green-900 bg-opacity-20 p-4 rounded-lg border border-green-500">
-                <h5 class="font-semibold text-green-400 mb-3">🟢 SETUP COMPRAS</h5>
-                <div class="space-y-3 text-sm">
-                    <div>
-                        <h6 class="font-medium text-green-300">PASO 1 - Contexto 4H:</h6>
-                        <ul class="mt-1 space-y-1 text-xs">
-                            <li>• MACD sin divergencia bajista + histograma verde creciendo</li>
-                            <li>• No en caída libre de +3 días consecutivos</li>
-                            <li>• Precio supera +2 resistencias y se mantiene como soporte</li>
-                        </ul>
+        <!-- Template EMA + MACD -->
+        <div id="template-ema-macd" class="strategy-template">
+            <h4 class="text-lg font-semibold text-purple-400 mb-4">📊 ESTRATEGIA 3: EMA + MACD + CONFLUENCIA</h4>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <!-- COMPRAS EMA+MACD -->
+                <div class="bg-green-900 bg-opacity-20 p-4 rounded-lg border border-green-500">
+                    <h5 class="font-semibold text-green-400 mb-3">🟢 SETUP COMPRAS</h5>
+                    <div class="space-y-3 text-sm">
+                        <div>
+                            <h6 class="font-medium text-green-300">PASO 1 - Contexto 4H:</h6>
+                            <ul class="mt-1 space-y-1 text-xs">
+                                <li>• MACD sin divergencia bajista + histograma verde creciendo</li>
+                                <li>• No en caída libre de +3 días consecutivos</li>
+                                <li>• Precio supera +2 resistencias y se mantiene como soporte</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h6 class="font-medium text-green-300">PASO 2 - Señal 1H (3 de 4):</h6>
+                            <ul class="mt-1 space-y-1 text-xs">
+                                <li>• Líneas MACD por cruzar hacia dirección alcista</li>
+                                <li>• Precio rompe o rebota en zona de SOPORTE</li>
+                                <li>• Precio encima o rebota en EMA 21 por 3+ velas</li>
+                                <li>• EMA 21 cruza EMA 50 al alza (Opcional)</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h6 class="font-medium text-green-300">PASO 3 - Confirmación 15M (2 de 3):</h6>
+                            <ul class="mt-1 space-y-1 text-xs">
+                                <li>• Histograma MACD creciendo 2+ velas consecutivas</li>
+                                <li>• Precio encima de ambas EMAs por 2+ velas</li>
+                                <li>• Vela rebota en EMA 21 o 50 con histograma verde</li>
+                            </ul>
+                        </div>
                     </div>
-                    <div>
-                        <h6 class="font-medium text-green-300">PASO 2 - Señal 1H (3 de 4):</h6>
-                        <ul class="mt-1 space-y-1 text-xs">
-                            <li>• Líneas MACD por cruzar hacia dirección alcista</li>
-                            <li>• Precio rompe o rebota en zona de SOPORTE</li>
-                            <li>• Precio encima o rebota en EMA 21 por 3+ velas</li>
-                            <li>• EMA 21 cruza EMA 50 al alza (Opcional)</li>
-                        </ul>
-                    </div>
-                    <div>
-                        <h6 class="font-medium text-green-300">PASO 3 - Confirmación 15M (2 de 3):</h6>
-                        <ul class="mt-1 space-y-1 text-xs">
-                            <li>• Histograma MACD creciendo 2+ velas consecutivas</li>
-                            <li>• Precio encima de ambas EMAs por 2+ velas</li>
-                            <li>• Vela rebota en EMA 21 o 50 con histograma verde</li>
-                        </ul>
+                </div>
+
+                <!-- VENTAS EMA+MACD -->
+                <div class="bg-red-900 bg-opacity-20 p-4 rounded-lg border border-red-500">
+                    <h5 class="font-semibold text-red-400 mb-3">🔴 SETUP VENTAS</h5>
+                    <div class="space-y-3 text-sm">
+                        <div>
+                            <h6 class="font-medium text-red-300">PASO 1 - Contexto 4H:</h6>
+                            <ul class="mt-1 space-y-1 text-xs">
+                                <li>• MACD con divergencia bajista e histograma rojo</li>
+                                <li>• No en subida libre de +3 días consecutivos</li>
+                                <li>• Precio rompe +2 soportes y rebota en último como resistencia</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h6 class="font-medium text-red-300">PASO 2 - Señal 1H (3 de 4):</h6>
+                            <ul class="mt-1 space-y-1 text-xs">
+                                <li>• Líneas MACD por cruzar hacia dirección bajista</li>
+                                <li>• Precio rompe o es rechazado en zona de RESISTENCIA</li>
+                                <li>• Precio debajo o rebota en EMA 21 por 3+ velas</li>
+                                <li>• EMA 21 cruza EMA 50 a la baja (Opcional)</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h6 class="font-medium text-red-300">PASO 3 - Confirmación 15M (2 de 3):</h6>
+                            <ul class="mt-1 space-y-1 text-xs">
+                                <li>• Histograma MACD decreciendo 2+ velas consecutivas</li>
+                                <li>• Precio debajo de ambas EMAs por 2+ velas</li>
+                                <li>• Vela rechaza EMA 21 o 50 con histograma rojo</li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
+            <div class="mt-4 bg-purple-900 bg-opacity-20 p-3 rounded-lg border border-purple-400">
+                <p class="text-sm"><strong>ENTRADA:</strong> Siguiente vela 5M después de confirmación</p>
+            </div>
+        </div>
 
-            <!-- VENTAS EMA+MACD -->
-            <div class="bg-red-900 bg-opacity-20 p-4 rounded-lg border border-red-500">
-                <h5 class="font-semibold text-red-400 mb-3">🔴 SETUP VENTAS</h5>
-                <div class="space-y-3 text-sm">
-                    <div>
-                        <h6 class="font-medium text-red-300">PASO 1 - Contexto 4H:</h6>
-                        <ul class="mt-1 space-y-1 text-xs">
-                            <li>• MACD con divergencia bajista e histograma rojo</li>
-                            <li>• No en subida libre de +3 días consecutivos</li>
-                            <li>• Precio rompe +2 soportes y rebota en último como resistencia</li>
-                        </ul>
+        <!-- TEMPLATE CONTRA-TENDENCIA OPTIMIZADA (REVERSIÓN INTRADÍA) -->
+        <div id="template-contra-tendencia" class="strategy-template">
+            <h4 class="text-lg font-semibold text-cyan-400 mb-4">🎯 ESTRATEGIA 4: REVERSIÓN INTRADÍA | Contra Tendencia</h4>
+
+            <!-- INVALIDACIONES CRÍTICAS -->
+            <div class="mb-4 bg-red-900 bg-opacity-40 p-3 rounded-lg border border-red-500">
+                <h5 class="font-semibold text-red-400 mb-2 text-sm">🚨 INVALIDACIÓN INMEDIATA:</h5>
+                <ul class="text-xs space-y-1">
+                    <li>• MACD se expande sin divergencia (impulso aún vigente).</li>
+                    <li>• Williams %R no logra salir del extremo (-20/-80).</li>
+                    <li>• Ruptura sin volumen >1.2x promedio.</li>
+                    <li>• Falla el patrón de reversión en 15M o no confirma en 5M.</li>
+                </ul>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <!-- 🔴 VENTAS CONTRA-TENDENCIA -->
+                <div class="bg-red-900 bg-opacity-20 p-4 rounded-lg border border-red-500">
+                    <h5 class="font-semibold text-red-400 mb-3">🔴 VENTAS - Reversión desde Precio Caro (Tendencia Alcista Principal)</h5>
+
+                    <div class="space-y-3 text-sm">
+                        <div>
+                            <h6 class="font-medium text-red-300">1️⃣ DETECCIÓN DE AGOTAMIENTO (4H / 1H)</h6>
+                            <ul class="text-xs mt-1 space-y-1">
+                                <li>• Estructura: ChoCH o rechazo fuerte en resistencia relevante.</li>
+                                <li>• EMAs 21/50: comienzan a aplanarse o cruzarse.</li>
+                                <li>• Fibo: traza extensión 0–100% para proyectar retroceso.</li>
+                            </ul>
+                        </div>
+
+                        <div class="bg-opacity-30rounded">
+                            <h6 class="font-medium text-purple-300">2️⃣ CONFIRMACIÓN DE GIRO (1H / 15M)</h6>
+                            <ul class="text-xs mt-1 space-y-1">
+                                <li>• MACD: Divergencia bajista clara (precio sube / MACD cae).</li>
+                                <li>• Williams %R: en sobrecompra y saliendo de -20↘️.</li>
+                                <li>• Vela envolvente o pin bar en zona de resistencia.</li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <h6 class="font-medium text-red-300">3️⃣ VALIDACIÓN MICRO (15M / 5M / 3M)</h6>
+                            <ul class="text-xs mt-1 space-y-1">
+                                <li>• Volumen: aumento >1.5x en ruptura del micro soporte.</li>
+                                <li>• Pullback: suave, con volumen decreciente.</li>
+                                <li>• Williams %R: confirma salida del extremo superior.</li>
+                            </ul>
+                        </div>
                     </div>
-                    <div>
-                        <h6 class="font-medium text-red-300">PASO 2 - Señal 1H (3 de 4):</h6>
-                        <ul class="mt-1 space-y-1 text-xs">
-                            <li>• Líneas MACD por cruzar hacia dirección bajista</li>
-                            <li>• Precio rompe o es rechazado en zona de RESISTENCIA</li>
-                            <li>• Precio debajo o rebota en EMA 21 por 3+ velas</li>
-                            <li>• EMA 21 cruza EMA 50 a la baja (Opcional)</li>
-                        </ul>
-                    </div>
-                    <div>
-                        <h6 class="font-medium text-red-300">PASO 3 - Confirmación 15M (2 de 3):</h6>
-                        <ul class="mt-1 space-y-1 text-xs">
-                            <li>• Histograma MACD decreciendo 2+ velas consecutivas</li>
-                            <li>• Precio debajo de ambas EMAs por 2+ velas</li>
-                            <li>• Vela rechaza EMA 21 o 50 con histograma rojo</li>
-                        </ul>
+                </div>
+
+                <!-- 🟢 COMPRAS CONTRA-TENDENCIA -->
+                <div class="bg-green-900 bg-opacity-20 p-4 rounded-lg border border-green-500">
+                    <h5 class="font-semibold text-green-400 mb-3">🟢 COMPRAS - Reversión desde Precio Barato (Tendencia Bajista Principal)</h5>
+
+                    <div class="space-y-3 text-sm">
+                        <div>
+                            <h6 class="font-medium text-green-300">1️⃣ DETECCIÓN DE AGOTAMIENTO (4H / 1H)</h6>
+                            <ul class="text-xs mt-1 space-y-1">
+                                <li>• Estructura: ChoCH o rechazo fuerte en soporte relevante.</li>
+                                <li>• EMAs 21/50: comienzan a aplanarse o cruzarse.</li>
+                                <li>• Fibo: traza extensión para proyectar objetivos del nuevo impulso.</li>
+                            </ul>
+                        </div>
+
+                        <div class="bg-opacity-30 rounded">
+                            <h6 class="font-medium text-purple-300">2️⃣ CONFIRMACIÓN DE GIRO (1H / 15M)</h6>
+                            <ul class="text-xs mt-1 space-y-1">
+                                <li>• MACD: Divergencia alcista (precio cae / MACD sube).</li>
+                                <li>• Williams %R: en sobreventa y saliendo de -80↗️.</li>
+                                <li>• Patrón de reversión: martillo, doji o envolvente alcista.</li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <h6 class="font-medium text-green-300">3️⃣ VALIDACIÓN MICRO (15M / 5M / 3M)</h6>
+                            <ul class="text-xs mt-1 space-y-1">
+                                <li>• Volumen: aumento >1.5x en ruptura del micro techo.</li>
+                                <li>• Pullback: con volumen decreciente.</li>
+                                <li>• Williams %R: confirma salida del extremo inferior.</li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="mt-4 bg-purple-900 bg-opacity-20 p-3 rounded-lg border border-purple-400">
-            <p class="text-sm"><strong>ENTRADA:</strong> Siguiente vela 5M después de confirmación</p>
-        </div>
-    </div>
-
-    <!-- TEMPLATE CONTRA-TENDENCIA OPTIMIZADA (REVERSIÓN INTRADÍA) -->
-    <div id="template-contra-tendencia" class="strategy-template">
-        <h4 class="text-lg font-semibold text-cyan-400 mb-4">🎯 ESTRATEGIA 4: REVERSIÓN INTRADÍA | Contra Tendencia</h4>
-
-        <!-- INVALIDACIONES CRÍTICAS -->
-        <div class="mb-4 bg-red-900 bg-opacity-40 p-3 rounded-lg border border-red-500">
-            <h5 class="font-semibold text-red-400 mb-2 text-sm">🚨 INVALIDACIÓN INMEDIATA:</h5>
-            <ul class="text-xs space-y-1">
-                <li>• MACD se expande sin divergencia (impulso aún vigente).</li>
-                <li>• Williams %R no logra salir del extremo (-20/-80).</li>
-                <li>• Ruptura sin volumen >1.2x promedio.</li>
-                <li>• Falla el patrón de reversión en 15M o no confirma en 5M.</li>
-            </ul>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <!-- 🔴 VENTAS CONTRA-TENDENCIA -->
-            <div class="bg-red-900 bg-opacity-20 p-4 rounded-lg border border-red-500">
-                <h5 class="font-semibold text-red-400 mb-3">🔴 VENTAS - Reversión desde Precio Caro (Tendencia Alcista Principal)</h5>
-
-                <div class="space-y-3 text-sm">
-                    <div>
-                        <h6 class="font-medium text-red-300">1️⃣ DETECCIÓN DE AGOTAMIENTO (4H / 1H)</h6>
-                        <ul class="text-xs mt-1 space-y-1">
-                            <li>• Estructura: ChoCH o rechazo fuerte en resistencia relevante.</li>
-                            <li>• EMAs 21/50: comienzan a aplanarse o cruzarse.</li>
-                            <li>• Fibo: traza extensión 0–100% para proyectar retroceso.</li>
-                        </ul>
-                    </div>
-
-                    <div class="bg-opacity-30rounded">
-                        <h6 class="font-medium text-purple-300">2️⃣ CONFIRMACIÓN DE GIRO (1H / 15M)</h6>
-                        <ul class="text-xs mt-1 space-y-1">
-                            <li>• MACD: Divergencia bajista clara (precio sube / MACD cae).</li>
-                            <li>• Williams %R: en sobrecompra y saliendo de -20↘️.</li>
-                            <li>• Vela envolvente o pin bar en zona de resistencia.</li>
-                        </ul>
-                    </div>
-
-                    <div>
-                        <h6 class="font-medium text-red-300">3️⃣ VALIDACIÓN MICRO (15M / 5M / 3M)</h6>
-                        <ul class="text-xs mt-1 space-y-1">
-                            <li>• Volumen: aumento >1.5x en ruptura del micro soporte.</li>
-                            <li>• Pullback: suave, con volumen decreciente.</li>
-                            <li>• Williams %R: confirma salida del extremo superior.</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 🟢 COMPRAS CONTRA-TENDENCIA -->
-            <div class="bg-green-900 bg-opacity-20 p-4 rounded-lg border border-green-500">
-                <h5 class="font-semibold text-green-400 mb-3">🟢 COMPRAS - Reversión desde Precio Barato (Tendencia Bajista Principal)</h5>
-
-                <div class="space-y-3 text-sm">
-                    <div>
-                        <h6 class="font-medium text-green-300">1️⃣ DETECCIÓN DE AGOTAMIENTO (4H / 1H)</h6>
-                        <ul class="text-xs mt-1 space-y-1">
-                            <li>• Estructura: ChoCH o rechazo fuerte en soporte relevante.</li>
-                            <li>• EMAs 21/50: comienzan a aplanarse o cruzarse.</li>
-                            <li>• Fibo: traza extensión para proyectar objetivos del nuevo impulso.</li>
-                        </ul>
-                    </div>
-
-                    <div class="bg-opacity-30 rounded">
-                        <h6 class="font-medium text-purple-300">2️⃣ CONFIRMACIÓN DE GIRO (1H / 15M)</h6>
-                        <ul class="text-xs mt-1 space-y-1">
-                            <li>• MACD: Divergencia alcista (precio cae / MACD sube).</li>
-                            <li>• Williams %R: en sobreventa y saliendo de -80↗️.</li>
-                            <li>• Patrón de reversión: martillo, doji o envolvente alcista.</li>
-                        </ul>
-                    </div>
-
-                    <div>
-                        <h6 class="font-medium text-green-300">3️⃣ VALIDACIÓN MICRO (15M / 5M / 3M)</h6>
-                        <ul class="text-xs mt-1 space-y-1">
-                            <li>• Volumen: aumento >1.5x en ruptura del micro techo.</li>
-                            <li>• Pullback: con volumen decreciente.</li>
-                            <li>• Williams %R: confirma salida del extremo inferior.</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
     </div>
 
 
