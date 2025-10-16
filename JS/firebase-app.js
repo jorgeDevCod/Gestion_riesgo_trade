@@ -100,14 +100,16 @@ const setupChecklists = {
         "3M: MACD (líneas/histograma) cruza o gira en dirección del trade en zona clave",
         "Entrada (5M/3M): Rebote en EMA21 o ruptura/retesteo de consolidación con volumen + confluencia"
     ],
+
     "estructura-confluencia": [
-        "4H / 1H: Tendencia validada → 2+ máximos o mínimos consecutivos + MACD alineado",
-        "1H / 15M (Refuerzo): Divergencia %K vs precio + mecha ≥5 pips en S/R crítico",
-        "4H / 1H o 1H / 15M: Zona de confluencia (S/R o Fibonacci + estructura confirmada)",
-        "15M: MACD cruzando o por cruzar + histograma en dirección del trade",
-        "Confluencia( 15M y 3M ): Compra: Estocástico cruza ↑20 o rebota ↑50 | Venta: Estocástico cruza ↓80 o rebota ↓50",
-        "3M: MACD histograma cambiando color + Estocástico cruzando y saliendo de zona extrema",
-        "Entrada (5M / 3M): Reacción en zona clave con patrón claro o ruptura + retesteo con volumen"
+        "4H/1H: T. alcista (máx crecientes + EMA21>EMA50) | T. bajista (Min decrecientes + EMA21<EMA50)",
+        "4H/1H: Marcar zonas de confluencia importantes → S/R + Fibonacci (38%-61% o 76%) o extensión F. (61.8%-127%)",
+        "1H y 15M: MACD cruzando o por cruzar + histograma en dirección del trade",
+        "15M: Precio valida zona importante de parada con patrón o cambio de estructura",
+        "15M y 5M: Estocástico cruza ↑20 o rebota ↑50 (Compra) | cruza ↓80 o rebota ↓50 (Venta)",
+        "Entrada1 (15M/5M): EMA21>EMA50 y rebote(Compra) | EMA21<EMA50 y rechazo(Venta)",
+        "Entrada2 (5M/3M): Precio reacciona en zona clave con patrón o ruptura + retesteo con volumen",
+
     ],
     "ema-macd": [
         "4H: MACD sin divergencia bajista + histograma creciendo",
@@ -120,16 +122,15 @@ const setupChecklists = {
     ],
 
     "contra-tendencia": [
-        "4H/1D: Tendencia principal establecida ≥48H (EMA21 y EMA50 separadas)",
-        "4H/1D: Precio toca soporte/resistencia mayor clave",
-        "1H: MACD divergente o precio rompe/rebota último rango (min/max)",
-        "Refuerzo (15M): EMA21/EMA50 curvando o cambiando dirección a favor del trade",
-        "15M: Patrón de agotamiento (doji, martillo, envolvente) en zona crítica",
-        "15M: Retroceso con volumen decreciente + vela de rechazo con volumen",
-        "5M: Ruptura o rebote en EMA21 contra tendencia con vela fuerte",
-        "5M: Volumen acompañando ruptura o rechazo (≥1.5x promedio)",
-        "Ejecución: Entrada en ruptura o rebote confirmada tras cambio de estructura inmediata"
+        "4H/1H: ChoCH o rechazo fuerte en zona relevante (soporte o resistencia mayor)",
+        "4H/1H: EMA21 y EMA50 comienzan a cruzarse o aplanarse (señal de posible cambio de tendencia)",
+        "1H/15M: MACD muestra divergencia clara entre precio y momentum",
+        "1H/15M: Williams %R en extremo y saliendo (-20↘️ venta / -80↗️ compra)",
+        "15M: Patrón de reversión visible (envolvente, martillo o pin bar) en zona clave",
+        "5M: Volumen aumenta en ruptura del micro soporte/resistencia (>1.25x promedio)",
+        "Entrada(5M/3M): Pullback suave con volumen decreciente antes de entrada"
     ]
+
 };
 
 // ===== INSTALACIÓN PWA =====
