@@ -576,7 +576,8 @@
                     <div class="space-y-4">
                         <div>
                             <label class="block text-sm font-medium mb-2">Seleccionar Estrategia</label>
-                            <select id="strategySelect" class="w-full p-3 bg-trading-dark border border-gray-600 rounded-lg text-white">
+                            <select id="strategySelect" class="w-full p-3 bg-gray-900 border border-gray-600 rounded-lg text-white focus:border-gold focus:ring-2 focus:ring-gold/20 outline-none transition-all cursor-pointer appearance-none
+                                 hover:bg-gray-800e">
                                 <option value="regulares">📈 Estrategia 1: Trades Regulares</option>
                                 <option value="estructura-confluencia">🎯 Estrategia 2: Estructura + Confluencia</option>
                                 <option value="ema-macd">📊 Estrategia 3: EMA + MACD</option>
@@ -751,6 +752,9 @@
                                 <th class="text-center p-3 text-gold text-xs uppercase tracking-wider font-semibold" title="Fecha de ejecución">
                                     📅 Fecha
                                 </th>
+                                <th class="text-center p-3 text-gold text-xs uppercase tracking-wider font-semibold" title="Símbolo operado">
+                                    💱 Símbolo
+                                </th>
                                 <th class="text-center p-3 text-gold text-xs uppercase tracking-wider font-semibold" title="Estrategia utilizada">
                                     🎯 Estrategia
                                 </th>
@@ -769,7 +773,6 @@
                                 <th class="text-center p-3 text-gold text-xs uppercase tracking-wider font-semibold" title="Estado actual">
                                     🔄 Estado
                                 </th>
-                                <!-- ✅ NUEVA COLUMNA -->
                                 <th class="text-center p-3 text-gold text-xs uppercase tracking-wider font-semibold" title="Resultado del trade">
                                     🏆 Resultado
                                 </th>
@@ -787,7 +790,7 @@
 
                         <tbody id="tradesTableBody">
                             <tr>
-                                <td colspan="11" class="p-8 text-center text-gray-400">
+                                <td colspan="12" class="p-8 text-center text-gray-400">
                                     <div class="flex flex-col items-center space-y-4">
                                         <!-- Ícono principal -->
                                         <div class="text-6xl mt-4 animate-pulse">📊</div>
@@ -1529,6 +1532,7 @@
         </div>
     </div>
 
+    <!-- Modal para Añadir Trade -->
     <div id="tradeModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
         <div class="bg-trading-dark p-6 rounded-lg border border-gray-700 w-full max-w-lg mx-4">
             <h3 class="text-xl font-semibold text-gold mb-4">Nuevo Trade</h3>
@@ -1540,7 +1544,8 @@
                     </div>
                     <div>
                         <label class="block text-sm font-medium mb-2">Estrategia</label>
-                        <select id="tradeStrategy" class="w-full p-2 bg-trading-dark border border-gray-600 rounded-lg text-white" required>
+                        <select id="tradeStrategy" class="w-full p-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:border-gold focus:ring-2 focus:ring-gold/20 outline-none transition-all cursor-pointer appearance-none
+                                 hover:bg-gray-800e" required>
                             <option value="regulares">Trades Regulares</option>
                             <option value="estructura-confluencia">Estructura + Confluencia</option>
                             <option value="ema-macd">EMA + MACD</option>
@@ -1549,10 +1554,15 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4">
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Símbolo</label>
+                        <input type="text" id="tradeSymbol" class="w-full p-2 bg-trading-dark border border-gray-600 rounded-lg text-white uppercase" placeholder="XAUUSD" value="XAUUSD" maxlength="10" style="text-transform: uppercase;" required>
+                    </div>
                     <div>
                         <label class="block text-sm font-medium mb-2">Dirección</label>
-                        <select id="tradeDirection" class="w-full p-2 bg-trading-dark border border-gray-600 rounded-lg text-white" required>
+                        <select id="tradeDirection" class="w-full p-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:border-gold focus:ring-2 focus:ring-gold/20 outline-none transition-all cursor-pointer appearance-none
+                                 hover:bg-gray-800e" required>
                             <option value="buy">Compra</option>
                             <option value="sell">Venta</option>
                         </select>
@@ -1622,11 +1632,12 @@
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium mb-2">Fecha</label>
-                        <input type="date" id="editTradeDate" class="w-full p-2 bg-trading-dark border border-gray-600 rounded-lg text-white" required>
+                        <input type="date" id="editTradeDate" class="w-full p-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:border-gold focus:ring-2 focus:ring-gold/20 outline-none transition-all cursor-pointer appearance-none" required>
                     </div>
                     <div>
                         <label class="block text-sm font-medium mb-2">Estrategia</label>
-                        <select id="editTradeStrategy" class="w-full p-2 bg-trading-dark border border-gray-600 rounded-lg text-white" required>
+                        <select id="editTradeStrategy" class="w-full p-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:border-gold focus:ring-2 focus:ring-gold/20 outline-none transition-all cursor-pointer appearance-none
+                                 hover:bg-gray-800e" required>
                             <option value="regulares">Trades Regulares</option>
                             <option value="estructura-confluencia">Estructura + Confluencia</option>
                             <option value="ema-macd">EMA + MACD</option>
@@ -1634,10 +1645,16 @@
                         </select>
                     </div>
                 </div>
-                <div class="grid grid-cols-2 gap-4">
+
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Símbolo</label>
+                        <input type="text" id="editTradeSymbol" class="w-full p-2 bg-trading-dark border border-gray-600 rounded-lg text-white uppercase" placeholder="XAUUSD" maxlength="10" style="text-transform: uppercase;" required>
+                    </div>
                     <div>
                         <label class="block text-sm font-medium mb-2">Dirección</label>
-                        <select id="editTradeDirection" class="w-full p-2 bg-trading-dark border border-gray-600 rounded-lg text-white" required>
+                        <select id="editTradeDirection" class="w-full p-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:border-gold focus:ring-2 focus:ring-gold/20 outline-none transition-all cursor-pointer appearance-none
+                                 hover:bg-gray-800e" required>
                             <option value="buy">Compra</option>
                             <option value="sell">Venta</option>
                         </select>
@@ -1647,6 +1664,7 @@
                         <input type="number" id="editTradeContracts" class="w-full p-2 bg-trading-dark border border-gray-600 rounded-lg text-white" min="1" required>
                     </div>
                 </div>
+
                 <!-- PRECIOS - NUEVO DISEÑO -->
                 <div class="bg-trading-dark p-4 rounded-lg border border-yellow-500">
                     <h4 class="font-semibold text-yellow-400 mb-3">💰 Precios de Ejecución</h4>

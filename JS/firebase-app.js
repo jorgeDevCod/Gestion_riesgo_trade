@@ -598,10 +598,12 @@ function addTrade( tradeData ) {
 
     if ( !tradeData.date ) tradeData.date = today;
 
+    // Asegúrate de que incluya symbol:
     let finalTradeData = {
         ...tradeData,
         totalContracts: tradeData.contracts,
-        contracts: tradeData.contracts
+        contracts: tradeData.contracts,
+        symbol: tradeData.symbol || 'XAUUSD' // Valor por defecto
     };
 
     const hasValidOpenPrice = tradeData.openPrice && !isNaN( tradeData.openPrice ) && tradeData.openPrice > 0;
@@ -833,8 +835,9 @@ function renderTrades() {
         const strategyName = strategyConfigs[ trade.strategy ]?.name || trade.strategy;
         const pnlValue = parseFloat( trade.pnl ) || 0;
         const pnlClass = pnlValue >= 0 ? "text-profit" : "text-loss";
+        const symbolDisplay = trade.symbol || 'XAUUSD'; // Valor por defecto
 
-        // ✅ NUEVA: Determinar resultado visual
+        // Determinar resultado visual
         let resultBadge = '';
         if ( trade.closed ) {
             if ( pnlValue > 0 || trade.result === 'win' ) {
@@ -860,70 +863,76 @@ function renderTrades() {
             : ( trade.closed ? 'Cerrado' : '⏳ Pendiente' );
 
         return `
-    <tr class="border-b border-gray-700 hover:bg-gray-800/50 transition-all duration-200 group">
-        <td class="p-3 text-sm whitespace-nowrap w-[6%]">
-            ${new Date( trade.date ).toLocaleDateString( 'es-PE', { day: '2-digit', month: 'short' } )}
-        </td>
+<tr class="border-b border-gray-700 hover:bg-gray-800/50 transition-all duration-200 group">
+    <td class="p-3 text-sm whitespace-nowrap w-[5%]">
+        ${new Date( trade.date ).toLocaleDateString( 'es-PE', { day: '2-digit', month: 'short' } )}
+    </td>
 
-        <td class="p-3 text-sm font-medium w-[13%]">
-            <span class="inline-block truncate" title="${strategyName}">
-                ${strategyName}
-            </span>
-        </td>
+    <td class="p-3 text-center w-[8%]">
+        <span class="px-2 py-1 rounded-full text-xs font-bold bg-blue-900/40 text-blue-300 border border-blue-600/50">
+            ${symbolDisplay}
+        </span>
+    </td>
 
-        <td class="p-3 text-center w-[9%] whitespace-nowrap">
-            <span class="px-2 py-1 rounded-full inline-flex items-center justify-center text-xs font-bold 
-                ${trade.direction === 'buy'
+    <td class="p-3 text-sm font-medium w-[12%]">
+        <span class="inline-block truncate" title="${strategyName}">
+            ${strategyName}
+        </span>
+    </td>
+
+    <td class="p-3 text-center w-[8%] whitespace-nowrap">
+        <span class="px-2 py-1 rounded-full inline-flex items-center justify-center text-xs font-bold 
+            ${trade.direction === 'buy'
                 ? 'bg-green-900/40 text-green-300 border border-green-600/50'
                 : 'bg-red-900/40 text-red-300 border border-red-600/50'} 
-                min-w-[70px]">
-                ${trade.direction === 'buy' ? '↗️ LONG' : '↘️ SHORT'}
-            </span>
-        </td>
+            min-w-[70px]">
+            ${trade.direction === 'buy' ? '↗️ LONG' : '↘️ SHORT'}
+        </span>
+    </td>
 
-        <td class="p-3 text-sm font-bold text-center w-[7%]">${trade.totalContracts || trade.contracts}</td>
+    <td class="p-3 text-sm font-bold text-center w-[6%]">${trade.totalContracts || trade.contracts}</td>
 
-        <td class="p-3 text-sm font-mono text-right w-[9%]">${trade.openPrice ? `$${trade.openPrice.toFixed( 2 )}` : '—'}</td>
+    <td class="p-3 text-sm font-mono text-right w-[8%]">${trade.openPrice ? `$${trade.openPrice.toFixed( 2 )}` : '—'}</td>
 
-        <td class="p-3 text-sm font-mono text-right w-[9%]">${closePrice}</td>
+    <td class="p-3 text-sm font-mono text-right w-[8%]">${closePrice}</td>
 
-        <td class="p-3 text-center w-[10%]">
-            <span class="px-2 py-1 rounded-full text-xs font-medium ${statusClass} whitespace-nowrap">
-                ${statusDisplay} ${trade.tpLevel ? `(${trade.tpLevel.toUpperCase()})` : ''}
-            </span>
-        </td>
+    <td class="p-3 text-center w-[9%]">
+        <span class="px-2 py-1 rounded-full text-xs font-medium ${statusClass} whitespace-nowrap">
+            ${statusDisplay} ${trade.tpLevel ? `(${trade.tpLevel.toUpperCase()})` : ''}
+        </span>
+    </td>
 
-        <td class="p-3 text-center w-[10%] whitespace-nowrap">
-            ${resultBadge}
-        </td>
+    <td class="p-3 text-center w-[9%] whitespace-nowrap">
+        ${resultBadge}
+    </td>
 
-        <td class="p-3 ${pnlClass} font-bold text-sm font-mono text-right w-[9%]">
-            ${pnlValue >= 0 ? '+' : ''}$${pnlValue.toFixed( 2 )}
-        </td>
+    <td class="p-3 ${pnlClass} font-bold text-sm font-mono text-right w-[8%]">
+        ${pnlValue >= 0 ? '+' : ''}$${pnlValue.toFixed( 2 )}
+    </td>
 
-        <td class="p-3 w-[9%] max-w-[150px]">
-            <span class="cursor-pointer text-blue-400 hover:text-blue-300 text-xs truncate block" 
-                  onclick="showCommentTooltip(event, '${( trade.comments || '' ).replace( /'/g, "\\'" )}')">
-                ${trade.comments && trade.comments.length > 20
+    <td class="p-3 w-[8%] max-w-[150px]">
+        <span class="cursor-pointer text-blue-400 hover:text-blue-300 text-xs truncate block" 
+              onclick="showCommentTooltip(event, '${( trade.comments || '' ).replace( /'/g, "\\'" )}')">
+            ${trade.comments && trade.comments.length > 20
                 ? trade.comments.substring( 0, 20 ) + "..."
                 : ( trade.comments || '📝 Sin notas' )}
-            </span>
-        </td>
+        </span>
+    </td>
 
-        <td class="p-3 w-[7%]">
-            <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity justify-end">
-                <button onclick="showEditTradeModal('${trade.id}')" 
-                        class="text-blue-400 hover:text-blue-300 hover:bg-blue-900/30 text-xs px-2 py-1 rounded transition-all"
-                        title="Editar trade">✏️</button>
-                <button onclick="showTradeDetails('${trade.id}')" 
-                        class="text-purple-400 hover:text-purple-300 hover:bg-purple-900/30 text-xs px-2 py-1 rounded transition-all"
-                        title="Ver detalles">👁️</button>
-                <button onclick="deleteTrade('${trade.id}')" 
-                        class="text-red-400 hover:text-red-300 hover:bg-red-900/30 text-xs px-2 py-1 rounded transition-all"
-                        title="Eliminar trade">🗑️</button>
-            </div>
-        </td>
-    </tr>`;
+    <td class="p-3 w-[6%]">
+        <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity justify-end">
+            <button onclick="showEditTradeModal('${trade.id}')" 
+                    class="text-blue-400 hover:text-blue-300 hover:bg-blue-900/30 text-xs px-2 py-1 rounded transition-all"
+                    title="Editar trade">✏️</button>
+            <button onclick="showTradeDetails('${trade.id}')" 
+                    class="text-purple-400 hover:text-purple-300 hover:bg-purple-900/30 text-xs px-2 py-1 rounded transition-all"
+                    title="Ver detalles">👁️</button>
+            <button onclick="deleteTrade('${trade.id}')" 
+                    class="text-red-400 hover:text-red-300 hover:bg-red-900/30 text-xs px-2 py-1 rounded transition-all"
+                    title="Eliminar trade">🗑️</button>
+        </div>
+    </td>
+</tr>`;
     } ).join( "" );
 
     console.log( `Tabla renderizada: ${filteredTrades.length} trades de ${trades.length} totales` );
@@ -2573,6 +2582,7 @@ function showEditTradeModal( tradeId ) {
     document.getElementById( "editTradeId" ).value = trade.id;
     document.getElementById( "editTradeDate" ).value = trade.date;
     document.getElementById( "editTradeStrategy" ).value = trade.strategy;
+    document.getElementById( "editTradeSymbol" ).value = trade.symbol || 'XAUUSD'; // NUEVO
     document.getElementById( "editTradeDirection" ).value = trade.direction;
     document.getElementById( "editTradeContracts" ).value = trade.contracts;
     document.getElementById( "editOpenPrice" ).value = trade.openPrice || "";
@@ -2583,7 +2593,6 @@ function showEditTradeModal( tradeId ) {
 
     showModal( "editTradeModal" );
 
-    // AGREGAR: Validaciones también para modal de edición
     setTimeout( () => {
         addRealTimeValidationsToEditModal();
     }, 100 );
@@ -2760,6 +2769,7 @@ function updateTrade() {
     const updatedData = {
         date: document.getElementById( "editTradeDate" ).value,
         strategy: document.getElementById( "editTradeStrategy" ).value,
+        symbol: document.getElementById( "editTradeSymbol" ).value.toUpperCase() || 'XAUUSD', // NUEVO
         direction: document.getElementById( "editTradeDirection" ).value,
         contracts: parseInt( document.getElementById( "editTradeContracts" ).value ),
         sl: parseFloat( document.getElementById( "editTradeSL" ).value ),
@@ -4512,30 +4522,28 @@ document.addEventListener( "DOMContentLoaded", function () {
         ?.addEventListener( "change", renderTrades );
 
     // Formulario de trade
-    document
-        .getElementById( "tradeForm" )
-        ?.addEventListener( "submit", function ( e ) {
-            e.preventDefault();
-            const tradeData = {
-                date: document.getElementById( "tradeDate" ).value,
-                strategy: document.getElementById( "tradeStrategy" ).value,
-                direction: document.getElementById( "tradeDirection" ).value,
-                contracts: parseInt( document.getElementById( "tradeContracts" ).value ),
-                openPrice: parseFloat( document.getElementById( "entryPrice" ).value ),
-                closePrice: parseFloat( document.getElementById( "exitPrice" ).value ),
-                sl: parseFloat( document.getElementById( "tradeSL" ).value ),
-                tp: parseFloat( document.getElementById( "tradeTP" ).value ),
-                comments: document.getElementById( "tradeComments" ).value || "",
-            };
+    document.getElementById( "tradeForm" )?.addEventListener( "submit", function ( e ) {
+        e.preventDefault();
+        const tradeData = {
+            date: document.getElementById( "tradeDate" ).value,
+            strategy: document.getElementById( "tradeStrategy" ).value,
+            symbol: document.getElementById( "tradeSymbol" ).value.toUpperCase() || 'XAUUSD', // NUEVO
+            direction: document.getElementById( "tradeDirection" ).value,
+            contracts: parseInt( document.getElementById( "tradeContracts" ).value ),
+            openPrice: parseFloat( document.getElementById( "entryPrice" ).value ),
+            closePrice: parseFloat( document.getElementById( "exitPrice" ).value ),
+            sl: parseFloat( document.getElementById( "tradeSL" ).value ),
+            tp: parseFloat( document.getElementById( "tradeTP" ).value ),
+            comments: document.getElementById( "tradeComments" ).value || "",
+        };
 
-            addTrade( tradeData );
-            hideModal( "tradeModal" );
-            this.reset();
-            document.getElementById( "tradeDate" ).value = new Date()
-                .toISOString()
-                .split( "T" )[ 0 ];
-            updateSyncStatus( "Trade agregado correctamente", true );
-        } );
+        addTrade( tradeData );
+        hideModal( "tradeModal" );
+        this.reset();
+        document.getElementById( "tradeDate" ).value = new Date().toISOString().split( "T" )[ 0 ];
+        document.getElementById( "tradeSymbol" ).value = "XAUUSD"; // Resetear al valor por defecto
+        updateSyncStatus( "Trade agregado correctamente", true );
+    } );
 
     document
         .getElementById( "cancelTradeBtn" )
