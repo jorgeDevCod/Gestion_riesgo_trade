@@ -91,14 +91,12 @@ const strategyConfigs = {
 // Checklists (sin cambios)
 const setupChecklists = {
     regulares: [
-        "4H: Estructura + MACD sin divergencia (operar a favor) | con divergencia (operar contra)",
-        "4H/1H: Williams %R saliendo de extremo (-80↗ o -50↗ compra | -20↘ o -50↘ venta)",
-        "✨Refuerzo (1H/15M): Mecha larga ≥5 pips en zona S/R o línea de tendencia",
-        "15M: Williams %R subiendo de -80/-60 (compra) | bajando de -20/-30 (venta)",
-        "15M: Rebote o ruptura en zona clave (S/R retesteado o nivel Fibonacci) con patrón + volumen",
-        "15M/3M: EMA21>EMA50 + W%R -50↗ (compra) | EMA21<EMA50 + W%R -50↘ (venta)",
-        "3M: MACD (líneas/histograma) cruza o gira en dirección del trade en zona clave",
-        "Entrada (5M/3M): Rebote en EMA21 o ruptura/retesteo de consolidación con volumen + confluencia"
+        "4H/1H: Estructura Alcista/Bajista + MACD sin divergencia (seguir tendencia) | con divergencia (buscar giro)",
+        "4H y 1H: Detectar fin de impulso o retroceso con R. Fibo/E. Fibo + zonas de liquidez",
+        "1H y 15M: Williams%R saliendo de -80↗/-50↗ + Soporte (Compra) | -20↘/-50↘ + Resistencia (Venta)",
+        "1H y 15M: EMA21>EMA50 + Precio en Soporte (Compra) | EMA21 < EMA50 + Resistencia (Venta)",
+        "15M/5M: Validación (Rechazo claro o patrón en zona clave + cambio de estructura y volumen)",
+        "Entrada (5M/3M): Retesteo o rebote en EMA21/EMA50 + volumen y confluencias"
     ],
 
     "estructura-confluencia": [
@@ -107,7 +105,7 @@ const setupChecklists = {
         "1H y 15M: MACD cruzando o por cruzar + histograma en dirección del trade",
         "15M: Precio valida zona importante de parada con patrón o cambio de estructura",
         "15M y 5M: Estocástico cruza ↑20 o rebota ↑50 (Compra) | cruza ↓80 o rebota ↓50 (Venta)",
-        "Entrada1 (15M/5M): EMA21>EMA50 y rebote(Compra) | EMA21<EMA50 y rechazo(Venta)",
+        "Entrada1 (15M/5M): EMA21>EMA50 y rebote(Compra) | EMA21 < EMA50 y rechazo(Venta)",
         "Entrada2 (5M/3M): Precio reacciona en zona clave con patrón o ruptura + retesteo con volumen",
 
     ],
