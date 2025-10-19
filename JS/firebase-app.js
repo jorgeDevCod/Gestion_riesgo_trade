@@ -1563,7 +1563,7 @@ function renderCapitalMovementsTable() {
     }
 }
 
-// CORRECCIÓN 1: Asegurar que renderAllData incluya la tabla de movimientos
+// Asegurar que renderAllData incluya la tabla de movimientos
 function renderAllData() {
     try {
         updateDailyCountersFromTrades();
