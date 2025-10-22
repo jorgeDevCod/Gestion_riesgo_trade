@@ -1171,126 +1171,175 @@
 
         <!-- Disciplina Tab -->
         <section id="discipline" class="tab-content hidden">
-            <!-- Reglas Inquebrantables -->
-            <div class="bg-trading-dark p-6 mb-8 rounded-lg border border-gray-700 mt-6">
-                <h3 class="text-xl font-semibold text-loss mb-4">🚨 Reglas Inquebrantables</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <h4 class="font-semibold text-loss mb-3">🚫 NUNCA:</h4>
-                        <ul class="space-y-2 text-sm">
-                            <li class="flex items-start">
-                                <span class="text-loss mr-2">❌</span>
-                                <span>Arriesgar más del <b>5% diario</b></span>
-                            </li>
-                            <li class="flex items-start">
-                                <span class="text-loss mr-2">❌</span>
-                                <span>Operar en <b>zonas medias</b> sin validar</span>
-                            </li>
-                            <li class="flex items-start">
-                                <span class="text-loss mr-2">❌</span>
-                                <span>Comprar en <b>resistencias</b> o vender en <b>soportes</b></span>
-                            </li>
-                            <li class="flex items-start">
-                                <span class="text-loss mr-2">❌</span>
-                                <span>Mover el <b>Stop Loss</b> para asumir más riesgo</span>
-                            </li>
-                            <li class="flex items-start">
-                                <span class="text-loss mr-2">❌</span>
-                                <span>Operar sin <b>confirmación</b> o por <b>emociones</b></span>
-                            </li>
-                        </ul>
+
+            <!-- Control de Disciplina (compartiendo fila) -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+
+                <!-- Reglas Inquebrantables -->
+                <div class="bg-trading-dark p-6 rounded-lg border border-gray-700">
+                    <h3 class="text-xl font-semibold text-loss mb-4">🚨 Reglas Inquebrantables</h3>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- NUNCA -->
+                        <div>
+                            <h4 class="font-semibold text-loss mb-3 flex items-center">
+                                <span class="text-2xl mr-2">🚫</span>
+                                <span>NUNCA:</span>
+                            </h4>
+                            <ul class="space-y-2 text-sm">
+                                <li class="flex items-start">
+                                    <span class="text-loss mr-2 flex-shrink-0">❌</span>
+                                    <span>Arriesgar más del <b>5% diario</b></span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-loss mr-2 flex-shrink-0">❌</span>
+                                    <span>Operar en <b>zonas medias</b> sin validar</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-loss mr-2 flex-shrink-0">❌</span>
+                                    <span>Comprar en <b>resistencias</b> o vender en <b>soportes</b></span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-loss mr-2 flex-shrink-0">❌</span>
+                                    <span>Mover el <b>Stop Loss</b> para asumir más riesgo</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-loss mr-2 flex-shrink-0">❌</span>
+                                    <span>Operar sin <b>confirmación</b> o por <b>emociones</b></span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <!-- SIEMPRE -->
+                        <div>
+                            <h4 class="font-semibold text-profit mb-3 flex items-center">
+                                <span class="text-2xl mr-2">✅</span>
+                                <span>SIEMPRE:</span>
+                            </h4>
+                            <ul class="space-y-2 text-sm">
+                                <li class="flex items-start">
+                                    <span class="text-profit mr-2 flex-shrink-0">✅</span>
+                                    <span>Operar a favor de tendencia</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-profit mr-2 flex-shrink-0">✅</span>
+                                    <span>Operar en Zonas importantes</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-profit mr-2 flex-shrink-0">✅</span>
+                                    <span>Configurar SL y TP antes de ejecutar</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-profit mr-2 flex-shrink-0">✅</span>
+                                    <span>Ingresar Solo en retroceso o retesteo validado</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-profit mr-2 flex-shrink-0">✅</span>
+                                    <span>Respetar protocolo de pérdidas consecutivas</span>
+                                </li>
+                            </ul>
+                        </div>
                     </div>
-
-
-                    <div>
-                        <h4 class="font-semibold text-profit mb-3">SIEMPRE:</h4>
-                        <ul class="space-y-2 text-sm">
-                            <li class="flex items-start">
-                                <span class="text-profit mr-2">✅</span>
-                                <span>Operar a favor de tendencia</span>
-                            </li>
-                            <li class="flex items-start">
-                                <span class="text-profit mr-2">✅</span>
-                                <span>Operar en Zonas importantes</span>
-                            </li>
-                            <li class="flex items-start">
-                                <span class="text-profit mr-2">✅</span>
-                                <span>Configurar SL y TP antes de ejecutar</span>
-                            </li>
-                            <li class="flex items-start">
-                                <span class="text-profit mr-2">✅</span>
-                                <span>Ingresar Solo en retroceso o retesteo validado</span>
-                            </li>
-                            <li class="flex items-start">
-                                <span class="text-profit mr-2">✅</span>
-                                <span>Respetar protocolo de pérdidas consecutivas</span>
-                            </li>
-                        </ul>
-                    </div>
-
                 </div>
-            </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <!-- Control de Disciplina -->
                 <div class="bg-trading-dark p-6 rounded-lg border border-gray-700">
-                    <h3 class="text-xl font-semibold text-gold mb-4">Control de Disciplina</h3>
-                    <div class="space-y-4">
-                        <div class="bg-trading-dark p-4 rounded-lg">
-                            <h4 class="font-semibold text-profit mb-3">Indicadores de Cumplimiento</h4>
-                            <div class="space-y-3">
-                                <div class="flex justify-between items-center">
-                                    <span>Respeto a Stop Loss:</span>
-                                    <div class="flex items-center">
-                                        <div id="slDiscipline" class="w-4 h-4 rounded-full bg-profit mr-2"></div>
-                                        <span id="slPercentage">100%</span>
-                                    </div>
-                                </div>
-                                <div class="flex justify-between items-center">
-                                    <span>Límite Diario:</span>
-                                    <div class="flex items-center">
-                                        <div id="limitDiscipline" class="w-4 h-4 rounded-full bg-profit mr-2"></div>
-                                        <span id="limitPercentage">100%</span>
-                                    </div>
-                                </div>
-                                <div class="flex justify-between items-center">
-                                    <span>Gestión de Riesgo:</span>
-                                    <div class="flex items-center">
-                                        <div id="riskDiscipline" class="w-4 h-4 rounded-full bg-profit mr-2"></div>
-                                        <span id="riskPercentage">100%</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="mt-4 pt-4 border-t border-gray-700">
-                                <div class="flex justify-between items-center">
-                                    <span class="font-semibold">Disciplina General:</span>
-                                    <span id="overallDiscipline" class="text-2xl font-bold text-profit">100%</span>
-                                </div>
-                                <div class="w-full bg-gray-700 rounded-full h-3 mt-2">
-                                    <div id="disciplineBar" class="h-3 rounded-full bg-profit transition-all duration-300" style="width: 100%"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                    <h3 class="text-xl font-semibold text-gold mb-4">📊 Control de Disciplina</h3>
 
-                <!-- Registro de Observaciones -->
-                <div class="bg-trading-dark p-6 rounded-lg border border-gray-700">
-                    <h3 class="text-xl font-semibold text-gold mb-4">Observaciones Post-Trade</h3>
+                    <p class="text-md text-yellow-200 text-center mb-4">
+                        💡 <b>Recuerda:</b> La disciplina es la diferencia entre traders consistentes y traders perdedores
+                    </p>
+
+
                     <div class="space-y-4">
-                        <div>
-                            <label class="block text-sm font-medium mb-2">Nueva Observación</label>
-                            <textarea id="observationInput" class="w-full p-3 bg-trading-dark border border-gray-600 rounded-lg text-white h-24" placeholder="Describe qué funcionó, qué no funcionó, y mejoras para el próximo trade..."></textarea>
-                        </div>
-                        <button id="addObservationBtn" class="w-full bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg font-medium">
-                            📝 Agregar Observación
-                        </button>
-                        <div id="observationsList" class="space-y-3 max-h-64 overflow-y-auto">
-                            <!-- Observaciones serán insertadas aquí -->
+                        <!-- Indicadores de Cumplimiento -->
+                        <div class="bg-gray-800/50 p-4 rounded-lg border border-gray-700/50">
+                            <div class="flex justify-between items-center">
+                                <span class="font-semibold text-white text-sm uppercase tracking-wide">
+                                    Disciplina General:
+                                </span>
+                                <span id="overallDiscipline" class="text-3xl font-bold text-profit">100%</span>
+                            </div>
+                            <h4 class="font-semibold text-blue-400 mb-4 text-sm uppercase tracking-wide">
+                                Indicadores de Cumplimiento
+                            </h4>
+
+                            <div class="space-y-3">
+                                <!-- Respeto a Stop Loss -->
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm text-gray-300">Respeto a Stop Loss:</span>
+                                    <div class="flex items-center gap-2">
+                                        <div id="slDiscipline" class="w-3 h-3 rounded-full bg-profit"></div>
+                                        <span id="slPercentage" class="text-sm font-bold text-white">100%</span>
+                                    </div>
+                                </div>
+
+                                <!-- Límite Diario -->
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm text-gray-300">Límite Diario:</span>
+                                    <div class="flex items-center gap-2">
+                                        <div id="limitDiscipline" class="w-3 h-3 rounded-full bg-profit"></div>
+                                        <span id="limitPercentage" class="text-sm font-bold text-white">100%</span>
+                                    </div>
+                                </div>
+
+                                <!-- Gestión de Riesgo -->
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm text-gray-300">Gestión de Riesgo:</span>
+                                    <div class="flex items-center gap-2">
+                                        <div id="riskDiscipline" class="w-3 h-3 rounded-full bg-profit"></div>
+                                        <span id="riskPercentage" class="text-sm font-bold text-white">100%</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
+
+            <!-- Observaciones Post-Trade (fila completa) -->
+            <div class="bg-trading-dark p-6 rounded-lg border border-gray-700">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-semibold text-gold flex items-center gap-2">
+                        <span>📝</span>
+                        <span>Observaciones Post-Trade</span>
+                    </h3>
+                    <span class="text-sm text-gray-500" id="observationsCount">0 observaciones</span>
+                </div>
+
+                <!-- Input para nueva observación -->
+                <div class="mb-6 space-y-3">
+                    <div>
+                        <label class="block text-sm font-medium mb-2 text-gray-300">
+                            Nueva Observación
+                        </label>
+                        <textarea id="observationInput" class="w-full p-3 bg-gray-800 border border-gray-600 rounded-lg text-white focus:border-gold focus:ring-1 focus:ring-gold transition-colors resize-none" rows="3" placeholder="Describe qué funcionó, qué no funcionó, y mejoras para el próximo trade..."></textarea>
+                    </div>
+
+                    <button id="addObservationBtn" class="w-full bg-blue-600 hover:bg-blue-700 px-4 py-2.5 rounded-lg font-medium transition-all duration-200 hover:scale-[1.01] shadow-lg hover:shadow-blue-500/50">
+                        <span class="flex items-center justify-center gap-2">
+                            <span>📝</span>
+                            <span>Agregar Observación</span>
+                        </span>
+                    </button>
+                </div>
+
+                <!-- Separador -->
+                <div class="border-t border-gray-700 mb-6"></div>
+
+                <!-- Lista de observaciones en grid -->
+                <div id="observationsList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 max-h-[600px] overflow-y-auto pr-2">
+                    <!-- Las observaciones se insertarán aquí dinámicamente -->
+
+                    <!-- Placeholder cuando está vacío -->
+                    <div class="col-span-full text-center py-12 text-gray-500" id="observationsPlaceholder">
+                        <div class="text-5xl mb-3">📋</div>
+                        <div class="text-sm">Aún no hay observaciones registradas</div>
+                        <div class="text-xs text-gray-600 mt-2">Comienza agregando tu primera observación post-trade</div>
+                    </div>
+                </div>
+            </div>
+
         </section>
 
         <!-- Patrones Tab -->
@@ -1793,7 +1842,7 @@
                     <ul class="text-sm text-red-300 space-y-1">
                         <li>• Todos los registros de trades</li>
                         <li>• Historial de retiros y depósitos</li>
-                        <li>• Observaciones y estadísticas</li>
+                        <li>• Analisis y estadísticas</li>
                         <li>• El capital se establecerá en $0.00</li>
                     </ul>
                 </div>
@@ -2282,7 +2331,6 @@
             </div>
         </div>
     </div>
-
 
     <!-- AÑADIR PARA PWA: Registro del Service Worker -->
     <script>

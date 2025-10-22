@@ -546,7 +546,6 @@ function registerWithdrawal( amount, concept, notes, date ) {
 
 function resetAllData() {
     trades = [];
-    observations = [];
     withdrawals = [];
     capitalAdditions = [];
     currentCapital = 0;
@@ -554,13 +553,14 @@ function resetAllData() {
     if ( currentUser ) syncDataToFirebase();
     renderAllData();
 
-    // LIMPIAR VISUALIZACIONES:
     renderRecentWithdrawals();
     renderCapitalMovementsTable();
 
     if ( window.updateAllCharts ) {
         window.updateAllCharts();
     }
+
+    updateSyncStatus( "Capital reseteado. Las observaciones se mantienen intactas.", true );
 }
 
 // Agregar campo result en addTrade =====
@@ -1399,28 +1399,213 @@ function closeTradeDetailsModal() {
 
 function renderObservations() {
     const container = document.getElementById( "observationsList" );
+    const placeholder = document.getElementById( "observationsPlaceholder" );
+    const countElement = document.getElementById( "observationsCount" );
+
     if ( !container ) return;
 
     const sortedObservations = [ ...observations ].sort(
         ( a, b ) => new Date( b.timestamp ) - new Date( a.timestamp )
     );
 
-    container.innerHTML = sortedObservations
-        .map(
-            ( obs ) => `
-        <div class="bg-gray-800 p-3 rounded-lg border border-gray-600">
-            <p class="text-sm">${obs.text}</p>
-            <div class="flex justify-between items-center mt-2">
-                <span class="text-xs text-gray-500">${obs.date}</span>
-                <button onclick="deleteObservation('${obs.id}')" 
-                        class="text-red-400 hover:text-red-300 text-xs">
-                    Eliminar
-                </button>
+    // Actualizar contador
+    if ( countElement ) {
+        countElement.textContent = `${observations.length} observación${observations.length !== 1 ? 'es' : ''}`;
+    }
+
+    // Mostrar/ocultar placeholder
+    if ( placeholder ) {
+        placeholder.classList.toggle( 'hidden', sortedObservations.length > 0 );
+    }
+
+    // Si hay observaciones, renderizar en grid
+    if ( sortedObservations.length > 0 ) {
+        container.innerHTML = sortedObservations
+            .map( obs => `
+                <div class="observation-card bg-gray-800/70 p-4 rounded-lg border border-gray-600 hover:border-gold/50 transition-all duration-200">
+                    <!-- Fecha y acciones -->
+                    <div class="flex justify-between items-start mb-3">
+                        <span class="text-xs text-gray-500 flex items-center gap-1">
+                            <span>📅</span>
+                            <span>${obs.date}</span>
+                        </span>
+                        <button onclick="deleteObservation('${obs.id}')" 
+                                class="text-red-400 hover:text-red-300 text-sm transition-colors hover:scale-110"
+                                title="Eliminar observación">
+                            🗑️
+                        </button>
+                    </div>
+                    
+                    <!-- Contenido de la observación -->
+                    <div class="text-sm text-gray-200 leading-relaxed break-words">
+                        ${obs.text}
+                    </div>
+                    
+                    <!-- Indicador de tipo (si existe) -->
+                    ${obs.type ? `
+                        <div class="mt-3 pt-3 border-t border-gray-700">
+                            <span class="text-xs px-2 py-1 rounded-full ${obs.type === 'post-trade'
+                        ? 'bg-blue-900/40 text-blue-300'
+                        : 'bg-purple-900/40 text-purple-300'
+                    }">
+                                ${obs.type === 'post-trade' ? '📊 Post-Trade' : '💭 General'}
+                            </span>
+                        </div>
+                    ` : ''}
+                </div>
+            `)
+            .join( "" );
+    }
+}
+
+// ===== SISTEMA DE CONTROL DE DISCIPLINA =====
+function updateDisciplineIndicators() {
+    if ( !trades || trades.length === 0 ) {
+        // Si no hay trades, mantener 100%
+        updateDisciplineDisplay( 100, 100, 100 );
+        return;
+    }
+
+    const today = new Date().toISOString().split( "T" )[ 0 ];
+    const todayTrades = trades.filter( t => t.date === today );
+    const effectiveCapital = calculateEffectiveCapital();
+    const maxDailyRisk = effectiveCapital * 0.05;
+
+    // 1. RESPETO A STOP LOSS
+    // Verificar si algún trade tiene historial de modificación de SL indebida
+    const slViolations = trades.filter( t => t.slModified && t.slModifiedReason === 'increase_risk' ).length;
+    const slDiscipline = trades.length > 0 ? Math.max( 0, 100 - ( slViolations / trades.length ) * 100 ) : 100;
+
+    // 2. LÍMITE DIARIO
+    const dailyPnL = calculateDailyPnL();
+    const dailyRiskUsed = Math.abs( dailyPnL );
+    const dailyDiscipline = dailyRiskUsed <= maxDailyRisk ? 100 : Math.max( 0, 100 - ( ( dailyRiskUsed - maxDailyRisk ) / maxDailyRisk ) * 50 );
+
+    // 3. GESTIÓN DE RIESGO
+    // Verificar cuántos trades respetan el sizing correcto
+    let properSizing = 0;
+    todayTrades.forEach( trade => {
+        const config = strategyConfigs[ trade.strategy ] || strategyConfigs.regulares;
+        const optimalContracts = calculateOptimalContractsWithEffectiveCapital( trade.strategy );
+        const variance = Math.abs( trade.contracts - optimalContracts ) / optimalContracts;
+
+        // Permitir hasta 20% de variación
+        if ( variance <= 0.2 ) {
+            properSizing++;
+        }
+    } );
+
+    const riskDiscipline = todayTrades.length > 0
+        ? ( properSizing / todayTrades.length ) * 100
+        : 100;
+
+    // Actualizar display
+    updateDisciplineDisplay(
+        Math.round( slDiscipline ),
+        Math.round( dailyDiscipline ),
+        Math.round( riskDiscipline )
+    );
+}
+
+function updateDisciplineDisplay( slPercent, limitPercent, riskPercent ) {
+    // Función auxiliar para determinar color
+    const getStatusColor = ( percent ) => {
+        if ( percent >= 90 ) return 'bg-green-500';
+        if ( percent >= 70 ) return 'bg-yellow-500';
+        return 'bg-red-500';
+    };
+
+    // Actualizar Respeto a Stop Loss
+    const slIndicator = document.getElementById( 'slDiscipline' );
+    const slPercentEl = document.getElementById( 'slPercentage' );
+    if ( slIndicator && slPercentEl ) {
+        slIndicator.className = `w-3 h-3 rounded-full ${getStatusColor( slPercent )}`;
+        slPercentEl.textContent = `${slPercent}%`;
+        slPercentEl.className = `text-sm font-bold ${slPercent >= 90 ? 'text-green-400' : slPercent >= 70 ? 'text-yellow-400' : 'text-red-400'}`;
+    }
+
+    // Actualizar Límite Diario
+    const limitIndicator = document.getElementById( 'limitDiscipline' );
+    const limitPercentEl = document.getElementById( 'limitPercentage' );
+    if ( limitIndicator && limitPercentEl ) {
+        limitIndicator.className = `w-3 h-3 rounded-full ${getStatusColor( limitPercent )}`;
+        limitPercentEl.textContent = `${limitPercent}%`;
+        limitPercentEl.className = `text-sm font-bold ${limitPercent >= 90 ? 'text-green-400' : limitPercent >= 70 ? 'text-yellow-400' : 'text-red-400'}`;
+    }
+
+    // Actualizar Gestión de Riesgo
+    const riskIndicator = document.getElementById( 'riskDiscipline' );
+    const riskPercentEl = document.getElementById( 'riskPercentage' );
+    if ( riskIndicator && riskPercentEl ) {
+        riskIndicator.className = `w-3 h-3 rounded-full ${getStatusColor( riskPercent )}`;
+        riskPercentEl.textContent = `${riskPercent}%`;
+        riskPercentEl.className = `text-sm font-bold ${riskPercent >= 90 ? 'text-green-400' : riskPercent >= 70 ? 'text-yellow-400' : 'text-red-400'}`;
+    }
+
+    // Calcular y actualizar Disciplina General (promedio ponderado)
+    const overallDiscipline = Math.round( ( slPercent * 0.4 + limitPercent * 0.35 + riskPercent * 0.25 ) );
+
+    const overallEl = document.getElementById( 'overallDiscipline' );
+    const barEl = document.getElementById( 'disciplineBar' );
+
+    if ( overallEl ) {
+        overallEl.textContent = `${overallDiscipline}%`;
+        overallEl.className = `text-3xl font-bold ${overallDiscipline >= 90 ? 'text-green-400' :
+            overallDiscipline >= 70 ? 'text-yellow-400' :
+                'text-red-400'
+            }`;
+    }
+
+    if ( barEl ) {
+        barEl.style.width = `${overallDiscipline}%`;
+        barEl.className = `h-4 rounded-full transition-all duration-500 shadow-lg ${overallDiscipline >= 90 ? 'bg-gradient-to-r from-green-500 to-green-400' :
+            overallDiscipline >= 70 ? 'bg-gradient-to-r from-yellow-500 to-yellow-400' :
+                'bg-gradient-to-r from-red-500 to-red-400'
+            }`;
+    }
+
+    // Mostrar alerta si la disciplina es baja
+    if ( overallDiscipline < 70 ) {
+        showDisciplineAlert( overallDiscipline );
+    }
+}
+
+function showDisciplineAlert( score ) {
+    // Verificar si ya existe una alerta activa
+    if ( document.getElementById( 'disciplineAlert' ) ) return;
+
+    const alertHTML = `
+        <div id="disciplineAlert" class="fixed top-4 right-4 z-50 max-w-sm animate-slide-in">
+            <div class="bg-red-900/90 border border-red-500 rounded-lg p-4 shadow-xl">
+                <div class="flex items-start justify-between">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="text-2xl">⚠️</span>
+                            <h4 class="font-bold text-white">Alerta de Disciplina</h4>
+                        </div>
+                        <p class="text-sm text-red-200">
+                            Tu nivel de disciplina está en <b>${score}%</b>. 
+                            Revisa tus últimas operaciones y ajusta tu comportamiento.
+                        </p>
+                    </div>
+                    <button onclick="closeDisciplineAlert()" 
+                            class="text-white hover:text-gray-300 text-xl font-bold ml-3">×</button>
+                </div>
             </div>
         </div>
-    `
-        )
-        .join( "" );
+    `;
+
+    document.body.insertAdjacentHTML( 'beforeend', alertHTML );
+
+    // Auto-hide después de 8 segundos
+    setTimeout( () => {
+        closeDisciplineAlert();
+    }, 8000 );
+}
+
+function closeDisciplineAlert() {
+    const alert = document.getElementById( 'disciplineAlert' );
+    if ( alert ) alert.remove();
 }
 
 // FUNCIÓN ÚNICA PARA MODAL DE RETIROS (recentWithdrawals)
@@ -1573,28 +1758,17 @@ function renderAllData() {
         renderObservations();
         renderRecentWithdrawals();
         renderCapitalMovementsTable();
-        updateCapitalBreakdown(); // Asegúrate de que esta línea esté presente
+        updateCapitalBreakdown();
         updateStrategyDisplay();
+
+        // ✅ AGREGAR ESTA LÍNEA
+        updateDisciplineIndicators();
 
         if ( currentTab === "signals" ) {
             renderSetupChecklist();
         }
 
-        if ( currentTab === "dashboard" ) {
-            setTimeout( () => {
-                if ( window.updateAllCharts ) {
-                    window.updateAllCharts();
-                }
-                if ( window.updateCapitalMovementsList ) {
-                    window.updateCapitalMovementsList();
-                }
-            }, 100 );
-        }
-
-        const disciplinaryMsg = generateDisciplinaryMessage();
-        if ( disciplinaryMsg && ( disciplinaryMsg.priority === 'high' || disciplinaryMsg.priority === 'critical' ) ) {
-            setTimeout( () => showDisciplinaryMessage( disciplinaryMsg ), 500 );
-        }
+        // ... resto del código
     } catch ( error ) {
         console.error( "Error en renderAllData:", error );
         updateSyncStatus( "Error actualizando datos", false );
@@ -4245,6 +4419,7 @@ function closeActiveTradesModal() {
     if ( modal ) modal.remove();
 }
 
+
 const additionalStyles = `
 <style>
 .animate-slide-in {
@@ -4708,6 +4883,8 @@ window.editTrade = editTrade;
 window.addTrade = addTrade;
 window.renderTrades = renderTrades;
 window.calculateWinRate = calculateWinRate;
+window.updateDisciplineIndicators = updateDisciplineIndicators;
+window.closeDisciplineAlert = closeDisciplineAlert;
 // Exponer funciones globalmente
 window.renderCapitalMovementsTable = renderCapitalMovementsTable;
 window.deleteCapitalMovement = deleteCapitalMovement;

@@ -541,3 +541,43 @@ main.container.dragging * {
   top: 20VH;
 }
 }
+
+#observationsList::-webkit-scrollbar {
+    width: 8px;
+}
+
+#observationsList::-webkit-scrollbar-track {
+    background: rgba(31, 41, 55, 0.5);
+    border-radius: 4px;
+}
+
+#observationsList::-webkit-scrollbar-thumb {
+    background: rgba(75, 85, 99, 0.8);
+    border-radius: 4px;
+}
+
+#observationsList::-webkit-scrollbar-thumb:hover {
+    background: rgba(107, 114, 128, 0.9);
+}
+
+/* Animación para nuevas observaciones */
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.observation-card {
+    animation: slideIn 0.3s ease-out;
+}
+
+/* Efecto hover en tarjetas de observación */
+.observation-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
