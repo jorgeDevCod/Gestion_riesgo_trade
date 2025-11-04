@@ -1,4 +1,4 @@
-const CACHE_NAME = 'Gestor-tradeApp-V1.6'; // Cambia versión para forzar actualización
+const CACHE_NAME = 'Gestor-tradeApp-V1.9'; //
 const urlsToCache = [
     '/',
     './index.html',
@@ -13,12 +13,14 @@ const urlsToCache = [
     './JS/tendencia.js',
     './JS/swipe-navigation.js',
     './JS/charts.js',
+    './JS/market-sessions.js',
     'https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js',
     'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js',
     'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js',
     'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js',
-
 ];
+
+// ... resto del código sin cambios
 
 self.addEventListener( 'install', ( event ) => {
     event.waitUntil(
