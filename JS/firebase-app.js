@@ -143,15 +143,9 @@ function checkIfAppInstalled() {
         return true;
     }
 
-    // Verificar cookie de instalación
-    const installedCookie = getCookie( 'pwa_installed' );
-    if ( installedCookie === 'true' ) {
-        isAppInstalled = true;
-        return true;
-    }
-
     return false;
 }
+
 
 // Mostrar/ocultar botón de instalación
 function toggleInstallButton() {
@@ -162,11 +156,11 @@ function toggleInstallButton() {
         return;
     }
 
+    // CORRECCIÓN: Invertir lógica
     if ( isAppInstalled || !deferredPrompt ) {
-        container.style.display = 'none'; // Forzar con style
         container.classList.add( 'hidden' );
+        console.log( 'PWA: Install button hidden (installed or no prompt)' );
     } else {
-        container.style.display = 'block'; // Forzar visibilidad
         container.classList.remove( 'hidden' );
         console.log( 'PWA: Install button shown' );
     }
@@ -194,7 +188,6 @@ window.addEventListener( 'appinstalled', ( e ) => {
 
     // Marcar como instalado
     isAppInstalled = true;
-    setCookie( 'pwa_installed', 'true', 365 );
 
     // Ocultar botón
     toggleInstallButton();
@@ -4484,6 +4477,11 @@ function initializeRiskManagement() {
 
 document.addEventListener( "DOMContentLoaded", function () {
     isInitializing = true;
+
+    setTimeout( () => {
+        initializePWA();
+        console.log( 'PWA: Forced initialization' );
+    }, 500 );
 
     // Cargar datos locales inicialmente
     loadDataLocally();

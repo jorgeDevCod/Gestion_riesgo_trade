@@ -1,4 +1,4 @@
-const CACHE_NAME = 'Gestor-tradeApp-V2.1'; //
+const CACHE_NAME = 'Gestor-tradeApp-V2.2'; //
 const urlsToCache = [
     '/',
     './index.html',
@@ -20,25 +20,29 @@ const urlsToCache = [
     'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js',
 ];
 
-// ... resto del código sin cambios
 
 self.addEventListener( 'install', ( event ) => {
     event.waitUntil(
         caches.open( CACHE_NAME )
             .then( ( cache ) => {
-                // Cachear individualmente para manejar errores
-                return Promise.allSettled(
-                    urlsToCache.map( url =>
-                        cache.add( url ).catch( err => {
-                            console.warn( `Failed to cache: ${url}`, err );
-                        } )
-                    )
-                );
+                // Primero cachear recursos críticos
+                return cache.addAll( CRITICAL_RESOURCES )
+                    .then( () => {
+                        // Luego intentar cachear el resto
+                        return Promise.allSettled(
+                            urlsToCache
+                                .filter( url => !CRITICAL_RESOURCES.includes( url ) )
+                                .map( url =>
+                                    cache.add( url ).catch( err => {
+                                        console.warn( `Failed to cache: ${url}`, err );
+                                    } )
+                                )
+                        );
+                    } );
             } )
     );
     self.skipWaiting();
 } );
-
 self.addEventListener( 'activate', ( event ) => {
     event.waitUntil(
         caches.keys().then( ( cacheNames ) => {
