@@ -156,30 +156,39 @@ function toggleInstallButton() {
         return;
     }
 
-    // CORRECCIÓN: Invertir lógica
-    if ( isAppInstalled || !deferredPrompt ) {
-        container.classList.add( 'hidden' );
-        console.log( 'PWA: Install button hidden (installed or no prompt)' );
-    } else {
+    // ✅ CORRECCIÓN: Mostrar SOLO si hay prompt Y NO está instalado
+    const shouldShow = !isAppInstalled && deferredPrompt !== null;
+
+    if ( shouldShow ) {
         container.classList.remove( 'hidden' );
-        console.log( 'PWA: Install button shown' );
+        container.style.display = 'block'; // Forzar display
+        console.log( 'PWA: Install button shown - prompt available' );
+    } else {
+        container.classList.add( 'hidden' );
+        container.style.display = 'none'; // Forzar ocultación
+        console.log( `PWA: Install button hidden - installed: ${isAppInstalled}, prompt: ${deferredPrompt !== null}` );
     }
 }
 
 // Capturar el evento beforeinstallprompt
 window.addEventListener( 'beforeinstallprompt', ( e ) => {
+    console.log( 'PWA: beforeinstallprompt event fired' );
+
     // Prevenir que el navegador muestre su propio prompt
     e.preventDefault();
 
     // Guardar el evento para usarlo después
     deferredPrompt = e;
 
-    // Verificar si ya está instalado
-    if ( !checkIfAppInstalled() ) {
-        toggleInstallButton();
-    }
+    // ✅ NUEVA LÓGICA: Verificar instalación y mostrar inmediatamente
+    const installed = checkIfAppInstalled();
 
-    console.log( 'PWA: beforeinstallprompt event captured' );
+    if ( !installed ) {
+        console.log( 'PWA: App not installed, showing button' );
+        toggleInstallButton();
+    } else {
+        console.log( 'PWA: App already installed, hiding button' );
+    }
 } );
 
 // Detectar cuando la app es instalada
@@ -189,8 +198,12 @@ window.addEventListener( 'appinstalled', ( e ) => {
     // Marcar como instalado
     isAppInstalled = true;
 
-    // Ocultar botón
-    toggleInstallButton();
+    // Ocultar botón inmediatamente
+    const container = document.getElementById( 'installAppContainer' );
+    if ( container ) {
+        container.classList.add( 'hidden' );
+        container.style.display = 'none';
+    }
 
     // Limpiar prompt diferido
     deferredPrompt = null;
@@ -201,13 +214,17 @@ window.addEventListener( 'appinstalled', ( e ) => {
 
 // Función para instalar la PWA
 async function installPWA() {
+    console.log( 'PWA: Install button clicked' );
+
     if ( !deferredPrompt ) {
-        console.warn( 'PWA: No hay prompt de instalación disponible' );
-        alert( 'La instalación no está disponible en este momento' );
+        console.warn( 'PWA: No prompt available' );
+        alert( 'La instalación no está disponible. Intenta recargar la página.' );
         return;
     }
 
     try {
+        console.log( 'PWA: Showing install prompt' );
+
         // Mostrar el prompt de instalación
         deferredPrompt.prompt();
 
@@ -229,7 +246,7 @@ async function installPWA() {
 
     } catch ( error ) {
         console.error( 'PWA: Error during installation:', error );
-        alert( 'Ocurrió un error durante la instalación' );
+        alert( 'Ocurrió un error durante la instalación. Por favor, intenta nuevamente.' );
     }
 }
 
@@ -250,19 +267,45 @@ function checkPWASupport() {
 
 // Inicializar PWA al cargar el documento
 function initializePWA() {
+    console.log( 'PWA: Starting initialization' );
+
     // Verificar soporte
-    checkPWASupport();
+    const hasSupport = checkPWASupport();
 
     // Verificar si ya está instalado
-    checkIfAppInstalled();
+    const installed = checkIfAppInstalled();
 
-    // Configurar visibilidad inicial del botón
-    toggleInstallButton();
+    console.log( `PWA: Support=${hasSupport}, Installed=${installed}, Prompt=${deferredPrompt !== null}` );
+
+    // ✅ NUEVO: Si NO está instalado y NO hay prompt aún, mostrar temporalmente
+    // El botón se ocultará automáticamente si no llega el evento
+    if ( !installed && !deferredPrompt ) {
+        const container = document.getElementById( 'installAppContainer' );
+        if ( container ) {
+            container.classList.remove( 'hidden' );
+            container.style.display = 'block';
+            console.log( 'PWA: Button shown temporarily (waiting for prompt event)' );
+
+            // Ocultar después de 10 segundos si no llega el evento
+            setTimeout( () => {
+                if ( !deferredPrompt ) {
+                    container.classList.add( 'hidden' );
+                    container.style.display = 'none';
+                    console.log( 'PWA: No prompt event received, hiding button' );
+                }
+            }, 10000 );
+        }
+    } else {
+        toggleInstallButton();
+    }
 
     // Agregar listener al botón de instalación
     const installButton = document.getElementById( 'installAppBtn' );
     if ( installButton ) {
+        // Remover listeners previos
+        installButton.removeEventListener( 'click', installPWA );
         installButton.addEventListener( 'click', installPWA );
+        console.log( 'PWA: Click listener attached to install button' );
     }
 
     console.log( 'PWA: Initialization complete' );
