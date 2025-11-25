@@ -148,7 +148,7 @@ const tradingPatterns = {
         reliability: 70,
         timeframe: "15M+",
         strength: "medium",
-        description: "Vela con mecha superior larga y cuerpo pequeño cerca del mínimo, indica rechazo en niveles altos.",
+        description: "Vela con mecha superior larga, que muestra fuerte rechazo del precio en niveles altos, y con un cuerpo pequeño cercano al mínimo de la apertura de la vela. Esto indica compradores intentando subir pero vendedores rechazan.",
         candles: [
             { open: 97, high: 115, low: 95, close: 99 }
         ],
