@@ -1,48 +1,64 @@
 // Configuración de factores de confluencia
 const CONFLUENCE_FACTORS = {
-    // Timeframes mayores
-    trendH1H4: {
-        label: "Tendencia clara en H1/H4 (alcista o bajista definida)",
-        category: "timeframe",
-        checked: false
-    },
-    sr15M: {
-        label: "Soporte/Resistencia validado en 15M",
-        category: "timeframe",
-        checked: false
-    },
-    entry5M: {
-        label: "Señal de entrada precisa en 5M (ruptura o pullback)",
-        category: "timeframe",
+
+    // 1️⃣ CONTEXTO REAL (solo lo que importa)
+    marketContext: {
+        label: "H1/H4: tendencia definida o rango identificado",
+        category: "context",
         checked: false
     },
 
-    // Indicadores
-    emaAlignment: {
-        label: "EMA 21/50 alineadas con dirección del trade",
-        category: "indicator",
+    // 2️⃣ LIQUIDEZ / EXTREMOS
+    liquidityZone: {
+        label: "Precio en zona de liquidez o Soporte/Resistencia en 1h/15m",
+        category: "liquidity",
         checked: false
     },
-    macdSignal: {
-        label: "MACD confirma momentum (cruce o histograma)",
+
+    // 3️⃣ ESTRUCTURA EN LTF (5M)
+    structureShift: {
+        label: "H1/15M: Precio en cambio de estructura o validacion de zona macro",
+        category: "structure",
+        checked: false
+    },
+
+    // 4️⃣ ACCIÓN DEL PRECIO (CLAVE)
+    priceReaction: {
+        label: "Rechazo o roptura clara del nivel (mechas contrarias, absorción o envolventes)",
+        category: "price",
+        checked: false
+    },
+
+    // 4️⃣ ACCIÓN DEL PRECICLAVE)
+    priceReaction2: {
+        label: "Precio en rangos post-caida/subida rapida + vela de rechazo o manipulación",
+        category: "price",
+        checked: false
+    },
+
+    // 5️⃣ CONFIRMACIÓN DE TIMING (NO DIRECCIÓN)
+    volumeConfirmation: {
+        label: "Volumen confirma reacción (clímax, absorción o expansión)",
         category: "indicator",
         checked: false
     },
 
-    // Acción del precio y volumen
-    keyZone: {
-        label: "Precio en zona crítica (S/R, tendencia, patrón)",
-        category: "price",
+    williamsConfirmation: {
+        label: "Williams %R en extremo y saliendo de sobreventa/sobrecompra en 15M/5m",
+        category: "indicator",
         checked: false
     },
-    candleConfirm: {
-        label: "Vela de confirmación fuerte (envolvente, martillo, ruptura)",
-        category: "price",
+
+    mfiConfirmation: {
+        label: "MFI confirma y acompaña direccion de precio y %R en 15M/5m | Divergencia a favor de trade",
+        category: "indicator",
         checked: false
     },
-    volumeBoost: {
-        label: "Volumen respalda la ruptura o el giro",
-        category: "price",
+
+    // 6️⃣ GATILLO FINAL
+    entryTrigger: {
+        label: "Cierre de vela de confirmacion de pullback post-roptura o rechazo de zona validada",
+        category: "entry",
         checked: false
     }
 };
