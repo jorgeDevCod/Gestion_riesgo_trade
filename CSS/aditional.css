@@ -703,3 +703,54 @@ main.container.dragging * {
 #sessionsMainContainer {
     scroll-behavior: smooth;
 }
+
+/* ============================================
+   SESSIONS PANEL TOGGLE
+   ============================================ */
+
+.sessions-panel {
+    transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+    max-height: 200px;
+    opacity: 1;
+    overflow: hidden;
+}
+
+.sessions-panel.sessions-hidden {
+    max-height: 48px; /* Solo altura del header */
+    opacity: 1;
+}
+
+.sessions-panel.sessions-hidden .sessions-content {
+    opacity: 0;
+    pointer-events: none;
+    max-height: 0;
+    overflow: hidden;
+}
+
+.sessions-content {
+    transition: opacity 0.2s ease-out, max-height 0.3s ease-out;
+    max-height: 100px;
+    opacity: 1;
+}
+
+#sessionsToggleBtn {
+    transition: transform 0.2s ease;
+}
+
+#sessionsToggleBtn:hover {
+    transform: scale(1.1);
+}
+
+/* Animación suave del icono */
+.sessions-panel:not(.sessions-hidden) #sessionsToggleBtn {
+    animation: none;
+}
+
+.sessions-panel.sessions-hidden #sessionsToggleBtn {
+    animation: pulse-icon 2s infinite;
+}
+
+@keyframes pulse-icon {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}

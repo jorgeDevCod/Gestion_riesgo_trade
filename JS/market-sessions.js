@@ -293,6 +293,16 @@ function updateSessions() {
 function startSessionTracker() {
     updateSessions();
     updateInterval = setInterval( updateSessions, 1000 );
+
+    // Configurar toggle button
+    const toggleBtn = document.getElementById( 'sessionsToggleBtn' );
+    if ( toggleBtn ) {
+        toggleBtn.addEventListener( 'click', toggleSessionsPanel );
+    }
+
+    // Restaurar estado guardado
+    setTimeout( restoreSessionsState, 100 );
+
     console.log( '🌍 Market Sessions Tracker iniciado' );
 }
 
@@ -351,6 +361,49 @@ function enableDragScroll() {
     } );
 
     container.style.cursor = 'grab';
+}
+
+// ✅ NUEVA FUNCIÓN: Toggle de visibilidad con persistencia
+function toggleSessionsPanel() {
+    const container = document.getElementById( 'sessionsMainContainer' );
+    const panel = container?.closest( '.sessions-panel' );
+    const toggleBtn = document.getElementById( 'sessionsToggleBtn' );
+
+    if ( !panel || !toggleBtn ) return;
+
+    const isHidden = panel.classList.contains( 'sessions-hidden' );
+
+    if ( isHidden ) {
+        panel.classList.remove( 'sessions-hidden' );
+        toggleBtn.innerHTML = '▼';
+        toggleBtn.title = 'Ocultar sesiones';
+        localStorage.setItem( 'sessionsVisible', 'true' );
+    } else {
+        panel.classList.add( 'sessions-hidden' );
+        toggleBtn.innerHTML = '▶';
+        toggleBtn.title = 'Mostrar sesiones';
+        localStorage.setItem( 'sessionsVisible', 'false' );
+    }
+}
+
+// ✅ NUEVA FUNCIÓN: Restaurar estado guardado
+function restoreSessionsState() {
+    const panel = document.querySelector( '.sessions-panel' );
+    const toggleBtn = document.getElementById( 'sessionsToggleBtn' );
+
+    if ( !panel || !toggleBtn ) return;
+
+    const isVisible = localStorage.getItem( 'sessionsVisible' ) !== 'false';
+
+    if ( !isVisible ) {
+        panel.classList.add( 'sessions-hidden' );
+        toggleBtn.innerHTML = '▶';
+        toggleBtn.title = 'Mostrar sesiones';
+    } else {
+        panel.classList.remove( 'sessions-hidden' );
+        toggleBtn.innerHTML = '▼';
+        toggleBtn.title = 'Ocultar sesiones';
+    }
 }
 
 if ( document.readyState === 'loading' ) {
