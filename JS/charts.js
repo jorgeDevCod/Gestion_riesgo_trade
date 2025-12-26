@@ -1,5 +1,4 @@
 // charts.js - Sistema de gráficas para el dashboard
-// VERSIÓN FINAL - Con acceso correcto a variables globales
 
 // Configuración global de Chart.js
 Chart.defaults.color = '#9CA3AF';
