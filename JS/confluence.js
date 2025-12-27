@@ -57,7 +57,7 @@ const CONFLUENCE_FACTORS = {
 
     // 6️⃣ GATILLO FINAL
     entryTrigger: {
-        label: "Cierre de vela de confirmacion de pullback post-roptura o rechazo de zona validada",
+        label: "Cierre de vela de confirmación en pullback post-roptura o rechazo de zona validada",
         category: "entry",
         checked: false
     }
