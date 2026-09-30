@@ -1,4 +1,4 @@
-const CACHE_NAME = 'Gestor-tradeApp-V2.11'; //
+const CACHE_NAME = 'Gestor-tradeApp-V2.12'; //
 const urlsToCache = [
     './',
     './index.html',

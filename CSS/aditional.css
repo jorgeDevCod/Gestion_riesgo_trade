@@ -314,9 +314,8 @@ main.container {
 /* ===== SWIPE NAVIGATION ===== */
 main {
   cursor: grab;
-  user-select: none;
-  -webkit-user-select: none;
-  -moz-user-select: none;
+  /* Sin user-select:none global: el swipe usa touch-action + preventDefault
+     puntual y el usuario conserva selección de texto y taps nativos. */
 }
 
 main:active {

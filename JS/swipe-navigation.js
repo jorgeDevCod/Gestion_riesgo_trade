@@ -29,6 +29,8 @@ class SwipeNavigation {
         this.startTime = 0;
         this.scrollLocked = false;
         this.scrollDirection = null;
+        this.tracking = false;
+        this.watchdogTimer = null;
 
         // Configuración
         this.threshold = 100;
@@ -231,9 +233,62 @@ class SwipeNavigation {
         return false;
     }
 
+    // Zonas donde el gesto se ignora por completo (taps 100% nativos).
+    isGestureIgnored( target ) {
+        if ( this.isFixedElement( target ) ) return true;
+        let el = target;
+        let depth = 0;
+        while ( el && el !== this.container && el !== document.body && depth < 8 ) {
+            depth++;
+            if ( el.tagName === 'LABEL' ) return true;
+            if ( el.hasAttribute && el.hasAttribute( 'data-swipe' ) &&
+                el.getAttribute( 'data-swipe' ) === 'off' ) return true;
+            el = el.parentElement;
+        }
+        return false;
+    }
+
+    // ¿Existe un tab al cual cambiar en esta dirección?
+    canSwitch( signedDiff ) {
+        if ( signedDiff < 0 ) return this.currentTab < this.tabs.length - 1;
+        if ( signedDiff > 0 ) return this.currentTab > 0;
+        return false;
+    }
+
+    resetGesture() {
+        this.isDragging = false;
+        this.scrollLocked = false;
+        this.scrollDirection = null;
+        this.tracking = false;
+        this.clearWatchdog();
+    }
+
+    // Red de seguridad: nunca dejar transforms inline ni flags colgados.
+    armWatchdog() {
+        this.clearWatchdog();
+        this.watchdogTimer = setTimeout( () => {
+            const section = document.querySelector( '.tab-content:not(.hidden)' );
+            if ( section ) {
+                section.style.transition = '';
+                section.style.transform = '';
+                section.style.opacity = '';
+            }
+            this.hideSwipeIndicator();
+            this.resetGesture();
+        }, 1500 );
+    }
+
+    clearWatchdog() {
+        if ( this.watchdogTimer ) {
+            clearTimeout( this.watchdogTimer );
+            this.watchdogTimer = null;
+        }
+    }
+
     handleStart( e ) {
         if ( !this.isMobile ) return;
-        if ( this.isFixedElement( e.target ) ) return;
+        if ( window.__swipeEnabled === false ) return;
+        if ( this.isGestureIgnored( e.target ) ) return;
         if ( !e.touches || !e.touches[ 0 ] ) return;
 
         const point = e.touches[ 0 ];
@@ -245,11 +300,13 @@ class SwipeNavigation {
         this.isDragging = false;
         this.scrollLocked = false;
         this.scrollDirection = null;
+        this.tracking = true;
+        this.armWatchdog();
     }
 
     handleMove( e ) {
         if ( !this.isMobile ) return;
-        if ( this.isFixedElement( e.target ) ) return;
+        if ( !this.tracking ) return;
         if ( !e.touches || !e.touches[ 0 ] ) return;
 
         const point = e.touches[ 0 ];
@@ -259,39 +316,53 @@ class SwipeNavigation {
         const diffX = Math.abs( this.currentX - this.startX );
         const diffY = Math.abs( this.currentY - this.startY );
 
-        // Determinar dirección solo una vez (con umbral más alto)
-        if ( !this.scrollDirection && ( diffX > 20 || diffY > 20 ) ) {
-            this.scrollDirection = diffY > diffX ? 'vertical' : 'horizontal';
-
-            // Si es vertical O está en elemento scrolleable, bloquear swipe
-            if ( this.scrollDirection === 'vertical' ) {
+        // Lock por ángulo: horizontal solo si es CLARAMENTE horizontal.
+        // En caso de duda no se toca nada y el navegador decide (scroll/tap nativos).
+        if ( !this.scrollDirection ) {
+            if ( diffX > 24 && diffX > diffY * 2 ) {
+                // Sin tab destino o con scroll propio: soltar el gesto por completo.
+                if ( !this.canSwitch( this.currentX - this.startX ) ||
+                    this.isScrollableElement( e.target ) ) {
+                    this.scrollLocked = true;
+                    this.tracking = false;
+                    this.clearWatchdog();
+                    return;
+                }
+                this.scrollDirection = 'horizontal';
+            } else if ( diffY > 24 ) {
+                this.scrollDirection = 'vertical';
                 this.scrollLocked = true;
+                this.tracking = false;
+                this.clearWatchdog();
                 return;
-            }
-
-            // Si es horizontal PERO está en elemento con scroll horizontal, bloquear
-            if ( this.scrollDirection === 'horizontal' && this.isScrollableElement( e.target ) ) {
-                console.log( 'SwipeNav: Bloqueado por elemento scrolleable' );
-                this.scrollLocked = true;
+            } else {
                 return;
             }
         }
 
-        // Si está bloqueado, salir
-        if ( this.scrollLocked ) return;
+        if ( this.scrollLocked || this.scrollDirection !== 'horizontal' ) return;
 
-        // Solo proceder si es horizontal y supera umbral mínimo
-        if ( this.scrollDirection === 'horizontal' && diffX > this.minSwipeDistance ) {
-            this.isDragging = true;
+        const signed = this.currentX - this.startX;
+        const elapsed = new Date().getTime() - this.startTime;
+        const velocity = Math.abs( signed ) / Math.max( elapsed, 1 );
+        const committed = Math.abs( signed ) >= this.threshold ||
+            ( velocity > 0.5 && Math.abs( signed ) > 40 );
 
-            // Prevenir scroll de página durante swipe
-            if ( e.cancelable ) {
-                e.preventDefault();
+        // Solo interferir (preventDefault) cuando el cambio de tab es real.
+        // Antes de eso: preview ligero sin bloquear nada nativo.
+        if ( !committed ) {
+            if ( Math.abs( signed ) > this.minSwipeDistance ) {
+                this.isDragging = true;
+                this.showPreview( signed );
             }
-
-            const diffXSigned = this.currentX - this.startX;
-            this.showPreview( diffXSigned );
+            return;
         }
+
+        this.isDragging = true;
+        if ( e.cancelable ) {
+            e.preventDefault();
+        }
+        this.showPreview( signed );
     }
 
     showPreview( diffX ) {
@@ -380,15 +451,16 @@ class SwipeNavigation {
 
     handleEnd( e ) {
         if ( !this.isMobile ) return;
-        if ( this.isFixedElement( e.target ) ) return;
+        this.clearWatchdog();
 
         const endX = this.currentX;
         const diffX = endX - this.startX;
         const elapsedTime = new Date().getTime() - this.startTime;
+        const wasDragging = this.isDragging && !this.scrollLocked;
 
-        // Resetear transformación
+        // Resetear transformación siempre (aunque el gesto se haya soltado antes)
         const currentSection = document.querySelector( '.tab-content:not(.hidden)' );
-        if ( currentSection ) {
+        if ( currentSection && ( this.isDragging || currentSection.style.transform ) ) {
             currentSection.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
             currentSection.style.transform = 'translateX(0)';
             currentSection.style.opacity = '1';
@@ -402,13 +474,11 @@ class SwipeNavigation {
 
         this.hideSwipeIndicator();
 
-        if ( this.isDragging && !this.scrollLocked ) {
+        if ( wasDragging ) {
             this.processSwipe( diffX, elapsedTime );
         }
 
-        this.isDragging = false;
-        this.scrollLocked = false;
-        this.scrollDirection = null;
+        this.resetGesture();
     }
 
     processSwipe( diffX, elapsedTime ) {
@@ -520,3 +590,7 @@ class SwipeNavigation {
 document.addEventListener( 'DOMContentLoaded', () => {
     new SwipeNavigation( 'main', '.tab-btn' );
 } );
+
+// Kill-switch global: window.__swipeEnabled = false desactiva el swipe
+// (scroll y taps quedan 100% nativos) sin tocar el resto de la app.
+window.__swipeEnabled = window.__swipeEnabled !== false;
