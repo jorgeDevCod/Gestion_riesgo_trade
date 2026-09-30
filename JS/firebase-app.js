@@ -908,8 +908,9 @@ function renderTrades() {
     </td>
 
     <td class="p-3 text-sm font-medium w-[12%]">
-        <span class="inline-block truncate" title="${strategyName}">
-            ${strategyName}
+        <span class="inline-flex items-center gap-1.5" title="${strategyName}">
+            <span class="w-2 h-2 rounded-full ${strategyDotClass( trade.strategy )} flex-shrink-0"></span>
+            <span class="inline-block truncate">${strategyName}</span>
         </span>
     </td>
 
@@ -939,7 +940,7 @@ function renderTrades() {
         ${resultBadge}
     </td>
 
-    <td class="p-3 ${pnlClass} font-bold text-sm font-mono text-right w-[8%]">
+    <td class="p-3 ${pnlClass} font-bold text-sm font-mono text-right w-[8%]" title="${tradeRiskTitle( trade )}">
         ${pnlValue >= 0 ? '+' : ''}$${pnlValue.toFixed( 2 )}
     </td>
 
@@ -953,7 +954,7 @@ function renderTrades() {
     </td>
 
     <td class="p-3 w-[6%]">
-        <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity justify-end">
+        <div class="flex gap-1 md:opacity-0 md:group-hover:opacity-100 transition-opacity justify-end">
             <button onclick="showEditTradeModal('${trade.id}')" 
                     class="text-blue-400 hover:text-blue-300 hover:bg-blue-900/30 text-xs px-2 py-1 rounded transition-all"
                     title="Editar trade">✏️</button>
@@ -1613,6 +1614,9 @@ function updateDisciplineDisplay( slPercent, limitPercent, riskPercent ) {
                 'bg-gradient-to-r from-red-500 to-red-400'
             }`;
     }
+
+    // Resumen del día con datos reales (trades hoy, P&L vs límite, racha)
+    renderDisciplineToday();
 
     // Mostrar alerta si la disciplina es baja
     if ( overallDiscipline < 70 ) {
@@ -2709,6 +2713,120 @@ function calculatePnLFromPrices() {
     calculatedPnLEl.className = `font-bold ${result.pnl >= 0 ? "text-green-400" : "text-red-400"}`;
 }
 
+// ===== COHERENCIA MODALES ⇄ ESTRATEGIAS ⇄ DISCIPLINA =====
+// Sugerencia viva según la estrategia elegida (no pisa datos: solo sugiere).
+function tradeSuggestion( strategy ) {
+    const config = strategyConfigs[ strategy ] || strategyConfigs.regulares;
+    const optimal = calculateOptimalContractsWithEffectiveCapital( strategy );
+    return {
+        contracts: Math.max( 1, optimal || 1 ),
+        sl: config.stopLoss,
+        tp: config.takeProfit1,
+        config
+    };
+}
+
+function renderTradeStrategyHint( prefix ) {
+    const isEdit = prefix === "edit";
+    const sel = document.getElementById( isEdit ? "editTradeStrategy" : "tradeStrategy" );
+    const box = document.getElementById( isEdit ? "editTradeStrategyHint" : "tradeStrategyHint" );
+    if ( !sel || !box ) return;
+    const config = strategyConfigs[ sel.value ];
+    if ( !config ) { box.innerHTML = ""; return; }
+    const sug = tradeSuggestion( sel.value );
+    box.innerHTML = `
+        <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+            <span class="text-gold font-semibold">${config.name}</span>
+            <span class="text-gray-400">WR ${config.winRate}%</span>
+            <span class="text-gray-400">R:R ${config.rrRatio}:1</span>
+            <span class="text-gray-400">Riesgo ${config.riskPercent}%</span>
+            <span class="text-gray-400">Sugerido: <b class="text-white">${sug.contracts} contr.</b> · SL ${sug.sl} · TP ${sug.tp}</span>
+            <button type="button" onclick="applyTradeSuggestion('${prefix}')"
+                    class="text-xs px-2 py-1 bg-blue-800 hover:bg-blue-700 rounded transition-colors">Usar sugeridos</button>
+        </div>`;
+}
+
+function applyTradeSuggestion( prefix ) {
+    const isEdit = prefix === "edit";
+    const sel = document.getElementById( isEdit ? "editTradeStrategy" : "tradeStrategy" );
+    if ( !sel || !sel.value ) return;
+    const sug = tradeSuggestion( sel.value );
+    const set = ( id, v ) => { const el = document.getElementById( id ); if ( el ) { el.value = v; el.dispatchEvent( new Event( "input", { bubbles: true } ) ); } };
+    set( isEdit ? "editTradeContracts" : "tradeContracts", sug.contracts );
+    set( isEdit ? "editTradeSL" : "tradeSL", sug.sl );
+    set( isEdit ? "editTradeTP" : "tradeTP", sug.tp );
+    if ( isEdit ) calculateEditPnLFromPrices(); else calculatePnLFromPrices();
+}
+
+// P&L en vivo para el modal de edición (paridad con Nuevo Trade).
+function calculateEditPnLFromPrices() {
+    const entryPrice = parseFloat( document.getElementById( "editOpenPrice" )?.value || 0 );
+    const exitPrice = parseFloat( document.getElementById( "editClosePrice" )?.value || 0 );
+    const contracts = parseInt( document.getElementById( "editTradeContracts" )?.value || 1 );
+    const direction = document.getElementById( "editTradeDirection" )?.value;
+    const el = document.getElementById( "calculatedEditPnL" );
+    if ( !el ) return;
+    if ( !exitPrice || !entryPrice || !contracts || !direction ) {
+        el.textContent = "$0.00";
+        el.className = "font-bold text-gray-400";
+        return;
+    }
+    const result = calculateTradeResult( entryPrice, exitPrice, direction, contracts );
+    el.textContent = `$${result.pnl.toFixed( 2 )}`;
+    el.className = `font-bold ${result.pnl >= 0 ? "text-green-400" : "text-red-400"}`;
+}
+
+// Punto de color por estrategia (mismo lenguaje que el Dashboard).
+function strategyDotClass( strategyId ) {
+    const known = {
+        'regulares': 'bg-blue-400',
+        'estructura-confluencia': 'bg-cyan-400',
+        'ema-macd': 'bg-purple-400',
+        'contra-tendencia': 'bg-orange-400'
+    };
+    if ( known[ strategyId ] ) return known[ strategyId ];
+    try {
+        const c = window.StrategyStore && window.StrategyStore.getById( strategyId )?.color;
+        const map = { blue: 'bg-blue-400', cyan: 'bg-cyan-400', purple: 'bg-purple-400', orange: 'bg-orange-400', green: 'bg-green-400', red: 'bg-red-400', yellow: 'bg-yellow-400', pink: 'bg-pink-400' };
+        if ( c && map[ c ] ) return map[ c ];
+    } catch ( e ) { /* fallback */ }
+    const palette = [ 'bg-blue-400', 'bg-cyan-400', 'bg-purple-400', 'bg-orange-400', 'bg-green-400', 'bg-pink-400', 'bg-yellow-400' ];
+    let h = 0;
+    String( strategyId ).split( '' ).forEach( ch => { h = ( h * 31 + ch.charCodeAt( 0 ) ) >>> 0; } );
+    return palette[ h % palette.length ];
+}
+
+// Tooltip de riesgo por trade (contratos×SL y R:R).
+function tradeRiskTitle( trade ) {
+    const c = trade.totalContracts || trade.contracts || 0;
+    const sl = parseFloat( trade.sl ) || 0;
+    const tp = parseFloat( trade.tp ) || 0;
+    const rr = sl > 0 ? `${( tp / sl ).toFixed( 2 )}:1` : '—';
+    return `Riesgo: $${( c * sl ).toFixed( 2 )} · R:R ${rr} · SL ${sl} / TP ${tp} pips`;
+}
+
+// Fila "Hoy" en Disciplina con datos reales (límite 3, P&L vs 5%, racha).
+function renderDisciplineToday() {
+    const el = document.getElementById( "discTodayRow" );
+    if ( !el ) return;
+    try {
+        const today = new Date().toISOString().split( "T" )[ 0 ];
+        const todayTrades = ( trades || [] ).filter( t => t.date === today );
+        const dailyPnL = calculateDailyPnL();
+        const maxRisk = calculateEffectiveCapital() * 0.05;
+        const closed = ( trades || [] )
+            .filter( t => t.closed )
+            .sort( ( a, b ) => String( b.date ).localeCompare( String( a.date ) ) );
+        let streak = 0;
+        for ( const t of closed ) { if ( t.result === 'win' ) streak++; else break; }
+        const pnlCls = dailyPnL >= 0 ? "text-green-400" : "text-red-400";
+        el.innerHTML = `
+            <div><div class="text-sm font-bold text-white">${todayTrades.length}/3</div><div class="text-[10px] text-gray-400">Trades hoy</div></div>
+            <div><div class="text-sm font-bold ${pnlCls}">$${dailyPnL.toFixed( 2 )}</div><div class="text-[10px] text-gray-400">P&L día (lím. $${maxRisk.toFixed( 0 )})</div></div>
+            <div><div class="text-sm font-bold text-gold">${streak ? `🔥 ${streak}` : "—"}</div><div class="text-[10px] text-gray-400">Racha ganadora</div></div>`;
+    } catch ( e ) { /* noop */ }
+}
+
 function exportTradesToCSV() {
     if ( trades.length === 0 ) {
         alert( "No hay trades para exportar" );
@@ -2790,6 +2908,8 @@ function showEditTradeModal( tradeId ) {
 
     setTimeout( () => {
         addRealTimeValidationsToEditModal();
+        renderTradeStrategyHint( "edit" );
+        calculateEditPnLFromPrices();
     }, 100 );
 }
 
@@ -2956,26 +3076,6 @@ function addRealTimeValidationsToEditModal() {
     } );
 
     validateEditForm();
-}
-
-function updateTrade() {
-    if ( !editingTradeId ) return;
-
-    const updatedData = {
-        date: document.getElementById( "editTradeDate" ).value,
-        strategy: document.getElementById( "editTradeStrategy" ).value,
-        symbol: document.getElementById( "editTradeSymbol" ).value.toUpperCase() || 'XAUUSD', // NUEVO
-        direction: document.getElementById( "editTradeDirection" ).value,
-        contracts: parseInt( document.getElementById( "editTradeContracts" ).value ),
-        sl: parseFloat( document.getElementById( "editTradeSL" ).value ),
-        tp: parseFloat( document.getElementById( "editTradeTP" ).value ),
-        comments: document.getElementById( "editTradeComments" ).value || "",
-    };
-
-    editTrade( editingTradeId, updatedData );
-    hideModal( "editTradeModal" );
-    editingTradeId = null;
-    updateSyncStatus( "Trade actualizado correctamente", true );
 }
 
 function savePostTradeAnalysis() {
@@ -4682,6 +4782,7 @@ document.addEventListener( "DOMContentLoaded", function () {
         // AGREGAR: Inicializar validaciones después de mostrar modal
         setTimeout( () => {
             addRealTimeValidations();
+            renderTradeStrategyHint( "" );
         }, 100 );
     } );
 
@@ -4737,6 +4838,21 @@ document.addEventListener( "DOMContentLoaded", function () {
         }
     );
 
+    // P&L en vivo en edición + contexto de estrategia en ambos modales
+    [ "editOpenPrice", "editClosePrice", "editTradeContracts", "editTradeDirection" ].forEach(
+        ( id ) => {
+            document
+                .getElementById( id )
+                ?.addEventListener( "input", calculateEditPnLFromPrices );
+        }
+    );
+    document
+        .getElementById( "tradeStrategy" )
+        ?.addEventListener( "change", () => renderTradeStrategyHint( "" ) );
+    document
+        .getElementById( "editTradeStrategy" )
+        ?.addEventListener( "change", () => renderTradeStrategyHint( "edit" ) );
+
     // ===== DISCIPLINE =====
     document
         .getElementById( "addObservationBtn" )
@@ -4777,6 +4893,7 @@ document.addEventListener( "DOMContentLoaded", function () {
             const updatedData = {
                 date: document.getElementById( "editTradeDate" ).value,
                 strategy: document.getElementById( "editTradeStrategy" ).value,
+                symbol: document.getElementById( "editTradeSymbol" ).value.toUpperCase() || 'XAUUSD',
                 direction: document.getElementById( "editTradeDirection" ).value,
                 contracts: parseInt(
                     document.getElementById( "editTradeContracts" ).value
