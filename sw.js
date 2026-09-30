@@ -1,4 +1,4 @@
-const CACHE_NAME = 'Gestor-tradeApp-V2.8'; //
+const CACHE_NAME = 'Gestor-tradeApp-V2.9'; //
 const urlsToCache = [
     './',
     './index.html',
@@ -10,6 +10,7 @@ const urlsToCache = [
     './src/image/logoGtd-512r.png',
     './src/logoApp-roud.webp',
     './logoApp.webp',
+    './og-image.png',
     './JS/firebase-app.js',
     './JS/strategies-manager.js',
     './JS/confluence.js',
