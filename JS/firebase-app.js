@@ -945,12 +945,12 @@ function renderTrades() {
     </td>
 
     <td class="p-3 w-[8%] max-w-[150px]">
-        <span class="cursor-pointer text-blue-400 hover:text-blue-300 text-xs truncate block" 
-              onclick="showCommentTooltip(event, '${( trade.comments || '' ).replace( /'/g, "\\'" )}')">
+        <button type="button" data-comment="${escapeHtml( trade.comments || '' )}"
+              class="comment-cell cursor-pointer text-blue-400 hover:text-blue-300 text-xs truncate block w-full text-left">
             ${trade.comments && trade.comments.length > 20
-                ? trade.comments.substring( 0, 20 ) + "..."
-                : ( trade.comments || '📝 Sin notas' )}
-        </span>
+                ? escapeHtml( trade.comments.substring( 0, 20 ) ) + "..."
+                : ( escapeHtml( trade.comments ) || '📝 Sin notas' )}
+        </button>
     </td>
 
     <td class="p-3 w-[6%]">
@@ -1478,7 +1478,7 @@ function renderObservations() {
                     <div class="flex justify-between items-start mb-3">
                         <span class="text-xs text-gray-500 flex items-center gap-1">
                             <span>📅</span>
-                            <span>${obs.date}</span>
+                            <span>${escapeHtml( obs.date )}</span>
                         </span>
                         <button onclick="deleteObservation('${obs.id}')" 
                                 class="text-red-400 hover:text-red-300 text-sm transition-colors hover:scale-110"
@@ -1489,7 +1489,7 @@ function renderObservations() {
                     
                     <!-- Contenido de la observación -->
                     <div class="text-sm text-gray-200 leading-relaxed break-words">
-                        ${obs.text}
+                        ${escapeHtml( obs.text )}
                     </div>
                     
                     <!-- Indicador de tipo (si existe) -->
@@ -1988,28 +1988,33 @@ function updateStrategyDisplay() {
 }
 
 // ===== INICIALIZACIÓN MEJORADA =====
+// Punto único de binding para los selectores de estrategia (evita listeners duplicados).
+function bindStrategySelectors() {
+    const capitalSelect = document.getElementById( 'strategySelect' );
+    if ( capitalSelect && !capitalSelect.dataset.bound ) {
+        capitalSelect.dataset.bound = '1';
+        capitalSelect.addEventListener( 'change', function () {
+            updateStrategyDisplay();
+        } );
+    }
+
+    const signalsSelect = document.getElementById( 'signalStrategySelect' );
+    if ( signalsSelect && !signalsSelect.dataset.bound ) {
+        signalsSelect.dataset.bound = '1';
+        let debounceTimer;
+        signalsSelect.addEventListener( 'change', function () {
+            updateStrategyDisplay();
+            clearTimeout( debounceTimer );
+            debounceTimer = setTimeout( () => {
+                renderSetupChecklist();
+            }, 200 );
+        } );
+    }
+}
+
 function initializeStrategyCalculator() {
     console.log( 'Inicializando calculadora de estrategia...' );
-
-    // Event listener para dropdown de Capital
-    const capitalStrategySelect = document.getElementById( 'strategySelect' );
-    if ( capitalStrategySelect ) {
-        capitalStrategySelect.addEventListener( 'change', function () {
-            console.log( "Capital strategy changed to:", this.value );
-            updateStrategyDisplay();
-        } );
-        console.log( 'Listener agregado al dropdown de Capital' );
-    }
-
-    // Event listener para dropdown de Signals  
-    const signalsStrategySelect = document.getElementById( 'signalStrategySelect' );
-    if ( signalsStrategySelect ) {
-        signalsStrategySelect.addEventListener( 'change', function () {
-            console.log( "Signals strategy changed to:", this.value );
-            updateStrategyDisplay();
-        } );
-        console.log( 'Listener agregado al dropdown de Signals' );
-    }
+    bindStrategySelectors();
 
     // Verificar capital actual
     console.log( 'Capital efectivo actual:', calculateEffectiveCapital() );
@@ -2136,19 +2141,8 @@ function renderDynamicChecklist( strategy ) {
 
 // Función actualizada para el listener del selector de estrategia
 function setupImprovedStrategyListeners() {
-    const strategySelector = document.getElementById( "signalStrategySelect" );
-
-    if ( strategySelector ) {
-        let debounceTimer;
-
-        strategySelector.addEventListener( "change", function () {
-            clearTimeout( debounceTimer );
-            debounceTimer = setTimeout( () => {
-                console.log( "Strategy changed to:", this.value );
-                renderSetupChecklist();
-            }, 200 );
-        } );
-    }
+    // Compat: ahora todo el binding vive en bindStrategySelectors()
+    bindStrategySelectors();
 }
 
 // Función para actualizar solo el display del score
@@ -2375,6 +2369,7 @@ function executeValidatedSetup() {
 
             // Mostrar modal de trade
             showModal( "tradeModal" );
+            setTimeout( () => renderTradeStrategyHint( "" ), 100 );
 
             // Limpiar checklist tras uso exitoso
             setTimeout( () => {
@@ -2825,6 +2820,13 @@ function renderDisciplineToday() {
             <div><div class="text-sm font-bold ${pnlCls}">$${dailyPnL.toFixed( 2 )}</div><div class="text-[10px] text-gray-400">P&L día (lím. $${maxRisk.toFixed( 0 )})</div></div>
             <div><div class="text-sm font-bold text-gold">${streak ? `🔥 ${streak}` : "—"}</div><div class="text-[10px] text-gray-400">Racha ganadora</div></div>`;
     } catch ( e ) { /* noop */ }
+}
+
+// Escape central para todo texto de usuario que se inyecta en HTML.
+function escapeHtml( s ) {
+    return String( s == null ? '' : s )
+        .replace( /&/g, '&amp;' ).replace( /</g, '&lt;' ).replace( />/g, '&gt;' )
+        .replace( /"/g, '&quot;' ).replace( /'/g, '&#39;' );
 }
 
 function exportTradesToCSV() {
@@ -3700,6 +3702,7 @@ function showEnhancedTradeModal( prefilledData = {} ) {
 
     addRealTimeValidations();
     showModal( "tradeModal" );
+    setTimeout( () => renderTradeStrategyHint( "" ), 100 );
 }
 
 // ===== INDICADORES VISUALES DE LÍMITES =====
@@ -4608,10 +4611,7 @@ document.addEventListener( "DOMContentLoaded", function () {
         if ( input ) input.value = today;
     } );
 
-    const strategySelect = document.getElementById( 'strategySelect' );
-    if ( strategySelect ) {
-        strategySelect.addEventListener( 'change', updateStrategyDisplay );
-    }
+    // Los listeners de estrategia se bindean una sola vez en initializeStrategyCalculator()
     updateStrategyDisplay();
 
     // ===== AUTH EVENT LISTENERS =====
@@ -4800,6 +4800,14 @@ document.addEventListener( "DOMContentLoaded", function () {
     document
         .getElementById( "filterDate" )
         ?.addEventListener( "change", renderTrades );
+
+    // Tooltip de comentarios delegado (un solo listener, sin onclick inline)
+    document
+        .getElementById( "tradesTableBody" )
+        ?.addEventListener( "click", function ( e ) {
+            const cell = e.target.closest( ".comment-cell" );
+            if ( cell ) showCommentTooltip( e, cell.dataset.comment || "" );
+        } );
 
     // Formulario de trade
     document.getElementById( "tradeForm" )?.addEventListener( "submit", function ( e ) {

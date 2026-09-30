@@ -542,7 +542,18 @@ function getStrategyName( key ) {
         'ema-macd': 'EMA+MACD',
         'contra-tendencia': 'Contra-T'
     };
-    return names[ key ] || key;
+    if ( names[ key ] ) return names[ key ];
+    // Estrategias personalizadas: resolver desde la config sincronizada
+    try {
+        if ( typeof strategyConfigs !== 'undefined' && strategyConfigs[ key ]?.name ) {
+            return strategyConfigs[ key ].name;
+        }
+        if ( typeof window !== 'undefined' && window.StrategyStore ) {
+            const s = window.StrategyStore.getById( key );
+            if ( s?.name ) return ( s.emoji ? s.emoji + ' ' : '' ) + s.name;
+        }
+    } catch ( e ) { /* fallback al slug */ }
+    return key;
 }
 
 function updateAllCharts() {
