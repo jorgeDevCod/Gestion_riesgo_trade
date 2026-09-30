@@ -9,7 +9,13 @@
     <link rel="stylesheet" href="./CSS/aditional.css">
     <link rel="stylesheet" href="./dist/output.css">
     <link rel="icon" type="image/webp" href="./logoApp.webp">
+    <link rel="apple-touch-icon" href="./src/image/logoGtd-192r.png">
     <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#0f172a">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="TradeApp">
 
     <!-- Chart.js PRIMERO -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -32,11 +38,14 @@
     <!-- 🌍 NUEVO: Market Sessions Tracker -->
     <script src="./JS/market-sessions.js"></script>
 
-    <!-- PWA Service Worker -->
+    <!-- ⚙️ NUEVO: Estrategias y señales dinámicas (solo local, sin romper legacy) -->
+    <script src="./JS/strategies-manager.js"></script>
+
+    <!-- PWA Service Worker (ruta relativa: funciona en raíz y subrutas) -->
     <script>
         if ( 'serviceWorker' in navigator ) {
             window.addEventListener( 'load', function () {
-                navigator.serviceWorker.register( '/sw.js' )
+                navigator.serviceWorker.register( './sw.js' )
                     .then( ( registration ) => {
                         console.log( 'Service Worker registrado con éxito:', registration.scope );
                     } )
@@ -902,6 +911,15 @@
                             </div>
                         </header>
 
+                        <!-- ⚙️ Gestión dinámica de estrategias (no altera lógica existente) -->
+                        <div class="flex flex-wrap gap-2 mb-4">
+                            <button id="newStrategyBtn" type="button" class="flex-1 bg-green-700 hover:bg-green-600 px-3 py-2 rounded-lg text-sm font-medium transition-colors">➕ Nueva estrategia</button>
+                            <button id="editStrategyBtn" type="button" class="flex-1 bg-blue-700 hover:bg-blue-600 px-3 py-2 rounded-lg text-sm font-medium transition-colors">⚙️ Editar estrategia</button>
+                            <button id="exportStrategiesBtn" type="button" title="Descargar respaldo JSON" class="bg-gray-700 hover:bg-gray-600 px-3 py-2 rounded-lg text-sm font-medium transition-colors">📥</button>
+                            <button id="importStrategiesBtn" type="button" title="Restaurar respaldo JSON" class="bg-gray-700 hover:bg-gray-600 px-3 py-2 rounded-lg text-sm font-medium transition-colors">📤</button>
+                            <input type="file" id="importStrategiesFile" accept=".json,application/json" class="hidden">
+                        </div>
+
                         <!-- Información rápida de la estrategia -->
                         <div id="quickStrategyInfo" class="grid grid-cols-4 gap-2 mb-6">
                             <div class="bg-trading-dark p-2 rounded text-center">
@@ -963,7 +981,10 @@
                 <!-- STRATEGY TEMPLATES DISPLAY - DERECHA (50%) -->
                 <div class="lg:col-span-1">
                     <article class="bg-trading-dark p-6 rounded-lg border border-gray-700 h-full">
-                        <h3 class="text-xl font-semibold text-gold mb-4">🎯 Setup Actual</h3>
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-xl font-semibold text-gold">🎯 Setup Actual</h3>
+                            <button id="editSetupBtn" type="button" class="text-xs px-3 py-1.5 bg-blue-700 hover:bg-blue-600 rounded-lg font-medium transition-colors">✏️ Editar setup</button>
+                        </div>
 
                         <!-- Contenedor para mostrar los templates de estrategia -->
                         <div id="strategyTemplateDisplay" class="h-full overflow-y-auto">
@@ -2391,6 +2412,127 @@
     <!-- Indicador de swipe -->
     <div id="swipeIndicator" class="swipe-indicator">
         <span id="swipeText">← Desliza →</span>
+    </div>
+
+    <!-- ⚙️ MODAL: Crear / Editar estrategia (título, descripción, horarios, params, setup Compra/Venta) -->
+    <div id="strategyModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
+        <div class="bg-trading-dark p-6 rounded-lg border border-gray-700 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+            <h3 id="strategyModalTitle" class="text-xl font-semibold text-gold mb-4">➕ Nueva estrategia</h3>
+            <form id="strategyForm" class="space-y-4">
+                <input type="hidden" id="editingStrategyId">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div class="sm:col-span-2">
+                        <label class="block text-sm font-medium mb-2">Título de la estrategia *</label>
+                        <input type="text" id="strategyName" class="w-full p-2 bg-gray-800 border border-gray-600 rounded-lg text-white" placeholder="Ej: Ruptura NY" maxlength="60" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Emoji</label>
+                        <input type="text" id="strategyEmoji" class="w-full p-2 bg-gray-800 border border-gray-600 rounded-lg text-white" maxlength="4" value="📌">
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Color</label>
+                        <select id="strategyColor" class="w-full p-2 bg-gray-800 border border-gray-600 rounded-lg text-white">
+                            <option value="blue">🔵 Azul</option>
+                            <option value="cyan">🩵 Cian</option>
+                            <option value="purple">🟣 Morado</option>
+                            <option value="orange">🟠 Naranja</option>
+                            <option value="green">🟢 Verde</option>
+                            <option value="red">🔴 Rojo</option>
+                            <option value="yellow">🟡 Dorado</option>
+                            <option value="pink">🩷 Rosa</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Horario / sesión operativa</label>
+                        <input type="text" id="strategySession" class="w-full p-2 bg-gray-800 border border-gray-600 rounded-lg text-white" placeholder="Ej: NY 08:00-11:00" maxlength="80">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Descripción</label>
+                    <textarea id="strategyDescription" class="w-full p-2 bg-gray-800 border border-gray-600 rounded-lg text-white" rows="2" placeholder="Resumen de la estrategia..." maxlength="300"></textarea>
+                </div>
+                <div class="bg-gray-900 p-3 rounded-lg border border-gray-700">
+                    <h4 class="font-semibold text-blue-400 mb-2 text-sm">💰 Parámetros</h4>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <div><label class="block text-xs mb-1">Win Rate %</label><input type="number" id="strategyWinRate" class="w-full p-2 bg-gray-800 border border-gray-600 rounded-lg text-white" min="1" max="100" step="1" value="60"></div>
+                        <div><label class="block text-xs mb-1">R:R</label><input type="number" id="strategyRR" class="w-full p-2 bg-gray-800 border border-gray-600 rounded-lg text-white" min="0.5" max="10" step="0.1" value="2"></div>
+                        <div><label class="block text-xs mb-1">SL (pips)</label><input type="number" id="strategySL" class="w-full p-2 bg-gray-800 border border-gray-600 rounded-lg text-white" min="1" step="0.5" value="6"></div>
+                        <div><label class="block text-xs mb-1">Riesgo %</label><input type="number" id="strategyRisk" class="w-full p-2 bg-gray-800 border border-gray-600 rounded-lg text-white" min="0.5" max="10" step="0.1" value="2.5"></div>
+                        <div><label class="block text-xs mb-1">TP1 (pips)</label><input type="number" id="strategyTP1" class="w-full p-2 bg-gray-800 border border-gray-600 rounded-lg text-white" min="1" step="1" value="12"></div>
+                        <div><label class="block text-xs mb-1">TP2 (pips)</label><input type="number" id="strategyTP2" class="w-full p-2 bg-gray-800 border border-gray-600 rounded-lg text-white" min="1" step="1" value="20"></div>
+                        <div><label class="block text-xs mb-1">Riesgo mín %</label><input type="number" id="strategyMinRisk" class="w-full p-2 bg-gray-800 border border-gray-600 rounded-lg text-white" min="0.5" max="10" step="0.1" value="2"></div>
+                        <div><label class="block text-xs mb-1">Riesgo máx %</label><input type="number" id="strategyMaxRisk" class="w-full p-2 bg-gray-800 border border-gray-600 rounded-lg text-white" min="0.5" max="10" step="0.1" value="5"></div>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">🚫 Invalidación (una por línea)</label>
+                    <textarea id="strategyInvalidacion" class="w-full p-2 bg-gray-800 border border-gray-600 rounded-lg text-white text-sm" rows="3"></textarea>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">🟢 Título Compras</label>
+                        <input type="text" id="strategyComprasTitulo" class="w-full p-2 bg-gray-800 border border-gray-600 rounded-lg text-white text-sm" value="🟢 SETUP COMPRAS">
+                        <div id="comprasPasos" class="space-y-2 mt-2"></div>
+                        <button type="button" id="addCompraPasoBtn" class="mt-2 text-xs px-2 py-1 bg-green-800 hover:bg-green-700 rounded">+ Añadir paso compra</button>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">🔴 Título Ventas</label>
+                        <input type="text" id="strategyVentasTitulo" class="w-full p-2 bg-gray-800 border border-gray-600 rounded-lg text-white text-sm" value="🔴 SETUP VENTAS">
+                        <div id="ventasPasos" class="space-y-2 mt-2"></div>
+                        <button type="button" id="addVentaPasoBtn" class="mt-2 text-xs px-2 py-1 bg-red-800 hover:bg-red-700 rounded">+ Añadir paso venta</button>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">⚡ Confluencias (una por línea)</label>
+                    <textarea id="strategyConfluencias" class="w-full p-2 bg-gray-800 border border-gray-600 rounded-lg text-white text-sm" rows="2"></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">🎯 Entrada</label>
+                    <textarea id="strategyEntrada" class="w-full p-2 bg-gray-800 border border-gray-600 rounded-lg text-white text-sm" rows="2"></textarea>
+                </div>
+                <div class="flex flex-col sm:flex-row gap-2">
+                    <button type="submit" class="flex-1 bg-profit hover:bg-green-600 px-4 py-2 rounded-lg font-medium">💾 Guardar estrategia</button>
+                    <button type="button" id="deleteStrategyBtn" class="bg-red-700 hover:bg-red-600 px-4 py-2 rounded-lg font-medium" style="display:none">🗑️ Eliminar</button>
+                    <button type="button" id="cancelStrategyBtn" class="flex-1 bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded-lg font-medium">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ⚙️ MODAL: Crear / Editar señal (descripción, timeframe, sesión, etiquetas) -->
+    <div id="signalModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
+        <div class="bg-trading-dark p-6 rounded-lg border border-gray-700 w-full max-w-lg mx-4">
+            <h3 id="signalModalTitle" class="text-xl font-semibold text-gold mb-4">➕ Nueva señal</h3>
+            <form id="signalForm" class="space-y-4">
+                <input type="hidden" id="editingSignalStrategy">
+                <input type="hidden" id="editingSignalId">
+                <div>
+                    <label class="block text-sm font-medium mb-2">Descripción de la señal *</label>
+                    <textarea id="signalDescription" class="w-full p-2 bg-gray-800 border border-gray-600 rounded-lg text-white" rows="3" placeholder="Ej: Estructura alcista + MACD sin divergencia..." required></textarea>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">⏱ Timeframe</label>
+                        <input type="text" id="signalTimeframe" list="tfList" class="w-full p-2 bg-gray-800 border border-gray-600 rounded-lg text-white" placeholder="4H/1H">
+                        <datalist id="tfList"><option value="4H/1H"></option><option value="1H/15M"></option><option value="15M/5M"></option><option value="5M/3M"></option><option value="4H"></option><option value="1H"></option><option value="15M"></option></datalist>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">🕐 Sesión</label>
+                        <input type="text" id="signalSession" class="w-full p-2 bg-gray-800 border border-gray-600 rounded-lg text-white" placeholder="Todas / Londres / NY">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">🏷️ Etiquetas (separadas por coma)</label>
+                    <input type="text" id="signalTags" class="w-full p-2 bg-gray-800 border border-gray-600 rounded-lg text-white" placeholder="MACD, Volumen, S/R">
+                </div>
+                <div class="flex space-x-3">
+                    <button type="submit" class="flex-1 bg-profit hover:bg-green-600 px-4 py-2 rounded-lg font-medium">💾 Guardar señal</button>
+                    <button type="button" id="cancelSignalBtn" class="flex-1 bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded-lg font-medium">Cancelar</button>
+                </div>
+            </form>
+        </div>
     </div>
 
 </body>

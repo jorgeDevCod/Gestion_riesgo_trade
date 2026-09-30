@@ -29,7 +29,6 @@ let observations = [];
 let withdrawals = [];
 let capitalAdditions = [];
 let currentCapital = 0;
-let currentSelectedStrategy = 'regulares';
 let currentTab = "signals";
 let currentUser = null;
 let isInitializing = true;
@@ -1173,6 +1172,21 @@ function updateCapitalBreakdown() {
     document.getElementById( "profitFactor" ).textContent = calculateProfitFactor();  // Factor Beneficio
 }
 
+// Botón "Actualizar" del Desglose de Capital (index.html): re-render manual.
+function refreshCapitalBreakdown() {
+    try {
+        renderCapitalSection();
+        updateCapitalBreakdown();
+        updateStrategyDisplay();
+        renderCapitalMovementsTable();
+        if ( window.updateAllCharts ) window.updateAllCharts();
+        updateSyncStatus( "Capital actualizado", true );
+    } catch ( error ) {
+        console.error( "Error en refreshCapitalBreakdown:", error );
+        updateSyncStatus( "Error actualizando capital", false );
+    }
+}
+
 function calculateCapitalGrowth() {
     const effectiveCapital = calculateEffectiveCapital();
     if ( currentCapital === 0 ) return "0%";
@@ -1781,33 +1795,6 @@ function renderCapitalMovementsTable() {
     const countElement = document.getElementById( 'totalMovementsCount' );
     if ( countElement ) {
         countElement.textContent = allMovements.length.toString();
-    }
-}
-
-// Asegurar que renderAllData incluya la tabla de movimientos
-function renderAllData() {
-    try {
-        updateDailyCountersFromTrades();
-        renderDashboard();
-        renderCapitalSection();
-        renderTrades();
-        renderObservations();
-        renderRecentWithdrawals();
-        renderCapitalMovementsTable();
-        updateCapitalBreakdown();
-        updateStrategyDisplay();
-
-        // ✅ AGREGAR ESTA LÍNEA
-        updateDisciplineIndicators();
-
-        if ( currentTab === "signals" ) {
-            renderSetupChecklist();
-        }
-
-        // ... resto del código
-    } catch ( error ) {
-        console.error( "Error en renderAllData:", error );
-        updateSyncStatus( "Error actualizando datos", false );
     }
 }
 
@@ -3121,19 +3108,6 @@ function setupButtonListeners() {
             } );
         }
     } );
-
-    // Utilidades adicionales
-    const utilityButtons = [
-        { id: "selectAllBtn", action: () => toggleAllCheckboxes( true ) },
-        { id: "clearAllBtn", action: () => toggleAllCheckboxes( false ) },
-    ];
-
-    utilityButtons.forEach( ( { id, action } ) => {
-        const btn = document.getElementById( id );
-        if ( btn ) {
-            btn.addEventListener( "click", action );
-        }
-    } );
 }
 
 function initializeAllListeners() {
@@ -3233,6 +3207,7 @@ function renderAllData() {
         renderCapitalMovementsTable();
         updateCapitalBreakdown();
         updateStrategyDisplay();
+        updateDisciplineIndicators();
 
         if ( currentTab === "signals" ) {
             renderSetupChecklist();
@@ -3663,8 +3638,6 @@ function updateRiskIndicators() {
     }
 }
 
-const originalExecuteValidatedSetup = executeValidatedSetup;
-
 function executeValidatedSetupWithRisk() {
     checkAndResetDailyCounters();
 
@@ -3778,14 +3751,6 @@ function updateSetupRequirements( minScore = 85 ) {
 function closeDisciplinaryMessage() {
     const messageContainer = document.getElementById( "disciplinaryMessages" );
     if ( messageContainer ) messageContainer.remove();
-}
-
-function updateStrategyOptions() {
-    const strategySelects = document.querySelectorAll( 'select[id*="Strategy"]' );
-    strategySelects.forEach( ( select ) => {
-        const extremosOption = select.querySelector( 'option[value="extremos"]' );
-        if ( extremosOption ) extremosOption.remove();
-    } );
 }
 
 function classifyTradeResult( pnl ) {
