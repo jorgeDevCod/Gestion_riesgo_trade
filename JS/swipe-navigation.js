@@ -63,9 +63,12 @@ class SwipeNavigation {
         this.attachEventListeners();
         this.setupScrollableAreas();
 
-        // Estilos solo para touch devices
+        // Estilos solo para touch devices.
+        // Solo touch-action: el scroll vertical queda en manos del navegador.
+        // NO usar overscroll-behavior:contain aquí: combinado con un main
+        // convertido en scroll-container atraparía el gesto y la página
+        // dejaría de hacer scroll en móvil.
         this.container.style.touchAction = 'pan-y'; // Permitir scroll vertical
-        this.container.style.overscrollBehavior = 'contain';
 
         console.log( 'SwipeNavigation: Inicializado para mobile/tablet' );
     }
